@@ -1,0 +1,637 @@
+"use client";
+
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { SaveState, Manager, loadAllSaves, saveGame, deleteSave as dbDeleteSave, createNewSave as dbCreateNewSave, MatchFixture } from "../db/storage";
+import { simulateMatchHeuristic, autoSelectLineup } from "../engine/simulator";
+import { Player, Club, calculateValue } from "../config/seededData";
+import { generateWeeklyNews } from "../engine/newsGenerator";
+
+interface GameContextType {
+  activeSave: SaveState | null;
+  savesList: SaveState[];
+  loading: boolean;
+  loadSave: (id: string) => void;
+  createNewGame: (saveName: string, manager: Manager, clubId: string, speed: "Quick Sim" | "Detailed Sim") => void;
+  deleteGame: (id: string) => void;
+  updateActiveSave: (state: SaveState) => void;
+  playMatchdayCpuGames: () => void;
+  advanceToNextMatchday: () => void;
+  exitToMainMenu: () => void;
+}
+
+const GameContext = createContext<GameContextType | undefined>(undefined);
+
+export function GameProvider({ children }: { children: React.ReactNode }) {
+  const [activeSave, setActiveSave] = useState<SaveState | null>(null);
+  const [savesList, setSavesList] = useState<SaveState[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load saves on mount
+  useEffect(() => {
+    refreshSaves();
+    // Check if there is an active save in sessionStorage to restore after page reload
+    const storedActiveId = sessionStorage.getItem("gaffer_iq_active_save_id");
+    if (storedActiveId) {
+      const list = loadAllSaves();
+      const found = list.find(s => s.id === storedActiveId);
+      if (found) {
+        setActiveSave(found);
+      }
+    }
+    setLoading(false);
+  }, []);
+
+  const refreshSaves = () => {
+    setSavesList(loadAllSaves());
+  };
+
+  const loadSave = (id: string) => {
+    const list = loadAllSaves();
+    const found = list.find(s => s.id === id);
+    if (found) {
+      setActiveSave(found);
+      sessionStorage.setItem("gaffer_iq_active_save_id", id);
+    }
+  };
+
+  const createNewGame = (saveName: string, manager: Manager, clubId: string, speed: "Quick Sim" | "Detailed Sim") => {
+    const newSave = dbCreateNewSave(saveName, manager, clubId, speed);
+    saveGame(newSave);
+    setActiveSave(newSave);
+    sessionStorage.setItem("gaffer_iq_active_save_id", newSave.id);
+    refreshSaves();
+  };
+
+  const deleteGame = (id: string) => {
+    dbDeleteSave(id);
+    if (activeSave?.id === id) {
+      setActiveSave(null);
+      sessionStorage.removeItem("gaffer_iq_active_save_id");
+    }
+    refreshSaves();
+  };
+
+  const updateActiveSave = (state: SaveState) => {
+    setActiveSave(state);
+    saveGame(state);
+    refreshSaves();
+  };
+
+  const exitToMainMenu = () => {
+    setActiveSave(null);
+    sessionStorage.removeItem("gaffer_iq_active_save_id");
+  };
+
+  // Simulates all matches on the current matchday for other teams
+  const playMatchdayCpuGames = () => {
+    if (!activeSave) return;
+
+    const state = { ...activeSave };
+    const mDay = state.currentMatchday;
+    const playerClubId = state.selectedClubId;
+
+    // Find all fixtures of this matchday
+    const fixturesToSim = state.fixtures.filter(f => f.matchday === mDay && !f.played);
+
+    fixturesToSim.forEach(fixture => {
+      const isPlayerMatch = fixture.homeClubId === playerClubId || fixture.awayClubId === playerClubId;
+      if (isPlayerMatch && fixture.played) {
+        // Player already played and saved it
+        return;
+      }
+      
+      if (isPlayerMatch && !fixture.played) {
+        // Fallback quick-sim for player match in case they skipped
+        const homeClub = state.clubs.find(c => c.id === fixture.homeClubId)!;
+        const awayClub = state.clubs.find(c => c.id === fixture.awayClubId)!;
+        const homeSquad = state.players.filter(p => p.clubId === homeClub.id);
+        const awaySquad = state.players.filter(p => p.clubId === awayClub.id);
+
+        const result = simulateMatchHeuristic(
+          homeClub,
+          awayClub,
+          homeSquad,
+          awaySquad,
+          DEFAULT_TACTICS_MOCK(),
+          DEFAULT_TACTICS_MOCK()
+        );
+
+        fixture.homeScore = result.homeScore;
+        fixture.awayScore = result.awayScore;
+        fixture.played = true;
+        fixture.events = result.events as any;
+        fixture.stats = result.stats;
+        fixture.playerRatings = result.playerRatings;
+        fixture.motmId = result.motmId;
+        fixture.tacticalAnalysis = result.tacticalAnalysis;
+        fixture.pressQuote = result.pressQuote;
+
+        // Update player stats for this game
+        updatePlayerStatsFromFixture(state, fixture, homeSquad, awaySquad);
+        return;
+      }
+
+      // CPU matches
+      const homeClub = state.clubs.find(c => c.id === fixture.homeClubId)!;
+      const awayClub = state.clubs.find(c => c.id === fixture.awayClubId)!;
+      const homeSquad = state.players.filter(p => p.clubId === homeClub.id);
+      const awaySquad = state.players.filter(p => p.clubId === awayClub.id);
+
+      const result = simulateMatchHeuristic(
+        homeClub,
+        awayClub,
+        homeSquad,
+        awaySquad,
+        DEFAULT_TACTICS_MOCK(),
+        DEFAULT_TACTICS_MOCK()
+      );
+
+      fixture.homeScore = result.homeScore;
+      fixture.awayScore = result.awayScore;
+      fixture.played = true;
+      fixture.events = result.events as any;
+      fixture.stats = result.stats;
+      fixture.playerRatings = result.playerRatings;
+      fixture.motmId = result.motmId;
+      
+      updatePlayerStatsFromFixture(state, fixture, homeSquad, awaySquad);
+    });
+
+    // Recompute standings for this matchday
+    rebuildStandings(state);
+
+    updateActiveSave(state);
+  };
+
+  // Advances game logic to the next matchday
+  const advanceToNextMatchday = () => {
+    if (!activeSave) return;
+
+    let state = { ...activeSave };
+    
+    // Ensure current matchday CPU games are simmed
+    const fixturesToSim = state.fixtures.filter(f => f.matchday === state.currentMatchday && !f.played);
+    if (fixturesToSim.length > 0) {
+      playMatchdayCpuGames();
+      // Reload state after sim
+      state = { ...activeSave };
+    }
+
+    const nextMDay = state.currentMatchday + 1;
+    const isEplOrLaLigaOrSerieA = ["EPL", "La Liga", "Serie A"].includes(
+      state.clubs.find(c => c.id === state.selectedClubId)!.league
+    );
+    const maxMatchdays = isEplOrLaLigaOrSerieA ? 38 : 34;
+
+    if (nextMDay > maxMatchdays) {
+      // Season End!
+      // Add season recap message
+      const playerClub = state.clubs.find(c => c.id === state.selectedClubId)!;
+      const standings = state.standings[playerClub.league];
+      const playerPos = standings.findIndex(s => s.clubId === playerClub.id) + 1;
+
+      // Handle Manager Reputation boost based on final position
+      let repGained = 0;
+      let titleMessage = "";
+      if (playerPos === 1) {
+        repGained = 15;
+        state.manager.titlesWon++;
+        state.manager.achievements.push("First Title");
+        titleMessage = "CONGRATULATIONS! You have won the league title! The fans are singing your name in the streets.";
+      } else if (playerPos <= 4) {
+        repGained = 8;
+        titleMessage = "Excellent season! You have qualified for European football next season.";
+      } else if (playerPos <= 10) {
+        repGained = 3;
+        titleMessage = "A solid mid-table finish. The board is content with your progress.";
+      } else if (playerPos > maxMatchdays - 3) {
+        repGained = -10;
+        titleMessage = "Disastrous season! You finished in the relegation zone.";
+      } else {
+        repGained = 1;
+        titleMessage = "You avoided relegation and secured survival for another season.";
+      }
+
+      state.manager.reputation = Math.max(1, Math.min(100, state.manager.reputation + repGained));
+      updateReputationLabel(state.manager);
+
+      // Contract logic
+      const expiredPlayers: Player[] = [];
+      state.players.forEach(p => {
+        if (p.clubId !== "free_agents") {
+          p.contractExpiry -= 1;
+          if (p.contractExpiry <= 0) {
+            p.clubId = "free_agents"; // Released
+            p.wage = 0;
+            if (p.clubId === playerClub.id) expiredPlayers.push(p);
+          }
+        }
+      });
+
+      if (expiredPlayers.length > 0) {
+        state.inbox.unshift({
+          id: `contracts_expired_${state.currentSeason}`,
+          sender: "Director of Football",
+          subject: `Players Released - Contracts Expired`,
+          body: `The following players have been released from the club as their contracts have expired:\n\n` +
+                expiredPlayers.map(p => `- ${p.name} (${p.position})`).join("\n"),
+          date: `End of Season ${state.currentSeason}`,
+          read: false,
+          type: "board"
+        });
+      }
+
+      state.inbox.unshift({
+        id: `season_end_${state.currentSeason}`,
+        sender: "Club Board of Directors",
+        subject: `Season ${state.currentSeason} Concluded!`,
+        body: `Dear Manager ${state.manager.lastName},
+
+The season has ended and we finished in ${playerPos} place. ${titleMessage}
+
+We have reset the standings and scheduled the fixtures for Season ${state.currentSeason + 1}. Your transfer budget has been replenished. Let's make the next season even better!`,
+        date: `End of Season ${state.currentSeason}`,
+        read: false,
+        type: "board"
+      });
+
+      // Reset for next season
+      state.currentSeason++;
+      state.currentMatchday = 1;
+      
+      // Reset standings
+      const leagues = ["EPL", "La Liga", "Serie A", "Bundesliga", "Ligue 1"];
+      for (const l of leagues) {
+        state.standings[l] = state.standings[l].map(s => ({
+          ...s,
+          played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0, form: []
+        }));
+      }
+
+      // Reset fixturesplayed status
+      state.fixtures = state.fixtures.map(f => ({
+        ...f,
+        played: false,
+        homeScore: null,
+        awayScore: null,
+        events: undefined,
+        stats: undefined,
+        playerRatings: undefined,
+        motmId: undefined,
+        tacticalAnalysis: undefined,
+        pressQuote: undefined
+      }));
+
+      // Replenish budget based on reputation
+      state.transferBudget += Math.floor(playerClub.transferBudget * 0.5);
+
+    } else {
+      // Normal matchday advance
+      state.currentMatchday = nextMDay;
+      state.gameLog.unshift(`Advanced to Matchday ${nextMDay}.`);
+
+      // Decrease scouting task timers
+      state.scoutingTasks = state.scoutingTasks.map(task => {
+        if (task.completed) return task;
+        const daysLeft = task.daysRemaining - 1;
+        if (daysLeft <= 0) {
+          // Completed scouting!
+          state.inbox.unshift({
+            id: `scout_task_${task.id}`,
+            sender: "Chief Scout",
+            subject: `Scouting Completed: ${task.playerName}`,
+            body: `We have completed our detailed report on ${task.playerName} (${task.position}) from ${task.playerClub}. 
+            
+Our analysis reveals his hidden potential is rated at ${task.playerRating}/99. His estimated market value is €${(calculateValue(task.playerRating, 22) / 1000000).toFixed(1)}M. We have added him to your scouted reports database.`,
+            date: `Matchday ${state.currentMatchday}`,
+            read: false,
+            type: "media"
+          });
+          return { ...task, daysRemaining: 0, completed: true };
+        }
+        return { ...task, daysRemaining: daysLeft };
+      });
+
+      // Run player development training ticks
+      developPlayers(state);
+
+      // Random event: Board review or Player moral complaints
+      triggerRandomSaveEvent(state);
+
+      // Generate GafferGram News Feed
+      const freshNews = generateWeeklyNews(state);
+      state.newsFeed = [...freshNews, ...state.newsFeed].slice(0, 100); // Keep last 100 articles
+
+      // Handle Transfer Window state
+      // Summer: Matchdays 1-5, Jan: Matchdays 19-22
+      state.transferWindowOpen = (state.currentMatchday <= 5) || (state.currentMatchday >= 19 && state.currentMatchday <= 22);
+
+      // AI Transfer Market Bids
+      if (state.transferWindowOpen) {
+        const playerClub = state.clubs.find(c => c.id === state.selectedClubId)!;
+        const listedPlayers = state.players.filter(p => p.clubId === playerClub.id && p.isTransferListed);
+        
+        listedPlayers.forEach(player => {
+          if (!player.transferOffers) player.transferOffers = [];
+          
+          // 40% chance per matchday to receive an offer if listed
+          if (Math.random() < 0.4 && player.transferOffers.length < 3) {
+            const buyers = state.clubs.filter(c => c.id !== playerClub.id && c.reputation >= playerClub.reputation - 20);
+            const buyer = buyers[Math.floor(Math.random() * buyers.length)] || state.clubs[0];
+            const discount = player.age > 30 ? 0.75 : 0.9;
+            const offerFee = Math.floor(player.value * (discount + Math.random() * 0.15));
+
+            // Prevent duplicate club bids
+            if (!player.transferOffers.some(o => o.clubId === buyer.id)) {
+              player.transferOffers.push({ clubId: buyer.id, amount: offerFee });
+              
+              state.inbox.unshift({
+                id: `trans_offer_${player.id}_${Date.now()}`,
+                sender: buyer.name,
+                subject: `TRANSFER BID: ${player.name}`,
+                body: `${buyer.name} has submitted a formal bid of €${(offerFee/1000000).toFixed(2)}M for your transfer-listed player, ${player.name}.\n\nYou can review and accept this offer in the Transfer Centre -> Sell Players tab.`,
+                date: `Matchday ${state.currentMatchday}`,
+                read: false,
+                type: "board"
+              });
+            }
+          }
+        });
+      }
+    }
+
+    updateActiveSave(state);
+  };
+
+  return (
+    <GameContext.Provider value={{
+      activeSave,
+      savesList,
+      loading,
+      loadSave,
+      createNewGame,
+      deleteGame,
+      updateActiveSave,
+      playMatchdayCpuGames,
+      advanceToNextMatchday,
+      exitToMainMenu
+    }}>
+      {children}
+    </GameContext.Provider>
+  );
+}
+
+export function useGame() {
+  const context = useContext(GameContext);
+  if (context === undefined) {
+    throw new Error("useGame must be used within a GameProvider");
+  }
+  return context;
+}
+
+// Helpers
+function DEFAULT_TACTICS_MOCK(): TacticalInstructions {
+  return {
+    mentality: "Balanced",
+    pressIntensity: "Mid",
+    defensiveLine: "Standard",
+    width: "Standard",
+    tempo: "Normal",
+    takers: { penalties: "", corners: "", freeKicks: "" }
+  };
+}
+
+function updatePlayerStatsFromFixture(state: SaveState, fixture: MatchFixture, homeSquad: Player[], awaySquad: Player[]) {
+  if (!fixture.events) return;
+  
+  fixture.events.forEach(event => {
+    const player = state.players.find(p => p.name === event.playerName && (p.clubId === fixture.homeClubId || p.clubId === fixture.awayClubId));
+    
+    if (player) {
+      if (event.type === "Goal") {
+        player.goals = (player.goals || 0) + 1;
+      } else if (event.type === "Injury") {
+        player.injuryStatus = "Injured";
+      }
+      
+      // We don't have explicit fields for yellow/red cards in the Player model yet, but we could add them.
+      // For now, if it's a Red Card, we set them to Suspended.
+      if (event.type === "Red Card") {
+        player.injuryStatus = "Suspended";
+      }
+    }
+
+    if (event.assistName) {
+      const assister = state.players.find(p => p.name === event.assistName && (p.clubId === fixture.homeClubId || p.clubId === fixture.awayClubId));
+      if (assister) {
+        assister.assists = (assister.assists || 0) + 1;
+      }
+    }
+  });
+}
+
+function rebuildStandings(state: SaveState) {
+  const leagues = ["EPL", "La Liga", "Serie A", "Bundesliga", "Ligue 1"];
+  
+  for (const league of leagues) {
+    const leagueClubs = state.clubs.filter(c => c.league === league);
+    const leagueStandings: Standing[] = leagueClubs.map(c => ({
+      clubId: c.id,
+      clubName: c.name,
+      played: 0,
+      won: 0,
+      drawn: 0,
+      lost: 0,
+      gf: 0,
+      ga: 0,
+      gd: 0,
+      points: 0,
+      form: []
+    }));
+
+    // Get all played fixtures in this league up to current matchday
+    const playedFixtures = state.fixtures.filter(
+      f => f.league === league && f.played && f.matchday <= state.currentMatchday
+    );
+
+    playedFixtures.forEach(f => {
+      const homeStanding = leagueStandings.find(s => s.clubId === f.homeClubId)!;
+      const awayStanding = leagueStandings.find(s => s.clubId === f.awayClubId)!;
+
+      const hs = f.homeScore ?? 0;
+      const as = f.awayScore ?? 0;
+
+      homeStanding.played++;
+      awayStanding.played++;
+      homeStanding.gf += hs;
+      homeStanding.ga += as;
+      awayStanding.gf += as;
+      awayStanding.ga += hs;
+      homeStanding.gd = homeStanding.gf - homeStanding.ga;
+      awayStanding.gd = awayStanding.gf - awayStanding.ga;
+
+      if (hs > as) {
+        homeStanding.won++;
+        homeStanding.points += 3;
+        homeStanding.form.push("W");
+        awayStanding.lost++;
+        awayStanding.form.push("L");
+      } else if (hs < as) {
+        awayStanding.won++;
+        awayStanding.points += 3;
+        awayStanding.form.push("W");
+        homeStanding.lost++;
+        homeStanding.form.push("L");
+      } else {
+        homeStanding.drawn++;
+        homeStanding.points += 1;
+        homeStanding.form.push("D");
+        awayStanding.drawn++;
+        awayStanding.points += 1;
+        awayStanding.form.push("D");
+      }
+    });
+
+    // Sort standings by points desc, gd desc, gf desc
+    leagueStandings.sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      if (b.gd !== a.gd) return b.gd - a.gd;
+      return b.gf - a.gf;
+    });
+
+    // Cap form history to last 5
+    leagueStandings.forEach(s => {
+      if (s.form.length > 5) {
+        s.form = s.form.slice(-5);
+      }
+    });
+
+    state.standings[league] = leagueStandings;
+  }
+}
+
+function updateReputationLabel(manager: Manager) {
+  const r = manager.reputation;
+  if (r < 15) manager.reputationLabel = "Sunday League";
+  else if (r < 35) manager.reputationLabel = "Amateur";
+  else if (r < 55) manager.reputationLabel = "Semi-Pro";
+  else if (r < 75) manager.reputationLabel = "Professional";
+  else if (r < 90) manager.reputationLabel = "Continental";
+  else manager.reputationLabel = "World Class";
+}
+
+function developPlayers(state: SaveState) {
+  state.players.forEach(p => {
+    // Determine training focus speed
+    // Older players (28+) start to decline slightly in physical attributes
+    // Young players (<21) develop rapidly if potential is high
+    const isYoung = p.age <= 21;
+    const isOld = p.age >= 28;
+
+    const potentialGap = p.potential - p.overall;
+    if (potentialGap > 0) {
+      const baseGrowth = isYoung ? 0.25 : 0.08;
+      const growthRoll = Math.random();
+      
+      if (growthRoll < baseGrowth) {
+        // Growth!
+        p.overall = Math.min(p.potential, p.overall + 1);
+        
+        // Boost attribute based on training focus
+        let eligibleAttrs: (keyof Player)[] = ["pace", "shooting", "passing", "dribbling", "defending", "physical", "mental", "stamina"];
+        
+        if (p.trainingFocus === "Fitness") {
+          eligibleAttrs = ["pace", "stamina", "physical"];
+        } else if (p.trainingFocus === "Attacking") {
+          eligibleAttrs = ["shooting", "dribbling", "passing"];
+        } else if (p.trainingFocus === "Defensive") {
+          eligibleAttrs = ["defending", "physical", "stamina"];
+        } else if (p.trainingFocus === "Tactical") {
+          eligibleAttrs = ["mental", "passing", "stamina"];
+        }
+        
+        const randomAttr = eligibleAttrs[Math.floor(Math.random() * eligibleAttrs.length)] as string;
+        (p as any)[randomAttr] = Math.min(99, ((p as any)[randomAttr] || 70) + 1);
+        
+        // Re-evaluate value
+        p.value = calculateValue(p.overall, p.age);
+      }
+    }
+
+    if (isOld) {
+      const baseDecline = (p.age - 27) * 0.02; // higher age increases decline speed
+      if (Math.random() < baseDecline) {
+        // Decline!
+        p.overall = Math.max(50, p.overall - 1);
+        // Decrease pace or stamina
+        const declineAttr = Math.random() < 0.5 ? "pace" : "stamina";
+        (p as any)[declineAttr] = Math.max(1, ((p as any)[declineAttr] || 70) - 1);
+        
+        p.value = calculateValue(p.overall, p.age);
+      }
+    }
+  });
+}
+
+function triggerRandomSaveEvent(state: SaveState) {
+  const roll = Math.random();
+  const playerClub = state.clubs.find(c => c.id === state.selectedClubId)!;
+  const standings = state.standings[playerClub.league];
+  const playerPos = standings.findIndex(s => s.clubId === playerClub.id) + 1;
+
+  // Board Confidence Check
+  // E.g. expected position is based on club reputation.
+  // Rep 90 -> Expect top 3. Rep 80 -> Expect top 8. Rep 70 -> Expect to avoid relegation.
+  let expectedPosition = 15;
+  if (playerClub.reputation >= 90) expectedPosition = 4;
+  else if (playerClub.reputation >= 80) expectedPosition = 8;
+  else if (playerClub.reputation >= 75) expectedPosition = 12;
+
+  let confidenceShift = 0;
+  if (playerPos <= expectedPosition) {
+    confidenceShift = 2; // Gaining confidence
+  } else {
+    confidenceShift = -3; // Losing confidence
+  }
+
+  state.boardConfidence = Math.max(0, Math.min(100, state.boardConfidence + confidenceShift));
+
+  // Check for trigger warning or sacking if confidence is extremely low
+  if (state.boardConfidence <= 0) {
+    // SACKED
+    if (typeof window !== "undefined") {
+      alert("YOU HAVE BEEN SACKED! Board confidence reached 0. Returning to Main Menu.");
+      sessionStorage.removeItem("gaffer_iq_active_save_id");
+      window.location.href = "/";
+      return;
+    }
+  } else if (state.boardConfidence < 20 && state.currentMatchday >= 8) {
+    state.inbox.unshift({
+      id: `board_warning_${state.currentMatchday}`,
+      sender: "Club President",
+      subject: "ULTIMATUM: Your Job is on the line",
+      body: `We are extremely concerned by our current position in the table (${playerPos} place). The board is losing confidence rapidly. You must turn results around immediately, or we will be forced to terminate your contract.`,
+      date: `Matchday ${state.currentMatchday}`,
+      read: false,
+      type: "board"
+    });
+  }
+
+  // Random player morale complaints
+  if (roll < 0.08) {
+    const playerSquad = state.players.filter(p => p.clubId === playerClub.id);
+    const lowGameTimePlayer = playerSquad.find(p => p.overall < 75 && p.morale > 40);
+    if (lowGameTimePlayer) {
+      lowGameTimePlayer.morale = Math.max(10, lowGameTimePlayer.morale - 15);
+      state.inbox.unshift({
+        id: `player_morale_${lowGameTimePlayer.id}_${state.currentMatchday}`,
+        sender: lowGameTimePlayer.name,
+        subject: "Concern regarding playing time",
+        body: `Boss, I wanted to talk about my role at the club. I feel like I am in good form but I'm not getting enough game time. I'd appreciate more starts or I may have to look for opportunities elsewhere.`,
+        date: `Matchday ${state.currentMatchday}`,
+        read: false,
+        type: "player"
+      });
+    }
+  }
+}
