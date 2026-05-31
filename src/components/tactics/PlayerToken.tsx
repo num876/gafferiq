@@ -1,6 +1,7 @@
 import React from 'react';
 import { useDraggable } from '@dnd-kit/core';
-import { Player } from '../../../config/seededData';
+import { Player } from '../../config/seededData';
+import { CSS } from '@dnd-kit/utilities';
 
 interface PlayerTokenProps {
   player: Player;

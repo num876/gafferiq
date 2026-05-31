@@ -1,8 +1,8 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { SaveState, Manager, loadAllSaves, saveGame, deleteSave as dbDeleteSave, createNewSave as dbCreateNewSave, MatchFixture } from "../db/storage";
-import { simulateMatchHeuristic, autoSelectLineup } from "../engine/simulator";
+import { SaveState, Manager, loadAllSaves, saveGame, deleteSave as dbDeleteSave, createNewSave as dbCreateNewSave, MatchFixture, Standing } from "../db/storage";
+import { simulateMatchHeuristic, autoSelectLineup, TacticalInstructions } from "../engine/simulator";
 import { Player, Club, calculateValue } from "../config/seededData";
 import { generateWeeklyNews } from "../engine/newsGenerator";
 

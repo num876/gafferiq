@@ -64,12 +64,12 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="min-h-screen bg-[#0f172a] text-slate-100 flex">
       {/* 1. Sidebar Navigation */}
-      <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 hidden md:flex">
+      <aside className="w-64 bg-[#080c14] border-r border-[#1e2d40] flex flex-col justify-between shrink-0 hidden md:flex">
         <div className="flex flex-col gap-6 p-6">
           {/* Logo / Club Branding */}
           <div className="flex items-center gap-3">
             <div 
-              className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm shadow"
+              className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-xl shadow border border-white/10"
               style={{ 
                 backgroundColor: playerClub.primaryColor,
                 color: playerClub.secondaryColor === "#ffffff" ? "#0f172a" : playerClub.secondaryColor 
@@ -79,12 +79,26 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
             </div>
             <div className="min-w-0">
               <h4 className="text-sm font-bold text-slate-100 truncate">{playerClub.name}</h4>
-              <p className="text-[10px] text-green-500 font-bold uppercase tracking-wider">Manager Mode</p>
+              <p className="text-[10px] text-slate-400 font-medium truncate mt-0.5">{activeSave.manager.firstName} {activeSave.manager.lastName}</p>
+            </div>
+          </div>
+
+          {/* Manager XP Bar */}
+          <div className="flex flex-col gap-1.5 px-1">
+            <div className="flex justify-between text-[10px] font-bold">
+              <span className="text-[#22c55e]">Reputation {activeSave.manager.reputation}</span>
+              <span className="text-slate-500">Lvl {Math.floor(activeSave.manager.reputation / 20) + 1}</span>
+            </div>
+            <div className="w-full h-1.5 bg-[#1e2d40] rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-[#22c55e] shadow-[0_0_10px_rgba(34,197,94,0.5)]" 
+                style={{ width: `${(activeSave.manager.reputation % 20) * 5}%` }} 
+              />
             </div>
           </div>
 
           {/* Navigation Links */}
-          <nav className="flex flex-col gap-1">
+          <nav className="flex flex-col gap-1 mt-2">
             {menuItems.map(item => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -92,9 +106,9 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-bold transition duration-200 ${isActive ? 'bg-green-600 text-white shadow shadow-green-600/10' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'}`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-r-lg text-xs font-bold transition duration-200 border-l-4 ${isActive ? 'bg-[#0f1623] border-[#22c55e] text-white' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-[#0f1623]/50'}`}
                 >
-                  <Icon className="w-4 h-4 shrink-0" />
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#22c55e]' : ''}`} />
                   {item.name}
                 </Link>
               );

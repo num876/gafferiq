@@ -1,7 +1,7 @@
 import React from 'react';
 import { PitchSlot } from './PitchSlot';
 import { PlayerToken } from './PlayerToken';
-import { Player } from '../../../config/seededData';
+import { Player } from '../../config/seededData';
 
 export const FORMATION_433 = [
   { id: 'GK', label: 'GK', top: '90%', left: '50%' },

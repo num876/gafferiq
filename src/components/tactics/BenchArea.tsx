@@ -1,6 +1,6 @@
 import React from 'react';
 import { useDroppable } from '@dnd-kit/core';
-import { Player } from '../../../config/seededData';
+import { Player } from '../../config/seededData';
 import { PlayerToken } from './PlayerToken';
 
 interface BenchAreaProps {

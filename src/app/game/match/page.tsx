@@ -1,37 +1,202 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useReducer, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useGame } from "../../../context/GameContext";
 import { MatchEvent, MatchStats } from "../../../db/storage";
+import { Player, Club } from "../../../config/seededData";
 import { autoSelectLineup } from "../../../engine/simulator";
 import { 
-  Play, FastForward, Check, ChevronRight, MessageSquare, 
-  Clock, ShieldAlert, Award, ChevronLeft, Activity, Flag, Star
+  Play, Check, MessageSquare, Clock, ShieldAlert, Award, 
+  Activity, RefreshCw, Volume2, TrendingUp, Megaphone, Flag,
+  ChevronRight
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
-type SimState = "pre-match" | "loading" | "first-half" | "half-time" | "second-half" | "post-match";
+// --- MATCH STATE REDUCER ---
+type Zone = "home-third" | "midfield" | "away-third";
+type MatchStatus = "pre-match" | "first-half" | "half-time" | "second-half" | "post-match";
 
+interface MatchState {
+  status: MatchStatus;
+  clock: number;
+  homeScore: number;
+  awayScore: number;
+  events: MatchEvent[];
+  stats: MatchStats;
+  currentZone: Zone;
+  commentaryTicker: string[];
+  homeTacticsModifier: number; // Affects goal probabilities
+  report: string;
+}
+
+type Action = 
+  | { type: "TICK"; payload: { isHome: boolean, homeStrength: number, awayStrength: number, homeStarters: Player[], awayStarters: Player[] } }
+  | { type: "SET_STATUS"; payload: MatchStatus }
+  | { type: "ADD_COMMENTARY"; payload: string }
+  | { type: "TACTICAL_SHOUT"; payload: number }
+  | { type: "SET_REPORT"; payload: string };
+
+const initialStats: MatchStats = {
+  possession: { home: 50, away: 50 },
+  shots: { home: 0, away: 0 },
+  shotsOnTarget: { home: 0, away: 0 },
+  corners: { home: 0, away: 0 },
+  fouls: { home: 0, away: 0 },
+  offsides: { home: 0, away: 0 }
+};
+
+const initialState: MatchState = {
+  status: "pre-match",
+  clock: 0,
+  homeScore: 0,
+  awayScore: 0,
+  events: [],
+  stats: JSON.parse(JSON.stringify(initialStats)),
+  currentZone: "midfield",
+  commentaryTicker: ["Welcome to the match! Kickoff is imminent."],
+  homeTacticsModifier: 0,
+  report: ""
+};
+
+// Procedural Event Generators for the Tick Engine
+const pickAttacker = (starters: Player[]) => {
+  const atts = starters.filter(p => p.position === "ATT");
+  return atts.length > 0 ? atts[Math.floor(Math.random() * atts.length)] : starters[0];
+};
+
+const pickDefender = (starters: Player[]) => {
+  const defs = starters.filter(p => p.position === "DEF");
+  return defs.length > 0 ? defs[Math.floor(Math.random() * defs.length)] : starters[0];
+};
+
+function matchReducer(state: MatchState, action: Action): MatchState {
+  switch (action.type) {
+    case "SET_STATUS":
+      return { ...state, status: action.payload };
+    case "ADD_COMMENTARY":
+      return { 
+        ...state, 
+        commentaryTicker: [action.payload, ...state.commentaryTicker].slice(0, 3) 
+      };
+    case "TACTICAL_SHOUT":
+      return { ...state, homeTacticsModifier: action.payload };
+    case "SET_REPORT":
+      return { ...state, report: action.payload };
+    case "TICK":
+      if (state.status !== "first-half" && state.status !== "second-half") return state;
+      if (state.clock >= 45 && state.status === "first-half") return state; // handled outside
+      if (state.clock >= 90 && state.status === "second-half") return state; // handled outside
+
+      const nextClock = state.clock + 1;
+      const { isHome, homeStrength, awayStrength, homeStarters, awayStarters } = action.payload;
+
+      const newState = { ...state, clock: nextClock };
+      
+      // Update possession slightly
+      const possShift = (Math.random() * 4 - 2) + (state.homeTacticsModifier * 1.5);
+      newState.stats.possession.home = Math.max(30, Math.min(70, state.stats.possession.home + possShift));
+      newState.stats.possession.away = 100 - newState.stats.possession.home;
+
+      // Determine who has the ball
+      const homeHasBall = Math.random() * 100 < newState.stats.possession.home;
+      newState.currentZone = homeHasBall 
+        ? (Math.random() > 0.4 ? "away-third" : "midfield") 
+        : (Math.random() > 0.4 ? "home-third" : "midfield");
+
+      // Attempt Attack (approx 20% chance of an "incident" per minute)
+      if (Math.random() < 0.20) {
+        const attackRep = homeHasBall ? homeStrength + state.homeTacticsModifier : awayStrength;
+        const defenseRep = homeHasBall ? awayStrength : homeStrength + state.homeTacticsModifier;
+        
+        // Base goal probability: ~10% of attacks
+        const ratio = attackRep / (attackRep + defenseRep);
+        const goalProb = ratio * 0.15; 
+        
+        const roll = Math.random();
+        const attackingClubId = homeHasBall ? (isHome ? "HOME" : "AWAY") : (isHome ? "AWAY" : "HOME"); // We map this later
+        const attStarters = homeHasBall ? homeStarters : awayStarters;
+        const defStarters = homeHasBall ? awayStarters : homeStarters;
+
+        if (roll < goalProb) {
+          // GOAL
+          const scorer = pickAttacker(attStarters);
+          if (homeHasBall) {
+            newState.homeScore++;
+            newState.stats.shots.home++;
+            newState.stats.shotsOnTarget.home++;
+          } else {
+            newState.awayScore++;
+            newState.stats.shots.away++;
+            newState.stats.shotsOnTarget.away++;
+          }
+          newState.events = [{
+            minute: nextClock, type: "Goal", clubId: homeHasBall ? "HOME" : "AWAY", 
+            playerName: scorer.name, details: `${scorer.name} fires a sensational strike into the back of the net!`
+          }, ...newState.events];
+          newState.currentZone = "midfield"; // reset after goal
+
+        } else if (roll < goalProb + 0.25) {
+          // SHOT SAVED
+          const shooter = pickAttacker(attStarters);
+          if (homeHasBall) {
+            newState.stats.shots.home++;
+            newState.stats.shotsOnTarget.home++;
+            newState.stats.corners.home += Math.random() > 0.5 ? 1 : 0;
+          } else {
+            newState.stats.shots.away++;
+            newState.stats.shotsOnTarget.away++;
+            newState.stats.corners.away += Math.random() > 0.5 ? 1 : 0;
+          }
+          newState.events = [{
+            minute: nextClock, type: "Shot Saved", clubId: homeHasBall ? "HOME" : "AWAY", 
+            playerName: shooter.name, details: `Brilliant save to deny ${shooter.name}'s powerful effort.`
+          }, ...newState.events];
+
+        } else if (roll < goalProb + 0.50) {
+          // MISS
+          if (homeHasBall) newState.stats.shots.home++;
+          else newState.stats.shots.away++;
+        }
+      }
+
+      // Random cards
+      if (Math.random() < 0.02) {
+        const isFoulByHome = !homeHasBall;
+        const foulStarters = isFoulByHome ? homeStarters : awayStarters;
+        const fouler = pickDefender(foulStarters);
+        if (isFoulByHome) newState.stats.fouls.home++;
+        else newState.stats.fouls.away++;
+
+        if (Math.random() < 0.2) { // 20% of fouls are yellow
+          newState.events = [{
+            minute: nextClock, type: "Yellow Card", clubId: isFoulByHome ? "HOME" : "AWAY", 
+            playerName: fouler.name, details: `Yellow card for ${fouler.name} after a cynical challenge.`
+          }, ...newState.events];
+        }
+      }
+
+      return newState;
+    default:
+      return state;
+  }
+}
+
+// Helper to calculate raw team strength
+const getStrength = (starters: Player[]) => starters.reduce((s, p) => s + p.overall, 0) / starters.length;
+
+// --- COMPONENT ---
 export default function MatchViewer() {
   const router = useRouter();
   const { activeSave, updateActiveSave, advanceToNextMatchday } = useGame();
   
-  const [simState, setSimState] = useState<SimState>("pre-match");
-  const [matchMinute, setMatchMinute] = useState(0);
-  
-  // Data from API
-  const [simResult, setSimResult] = useState<any>(null);
-  
-  // Live display feeds
-  const [liveEvents, setLiveEvents] = useState<MatchEvent[]>([]);
-  const [homeScore, setHomeScore] = useState(0);
-  const [awayScore, setAwayScore] = useState(0);
-
-  // Speed
-  const [speed, setSpeed] = useState<"normal" | "fast">("normal");
-
-  // Timer Ref
+  const [state, dispatch] = useReducer(matchReducer, initialState);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Modal States
+  const [teamTalkModal, setTeamTalkModal] = useState(false);
+  const [teamTalkMsg, setTeamTalkMsg] = useState("");
+  const [subModal, setSubModal] = useState(false);
 
   if (!activeSave) return null;
 
@@ -44,13 +209,7 @@ export default function MatchViewer() {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <h2 className="text-xl font-bold text-white mb-2">No Match Scheduled</h2>
-        <p className="text-slate-400 text-sm mb-6">There is no fixture for your club on Matchday {activeSave.currentMatchday}.</p>
-        <button 
-          onClick={() => advanceToNextMatchday()}
-          className="bg-green-600 px-6 py-2 rounded-lg text-white font-bold"
-        >
-          Advance Matchday
-        </button>
+        <button onClick={() => advanceToNextMatchday()} className="bg-green-600 px-6 py-2 rounded-lg text-white font-bold">Advance Matchday</button>
       </div>
     );
   }
@@ -64,472 +223,459 @@ export default function MatchViewer() {
   const homeSquad = activeSave.players.filter(p => p.clubId === homeClub.id);
   const awaySquad = activeSave.players.filter(p => p.clubId === awayClub.id);
 
-  const homeLineups = autoSelectLineup(homeSquad, "4-3-3");
-  const awayLineups = autoSelectLineup(awaySquad, "4-3-3");
+  // We memoize starters so they don't regenerate every render
+  const homeLineups = useRef(autoSelectLineup(homeSquad, "4-3-3"));
+  const awayLineups = useRef(autoSelectLineup(awaySquad, "4-3-3"));
 
-  const startSimulation = async () => {
-    setSimState("loading");
-    
-    // We send payload to our API route
-    try {
-      const res = await fetch("/api/sim-match", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          homeClub,
-          awayClub,
-          homeSquad: homeLineups.starters,
-          awaySquad: awayLineups.starters,
-          homeTactics: { mentality: "Balanced", pressIntensity: "Mid", defensiveLine: "Standard", width: "Standard", tempo: "Normal", takers: { penalties: "", corners: "", freeKicks: "" } },
-          awayTactics: { mentality: "Balanced", pressIntensity: "Mid", defensiveLine: "Standard", width: "Standard", tempo: "Normal", takers: { penalties: "", corners: "", freeKicks: "" } },
-          homeManagerTacticsBonus: isHome ? activeSave.manager.attributes.tacticalKnowledge : 10,
-          awayManagerTacticsBonus: !isHome ? activeSave.manager.attributes.tacticalKnowledge : 10
-        })
-      });
+  const homeStrength = getStrength(homeLineups.current.starters) + 2.5; // Home adv
+  const awayStrength = getStrength(awayLineups.current.starters);
 
-      if (!res.ok) throw new Error("Failed simulation");
-      const data = await res.json();
-      setSimResult(data);
-      setSimState("first-half");
-    } catch (e) {
-      console.error(e);
-      alert("Error running simulation.");
-      setSimState("pre-match");
-    }
-  };
-
-  // The Live Match Ticker Engine
+  // Setup the ticker
   useEffect(() => {
-    if (simState === "first-half" || simState === "second-half") {
-      const tickRate = speed === "normal" ? 300 : 50; // ms per in-game minute
-      
+    if (state.status === "first-half" || state.status === "second-half") {
       timerRef.current = setInterval(() => {
-        setMatchMinute(prev => {
-          const nextMin = prev + 1;
-          
-          // Check for events in this minute
-          if (simResult && simResult.events) {
-            const minEvents = simResult.events.filter((e: MatchEvent) => e.minute === nextMin);
-            if (minEvents.length > 0) {
-              setLiveEvents(curr => [...minEvents.reverse(), ...curr]);
-              
-              // Update scores
-              minEvents.forEach((ev: MatchEvent) => {
-                if (ev.type === "Goal") {
-                  if (ev.clubId === homeClub.id) setHomeScore(s => s + 1);
-                  else setAwayScore(s => s + 1);
-                }
-              });
-            }
-          }
+        
+        // Stop conditions
+        if (state.clock === 45 && state.status === "first-half") {
+          dispatch({ type: "SET_STATUS", payload: "half-time" });
+          clearInterval(timerRef.current!);
+          return;
+        }
+        if (state.clock >= 90 && state.status === "second-half") {
+          dispatch({ type: "SET_STATUS", payload: "post-match" });
+          clearInterval(timerRef.current!);
+          generatePostMatchReport();
+          return;
+        }
 
-          if (nextMin === 45 && simState === "first-half") {
-            clearInterval(timerRef.current!);
-            setSimState("half-time");
-            return 45;
-          }
-          if (nextMin >= 90 && simState === "second-half") {
-            clearInterval(timerRef.current!);
-            handleMatchEnd();
-            return 90;
-          }
+        // Fetch commentary every 5 mins
+        if (state.clock > 0 && state.clock % 5 === 0) {
+          fetchCommentary(state.clock);
+        }
 
-          return nextMin;
+        // Tick
+        dispatch({ 
+          type: "TICK", 
+          payload: { 
+            isHome, 
+            homeStrength, 
+            awayStrength, 
+            homeStarters: homeLineups.current.starters, 
+            awayStarters: awayLineups.current.starters 
+          } 
         });
-      }, tickRate);
+
+      }, 1000); // 1 real sec = 1 game min
     }
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [simState, speed, simResult]);
+  }, [state.status, state.clock]);
 
-  const handleMatchEnd = () => {
-    setSimState("post-match");
-    
-    // Save fixture results to state
+  const startMatch = () => {
+    dispatch({ type: "SET_STATUS", payload: "first-half" });
+  };
+
+  // APIs
+  const fetchCommentary = async (minute: number) => {
+    try {
+      const res = await fetch("/api/claude/commentary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          matchState: state,
+          homeClubName: homeClub.shortName,
+          awayClubName: awayClub.shortName
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        dispatch({ type: "ADD_COMMENTARY", payload: `${minute}' - ${data.commentary}` });
+      }
+    } catch (e) {}
+  };
+
+  const handleTeamTalk = async (intent: string) => {
+    setTeamTalkModal(true);
+    try {
+      const res = await fetch("/api/claude/team-talk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          intent,
+          homeClubName: homeClub.name,
+          awayClubName: awayClub.name,
+          homeScore: state.homeScore,
+          awayScore: state.awayScore,
+          isHome
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setTeamTalkMsg(`"${data.message}"`);
+        // Resume play after 3 seconds
+        setTimeout(() => {
+          setTeamTalkModal(false);
+          setTeamTalkMsg("");
+          if (state.status === "half-time") dispatch({ type: "SET_STATUS", payload: "second-half" });
+        }, 3500);
+      }
+    } catch (e) {
+      setTeamTalkModal(false);
+      if (state.status === "half-time") dispatch({ type: "SET_STATUS", payload: "second-half" });
+    }
+  };
+
+  const generatePostMatchReport = async () => {
+    // Map events real IDs
+    const mappedEvents = state.events.map(e => ({
+      ...e,
+      clubId: e.clubId === "HOME" ? homeClub.id : awayClub.id
+    }));
+
+    try {
+      const res = await fetch("/api/claude/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          matchState: { ...state, events: mappedEvents },
+          homeClub,
+          awayClub,
+          motmName: homeLineups.current.starters[Math.floor(Math.random()*3)].name // Pseudo MOTM
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        dispatch({ type: "SET_REPORT", payload: data.report });
+      }
+    } catch (e) {}
+
+    // Save result to context
     const newState = { ...activeSave };
     const stateFixture = newState.fixtures.find(f => f.id === fixture.id)!;
-    
     stateFixture.played = true;
-    stateFixture.homeScore = simResult.homeScore;
-    stateFixture.awayScore = simResult.awayScore;
-    stateFixture.events = simResult.events;
-    stateFixture.stats = simResult.stats;
-    stateFixture.playerRatings = simResult.playerRatings;
-    stateFixture.motmId = simResult.motmId;
-    stateFixture.tacticalAnalysis = simResult.tacticalAnalysis;
-    stateFixture.pressQuote = simResult.pressQuote;
-
-    // Apply player rating boosts
-    newState.players.forEach(p => {
-      if (simResult.playerRatings && simResult.playerRatings[p.id]) {
-        if (!p.ratingHistory) p.ratingHistory = [];
-        p.ratingHistory.push(simResult.playerRatings[p.id]);
-        if (p.ratingHistory.length > 5) p.ratingHistory.shift();
-        
-        // Goals/assists
-        simResult.events?.forEach((ev: MatchEvent) => {
-          if (ev.type === "Goal" && ev.playerName === p.name) {
-            p.goals = (p.goals || 0) + 1;
-          }
-          if (ev.type === "Goal" && ev.details.includes(p.name) && ev.playerName !== p.name) {
-            p.assists = (p.assists || 0) + 1;
-          }
-        });
-      }
-    });
-
+    stateFixture.homeScore = state.homeScore;
+    stateFixture.awayScore = state.awayScore;
     updateActiveSave(newState);
   };
 
-  const skipToResult = () => {
-    // fast forward all events
-    if (!simResult) return;
-    const allEvents = [...simResult.events].sort((a, b) => b.minute - a.minute);
-    setLiveEvents(allEvents);
-    setHomeScore(simResult.homeScore);
-    setAwayScore(simResult.awayScore);
-    setMatchMinute(90);
-    handleMatchEnd();
+  const applyShout = (intent: string, modifier: number) => {
+    dispatch({ type: "TACTICAL_SHOUT", payload: modifier });
+    dispatch({ type: "ADD_COMMENTARY", payload: `MANAGER SHOUT: "${intent}"` });
   };
 
-  const teamTalk = (msg: string) => {
-    const newState = { ...activeSave };
-    newState.gameLog.unshift(`Half-time team talk: "${msg}".`);
-    updateActiveSave(newState);
-    setSimState("second-half");
-  };
-
-  // Helper for rendering event icons
-  const getEventIcon = (type: MatchEvent["type"]) => {
+  // --- RENDER HELPERS ---
+  const getEventIcon = (type: string) => {
     switch(type) {
-      case "Goal": return <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center"><Check className="w-3 h-3 text-white" /></div>;
-      case "Yellow Card": return <div className="w-4 h-5 rounded bg-yellow-400 mx-0.5 shadow-sm" />;
-      case "Red Card": return <div className="w-4 h-5 rounded bg-red-500 mx-0.5 shadow-sm" />;
-      case "Injury": return <ShieldAlert className="w-5 h-5 text-rose-400" />;
+      case "Goal": return <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center shadow-[0_0_10px_rgba(34,197,94,0.5)]"><Check className="w-3 h-3 text-white" /></div>;
+      case "Yellow Card": return <div className="w-3.5 h-5 rounded bg-yellow-400 mx-0.5 shadow-sm" />;
+      case "Red Card": return <div className="w-3.5 h-5 rounded bg-red-500 mx-0.5 shadow-sm" />;
       case "Shot Saved": return <Activity className="w-5 h-5 text-blue-400" />;
-      case "Big Chance Missed": return <Activity className="w-5 h-5 text-slate-500" />;
       default: return <MessageSquare className="w-5 h-5 text-slate-400" />;
     }
   };
 
+  const isLive = state.status === "first-half" || state.status === "second-half";
+  const displayClock = state.status === "pre-match" ? "00:00" : state.status === "post-match" ? "FT" : state.status === "half-time" ? "HT" : `${state.clock.toString().padStart(2, '0')}:00`;
+
   return (
-    <div className="flex flex-col gap-6 w-full max-w-5xl mx-auto pb-10">
+    <div className="flex flex-col w-full h-[calc(100vh-80px)] font-sans overflow-hidden bg-[#05080f]">
       
-      {/* Dynamic Header */}
-      <div className="flex flex-col gap-6">
-        <button onClick={() => router.push("/game/dashboard")} className="text-[10px] font-bold text-slate-400 hover:text-white uppercase flex items-center gap-1 w-max">
-          <ChevronLeft className="w-3.5 h-3.5" /> Back to Hub
-        </button>
+      {/* 
+        ========================================================
+        TOP BAR: SCORE & CLOCK
+        ======================================================== 
+      */}
+      <div className="h-24 bg-[#0a0f1e]/90 backdrop-blur-md border-b border-[#1e2d40] flex items-center justify-center px-8 relative shrink-0 shadow-2xl z-20">
+        
+        {/* Home */}
+        <div className="flex items-center gap-4 absolute left-8">
+          <div className="flex flex-col items-end">
+            <span className="text-xl font-black text-white uppercase tracking-tighter">{homeClub.shortName}</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{homeClub.league}</span>
+          </div>
+          <div className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg text-2xl font-black border border-white/10" style={{ backgroundColor: homeClub.primaryColor, color: homeClub.secondaryColor === "#ffffff" ? "#0f172a" : homeClub.secondaryColor }}>
+            {homeClub.name.charAt(0)}
+          </div>
+        </div>
 
-        {/* Scoreboard */}
-        <div className="glass-card p-6 md:p-8 rounded-2xl border-b-4 border-b-slate-950 flex flex-col items-center justify-center gap-6 relative overflow-hidden">
-          <div className="absolute top-0 w-full h-1 bg-green-500 opacity-20"></div>
-          
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-900 border border-slate-800 px-3 py-1 rounded-full">
-            Matchday {fixture.matchday} • {homeClub.league}
-          </span>
-          
-          <div className="flex items-center justify-center gap-8 md:gap-16 w-full">
-            {/* Home Team */}
-            <div className="flex flex-col items-center gap-3 w-1/3">
-              <div 
-                className="w-16 h-16 md:w-24 md:h-24 rounded-2xl flex items-center justify-center shadow-2xl border border-white/10 font-black text-2xl md:text-4xl"
-                style={{ backgroundColor: homeClub.primaryColor, color: homeClub.secondaryColor === "#ffffff" ? "#0f172a" : homeClub.secondaryColor }}
-              >
-                {homeClub.name.charAt(0)}
-              </div>
-              <h3 className="text-sm md:text-lg font-black text-white text-center">{homeClub.name}</h3>
-            </div>
+        {/* Center Score */}
+        <div className="flex flex-col items-center gap-1">
+          <div className="bg-[#0f1623] border border-[#1e2d40] px-8 py-2 rounded-2xl flex items-center gap-6 shadow-inner">
+            <span className="text-4xl font-black text-white">{state.homeScore}</span>
+            <div className="w-px h-8 bg-[#1e2d40]"></div>
+            <span className="text-4xl font-black text-white">{state.awayScore}</span>
+          </div>
+          <div className="flex items-center gap-2 bg-[#1e2d40] px-4 py-1 rounded-full text-xs font-black text-white tracking-widest">
+            <Clock className={`w-3.5 h-3.5 ${isLive ? 'text-green-400 animate-pulse' : 'text-slate-400'}`} />
+            {displayClock}
+          </div>
+        </div>
 
-            {/* Score Center */}
-            <div className="flex flex-col items-center justify-center gap-2 w-1/3">
-              <div className="flex items-center justify-center gap-3 bg-slate-950 px-6 py-3 rounded-xl border border-slate-800 shadow-inner">
-                <span className="text-3xl md:text-5xl font-black text-white">{homeScore}</span>
-                <span className="text-xl md:text-2xl font-bold text-slate-600">-</span>
-                <span className="text-3xl md:text-5xl font-black text-white">{awayScore}</span>
-              </div>
-              
-              <div className="flex items-center gap-2 mt-2 font-bold text-xs bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg text-slate-300">
-                <Clock className={`w-3.5 h-3.5 ${(simState === "first-half" || simState === "second-half") ? 'text-green-500 animate-pulse' : 'text-slate-500'}`} />
-                {simState === "pre-match" ? "00:00" : simState === "post-match" ? "FT" : simState === "half-time" ? "HT" : `${matchMinute.toString().padStart(2, '0')}:00`}
-              </div>
-            </div>
-
-            {/* Away Team */}
-            <div className="flex flex-col items-center gap-3 w-1/3">
-              <div 
-                className="w-16 h-16 md:w-24 md:h-24 rounded-2xl flex items-center justify-center shadow-2xl border border-white/10 font-black text-2xl md:text-4xl"
-                style={{ backgroundColor: awayClub.primaryColor, color: awayClub.secondaryColor === "#ffffff" ? "#0f172a" : awayClub.secondaryColor }}
-              >
-                {awayClub.name.charAt(0)}
-              </div>
-              <h3 className="text-sm md:text-lg font-black text-white text-center">{awayClub.name}</h3>
-            </div>
+        {/* Away */}
+        <div className="flex items-center gap-4 absolute right-8">
+          <div className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg text-2xl font-black border border-white/10" style={{ backgroundColor: awayClub.primaryColor, color: awayClub.secondaryColor === "#ffffff" ? "#0f172a" : awayClub.secondaryColor }}>
+            {awayClub.name.charAt(0)}
+          </div>
+          <div className="flex flex-col items-start">
+            <span className="text-xl font-black text-white uppercase tracking-tighter">{awayClub.shortName}</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Away</span>
           </div>
         </div>
       </div>
 
-      {/* States Layout */}
-      {simState === "pre-match" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
-          {/* Home Lineup */}
-          <div className="glass-card p-5 rounded-xl border border-slate-850">
-            <h4 className="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-850 pb-3 mb-3">
-              {homeClub.name} Lineup
-            </h4>
-            <div className="flex flex-col divide-y divide-slate-800/50">
-              {homeLineups.starters.map(p => (
-                <div key={p.id} className="flex justify-between py-2 text-xs">
-                  <span className="font-bold text-slate-200">{p.name}</span>
-                  <div className="flex gap-3">
-                    <span className="font-semibold text-slate-500 w-8">{p.position}</span>
-                    <span className="font-black text-green-400 w-6 text-right">{p.overall}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+      {/* 
+        ========================================================
+        MAIN 3-COLUMN BROADCAST LAYOUT
+        ======================================================== 
+      */}
+      <div className="flex-1 flex overflow-hidden">
+        
+        {/* LEFT: STATS PANEL */}
+        <div className="w-80 bg-[#0a0f1e] border-r border-[#1e2d40] p-6 flex flex-col gap-6 overflow-y-auto custom-scrollbar">
+          <h3 className="text-xs font-black text-white uppercase tracking-widest border-b border-[#1e2d40] pb-3 flex items-center gap-2">
+            <Activity className="w-4 h-4 text-sky-400" /> Match Stats
+          </h3>
 
-          {/* Away Lineup */}
-          <div className="glass-card p-5 rounded-xl border border-slate-850">
-            <h4 className="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-850 pb-3 mb-3">
-              {awayClub.name} Lineup
-            </h4>
-            <div className="flex flex-col divide-y divide-slate-800/50">
-              {awayLineups.starters.map(p => (
-                <div key={p.id} className="flex justify-between py-2 text-xs">
-                  <span className="font-bold text-slate-200">{p.name}</span>
-                  <div className="flex gap-3">
-                    <span className="font-semibold text-slate-500 w-8">{p.position}</span>
-                    <span className="font-black text-rose-400 w-6 text-right">{p.overall}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="md:col-span-2 flex justify-center mt-4">
-            <button
-              onClick={startSimulation}
-              className="px-8 py-4 bg-green-600 hover:bg-green-500 text-white font-black text-sm uppercase tracking-wider rounded-xl shadow-xl shadow-green-600/20 transition flex items-center gap-2 hover:scale-105 active:scale-95"
-            >
-              <Play className="w-5 h-5 fill-current" />
-              Start Match
-            </button>
-          </div>
-        </div>
-      )}
-
-      {simState === "loading" && (
-        <div className="flex flex-col items-center justify-center py-20 text-center gap-6">
-          <div className="relative w-16 h-16">
-            <div className="absolute inset-0 rounded-full border-4 border-slate-800"></div>
-            <div className="absolute inset-0 rounded-full border-4 border-green-500 border-t-transparent animate-spin"></div>
-          </div>
-          <div>
-            <h3 className="text-lg font-black text-white">Engine Calculating Match Variables...</h3>
-            <p className="text-xs text-slate-500 mt-2 font-bold uppercase tracking-widest animate-pulse">Running Claude AI Simulation</p>
-          </div>
-        </div>
-      )}
-
-      {(simState === "first-half" || simState === "second-half") && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
-          
-          {/* Live Events Ticker */}
-          <div className="lg:col-span-2 glass-card p-6 rounded-xl border border-slate-850 flex flex-col h-[500px]">
-            <div className="flex justify-between items-center border-b border-slate-850 pb-4 mb-4 shrink-0">
-              <h4 className="text-xs font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                <Activity className="w-4 h-4 text-green-500" /> Live Match Feed
-              </h4>
-              
-              <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-lg p-1">
-                <button 
-                  onClick={() => setSpeed("normal")}
-                  className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase transition ${speed === "normal" ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-slate-300'}`}
-                >
-                  Normal
-                </button>
-                <button 
-                  onClick={() => setSpeed("fast")}
-                  className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase transition ${speed === "fast" ? 'bg-green-600 text-white' : 'text-slate-500 hover:text-slate-300'}`}
-                >
-                  Fast
-                </button>
+          <div className="flex flex-col gap-5">
+            {/* Possession */}
+            <div className="flex flex-col gap-1.5">
+              <div className="flex justify-between text-[10px] font-black text-white">
+                <span>{Math.round(state.stats.possession.home)}%</span>
+                <span className="text-slate-500 uppercase tracking-widest">Possession</span>
+                <span>{Math.round(state.stats.possession.away)}%</span>
+              </div>
+              <div className="flex h-2 bg-[#080c14] rounded-full overflow-hidden border border-[#1e2d40]">
+                <div className="h-full bg-sky-500 transition-all duration-1000 ease-linear" style={{ width: `${state.stats.possession.home}%` }} />
+                <div className="h-full bg-rose-500 transition-all duration-1000 ease-linear" style={{ width: `${state.stats.possession.away}%` }} />
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-3">
-              {liveEvents.length === 0 ? (
-                <div className="text-center text-slate-500 text-xs font-bold py-10">
-                  Waiting for kickoff...
+            {/* Shots */}
+            <div className="flex flex-col gap-1.5">
+              <div className="flex justify-between text-[10px] font-black text-white">
+                <span>{state.stats.shots.home}</span>
+                <span className="text-slate-500 uppercase tracking-widest">Shots</span>
+                <span>{state.stats.shots.away}</span>
+              </div>
+              <div className="flex h-2 bg-[#080c14] rounded-full overflow-hidden border border-[#1e2d40]">
+                <div className="h-full bg-sky-500 transition-all duration-1000 ease-linear" style={{ width: `${(state.stats.shots.home / Math.max(1, state.stats.shots.home + state.stats.shots.away)) * 100}%` }} />
+                <div className="h-full bg-rose-500 transition-all duration-1000 ease-linear" style={{ width: `${(state.stats.shots.away / Math.max(1, state.stats.shots.home + state.stats.shots.away)) * 100}%` }} />
+              </div>
+            </div>
+
+            {/* Shots On Target */}
+            <div className="flex flex-col gap-1.5">
+              <div className="flex justify-between text-[10px] font-black text-white">
+                <span>{state.stats.shotsOnTarget.home}</span>
+                <span className="text-slate-500 uppercase tracking-widest">On Target</span>
+                <span>{state.stats.shotsOnTarget.away}</span>
+              </div>
+              <div className="flex h-2 bg-[#080c14] rounded-full overflow-hidden border border-[#1e2d40]">
+                <div className="h-full bg-sky-500 transition-all duration-1000 ease-linear" style={{ width: `${(state.stats.shotsOnTarget.home / Math.max(1, state.stats.shotsOnTarget.home + state.stats.shotsOnTarget.away)) * 100}%` }} />
+                <div className="h-full bg-rose-500 transition-all duration-1000 ease-linear" style={{ width: `${(state.stats.shotsOnTarget.away / Math.max(1, state.stats.shotsOnTarget.home + state.stats.shotsOnTarget.away)) * 100}%` }} />
+              </div>
+            </div>
+
+            {/* Corners & Fouls */}
+            <div className="grid grid-cols-2 gap-4 mt-2">
+              <div className="bg-[#0f1623] border border-[#1e2d40] rounded-xl p-3 flex flex-col items-center justify-center">
+                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Corners</span>
+                <div className="flex gap-3 items-center mt-1">
+                  <span className="text-sm font-black text-sky-400">{state.stats.corners.home}</span>
+                  <span className="text-slate-700">-</span>
+                  <span className="text-sm font-black text-rose-400">{state.stats.corners.away}</span>
                 </div>
-              ) : (
-                liveEvents.map((ev, i) => (
-                  <div key={i} className="bg-slate-900/50 border border-slate-850 rounded-lg p-4 flex gap-4 animate-fade-in">
-                    <div className="w-12 shrink-0 flex flex-col items-center">
-                      <span className="font-black text-green-400 text-base">{ev.minute}'</span>
-                    </div>
-                    <div className="flex-1 border-l border-slate-800 pl-4">
-                      <div className="flex items-center gap-2 mb-1">
-                        {getEventIcon(ev.type)}
-                        <span className={`text-[10px] font-extrabold uppercase tracking-wider ${ev.clubId === homeClub.id ? 'text-blue-400' : 'text-rose-400'}`}>
-                          {ev.clubId === homeClub.id ? homeClub.shortName : awayClub.shortName}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                        {ev.details}
-                      </p>
-                    </div>
-                  </div>
-                ))
+              </div>
+              <div className="bg-[#0f1623] border border-[#1e2d40] rounded-xl p-3 flex flex-col items-center justify-center">
+                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Fouls</span>
+                <div className="flex gap-3 items-center mt-1">
+                  <span className="text-sm font-black text-sky-400">{state.stats.fouls.home}</span>
+                  <span className="text-slate-700">-</span>
+                  <span className="text-sm font-black text-rose-400">{state.stats.fouls.away}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Manager Actions */}
+          <div className="mt-auto flex flex-col gap-3 pt-6 border-t border-[#1e2d40]">
+            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Touchline Actions</h3>
+            
+            <button onClick={() => applyShout("Push Forward!", 2)} disabled={!isLive} className={`py-3 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition ${isLive ? 'bg-amber-500/20 text-amber-500 hover:bg-amber-500/30 border border-amber-500/30' : 'bg-[#0f1623] text-slate-600 border border-[#1e2d40] cursor-not-allowed'}`}>
+              <TrendingUp className="w-4 h-4" /> Push Forward
+            </button>
+            <button onClick={() => applyShout("Hold Shape!", 0)} disabled={!isLive} className={`py-3 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition ${isLive ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30' : 'bg-[#0f1623] text-slate-600 border border-[#1e2d40] cursor-not-allowed'}`}>
+              <ShieldAlert className="w-4 h-4" /> Hold Shape
+            </button>
+            <button onClick={() => setSubModal(true)} disabled={!isLive && state.status !== "half-time"} className={`py-3 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition ${(isLive || state.status === "half-time") ? 'bg-[#1e2d40] text-white hover:bg-slate-700 border border-slate-600' : 'bg-[#0f1623] text-slate-600 border border-[#1e2d40] cursor-not-allowed'}`}>
+              <RefreshCw className="w-4 h-4" /> Substitution
+            </button>
+          </div>
+        </div>
+
+        {/* CENTER: PITCH & COMMENTARY */}
+        <div className="flex-1 bg-[#080c14] p-8 flex flex-col relative overflow-hidden">
+          
+          {state.status === "pre-match" && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#05080f]/80 backdrop-blur-sm">
+              <button onClick={startMatch} className="px-10 py-5 rounded-2xl bg-[#22c55e] hover:bg-[#16a34a] text-white font-black text-xl uppercase tracking-widest shadow-[0_0_30px_rgba(34,197,94,0.4)] transition hover:scale-105 active:scale-95 flex items-center gap-3">
+                <Play className="w-6 h-6 fill-current" /> Kick Off
+              </button>
+            </div>
+          )}
+
+          {state.status === "half-time" && !teamTalkModal && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#05080f]/80 backdrop-blur-sm">
+              <div className="bg-[#0a0f1e] border border-[#1e2d40] p-8 rounded-3xl flex flex-col items-center shadow-2xl max-w-md w-full text-center gap-6">
+                <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Half Time</h2>
+                <p className="text-sm text-slate-400">Give a team talk before the second half begins.</p>
+                <div className="flex flex-col gap-3 w-full">
+                  <button onClick={() => handleTeamTalk("Demand More")} className="py-3 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 font-bold rounded-xl border border-rose-500/30">Demand More Focus</button>
+                  <button onClick={() => handleTeamTalk("Praise")} className="py-3 bg-[#22c55e]/20 hover:bg-[#22c55e]/30 text-[#22c55e] font-bold rounded-xl border border-[#22c55e]/30">Praise Performance</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {state.status === "post-match" && (
+            <div className="absolute inset-0 z-50 bg-[#05080f]/95 backdrop-blur-md p-10 overflow-y-auto">
+              <div className="max-w-3xl mx-auto flex flex-col gap-8 pb-20">
+                <div className="text-center flex flex-col items-center gap-2">
+                  <h2 className="text-4xl font-black text-white uppercase tracking-tighter">Full Time</h2>
+                  <p className="text-green-400 font-bold uppercase tracking-widest">Match Report Generated</p>
+                </div>
+                
+                <div className="bg-[#0a0f1e] border border-[#1e2d40] p-8 rounded-3xl shadow-2xl text-slate-300 leading-relaxed text-sm whitespace-pre-wrap">
+                  {state.report || "Writing report... please wait."}
+                </div>
+
+                <button onClick={() => router.push("/game/dashboard")} className="mx-auto px-8 py-4 bg-[#22c55e] hover:bg-[#16a34a] text-white font-black text-sm uppercase tracking-widest rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.3)] transition hover:scale-105">
+                  Return to Dashboard
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Mini Pitch Tracker */}
+          <div className="flex-1 flex items-center justify-center w-full px-4">
+            <div className="w-full max-w-[600px] aspect-[2/1] bg-[#166534] border-4 border-[#0f4b23] rounded-3xl relative overflow-hidden shadow-2xl flex">
+              
+              {/* Pitch Lines */}
+              <div className="absolute inset-0 pointer-events-none opacity-40">
+                <svg width="100%" height="100%" viewBox="0 0 200 100" preserveAspectRatio="none">
+                  <rect x="0" y="0" width="200" height="100" fill="none" stroke="white" strokeWidth="1" />
+                  <line x1="100" y1="0" x2="100" y2="100" stroke="white" strokeWidth="1" />
+                  <circle cx="100" cy="50" r="15" fill="none" stroke="white" strokeWidth="1" />
+                  <circle cx="100" cy="50" r="1" fill="white" />
+                  {/* Penalty Areas */}
+                  <rect x="0" y="20" width="30" height="60" fill="none" stroke="white" strokeWidth="1" />
+                  <rect x="170" y="20" width="30" height="60" fill="none" stroke="white" strokeWidth="1" />
+                  <circle cx="20" cy="50" r="1" fill="white" />
+                  <circle cx="180" cy="50" r="1" fill="white" />
+                </svg>
+              </div>
+
+              {/* Zone Highlights */}
+              <div className={`w-1/3 h-full transition-colors duration-1000 ${state.currentZone === 'home-third' ? 'bg-sky-500/20' : 'bg-transparent'}`} />
+              <div className={`w-1/3 h-full transition-colors duration-1000 ${state.currentZone === 'midfield' ? 'bg-white/10' : 'bg-transparent'}`} />
+              <div className={`w-1/3 h-full transition-colors duration-1000 ${state.currentZone === 'away-third' ? 'bg-rose-500/20' : 'bg-transparent'}`} />
+
+              {/* The Ball */}
+              <motion.div 
+                animate={{
+                  left: state.currentZone === 'home-third' ? '15%' : state.currentZone === 'midfield' ? '50%' : '85%',
+                  top: `${Math.random() * 40 + 30}%`
+                }}
+                transition={{ type: "spring", stiffness: 50, damping: 20 }}
+                className="absolute w-4 h-4 bg-white rounded-full shadow-[0_0_15px_rgba(255,255,255,1)] z-10 -ml-2 -mt-2"
+              />
+            </div>
+          </div>
+
+          {/* AI Commentary Box */}
+          <div className="h-32 mt-auto bg-[#0a0f1e] border border-[#1e2d40] rounded-2xl p-4 shadow-xl flex flex-col relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-1 h-full bg-[#22c55e]"></div>
+            <h4 className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-1.5">
+              <Volume2 className="w-3 h-3 text-[#22c55e]" /> Live AI Ticker
+            </h4>
+            <div className="flex-1 overflow-hidden flex flex-col gap-1.5 font-mono">
+              <AnimatePresence>
+                {state.commentaryTicker.map((line, i) => (
+                  <motion.p 
+                    key={line + i} 
+                    initial={{ opacity: 0, x: -10 }} 
+                    animate={{ opacity: i === 0 ? 1 : 0.4, x: 0 }} 
+                    className={`text-xs md:text-sm ${i === 0 ? 'text-[#22c55e] font-bold' : 'text-slate-500'}`}
+                  >
+                    {line}
+                  </motion.p>
+                ))}
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT: EVENT LOG */}
+        <div className="w-80 bg-[#0a0f1e] border-l border-[#1e2d40] p-6 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
+           <h3 className="text-xs font-black text-white uppercase tracking-widest border-b border-[#1e2d40] pb-3 flex items-center gap-2 sticky top-0 bg-[#0a0f1e] z-10">
+            <Flag className="w-4 h-4 text-purple-400" /> Match Events
+          </h3>
+
+          <div className="flex flex-col gap-3">
+            <AnimatePresence>
+              {state.events.length === 0 && (
+                <div className="text-slate-500 text-[10px] font-bold uppercase text-center mt-10">Waiting for kickoff...</div>
               )}
-            </div>
-          </div>
-
-          {/* Quick Stats / Controls */}
-          <div className="lg:col-span-1 flex flex-col gap-4">
-            <div className="glass-card p-5 rounded-xl border border-slate-850 flex flex-col gap-4">
-              <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Live Statistics</h4>
-              
-              <div className="flex flex-col gap-3 text-[10px] font-bold text-slate-400">
-                <div className="flex justify-between border-b border-slate-850 pb-1">
-                  <span>Possession</span>
-                  <span>Calculating...</span>
-                </div>
-                <div className="flex justify-between border-b border-slate-850 pb-1">
-                  <span>Shots</span>
-                  <span>Calculating...</span>
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={skipToResult}
-              className="mt-auto px-6 py-4 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 font-bold text-xs uppercase tracking-widest rounded-xl transition flex items-center justify-center gap-2"
-            >
-              <FastForward className="w-4 h-4 text-green-500" />
-              Skip to Result
-            </button>
-          </div>
-        </div>
-      )}
-
-      {simState === "half-time" && (
-        <div className="glass-card p-10 rounded-2xl border border-slate-850 text-center flex flex-col items-center gap-6 animate-fade-in">
-          <h3 className="text-2xl font-black text-white">Half Time</h3>
-          <p className="text-xs text-slate-400 max-w-sm">The referee blows the whistle. Deliver a quick team talk before sending them back out.</p>
-          
-          <div className="flex flex-wrap justify-center gap-3 w-full max-w-lg mt-4">
-            <button onClick={() => teamTalk("Praise the performance")} className="px-5 py-3 rounded-xl bg-blue-600/10 border border-blue-500/20 text-blue-400 font-bold text-xs hover:bg-blue-600/20 transition">
-              Praise Performance
-            </button>
-            <button onClick={() => teamTalk("Demand more from them")} className="px-5 py-3 rounded-xl bg-rose-600/10 border border-rose-500/20 text-rose-400 font-bold text-xs hover:bg-rose-600/20 transition">
-              Demand More
-            </button>
-            <button onClick={() => teamTalk("Keep calm and stick to the plan")} className="px-5 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 font-bold text-xs hover:bg-slate-700 transition">
-              Stay Calm
-            </button>
-          </div>
-        </div>
-      )}
-
-      {simState === "post-match" && simResult && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
-          
-          {/* Match Analysis & Quotes */}
-          <div className="lg:col-span-2 flex flex-col gap-6">
-            <div className="glass-card p-6 rounded-xl border border-slate-850 flex flex-col gap-3">
-              <h4 className="text-xs font-extrabold uppercase tracking-widest text-amber-500 border-b border-slate-850 pb-3 flex items-center gap-2">
-                <Award className="w-4 h-4" /> Tactical Analysis
-              </h4>
-              <p className="text-sm text-slate-200 leading-relaxed">
-                {simResult.tacticalAnalysis}
-              </p>
-              
-              <div className="mt-4 p-4 bg-slate-950/60 rounded-lg border-l-4 border-green-500">
-                <p className="text-xs italic text-slate-400">
-                  {simResult.pressQuote}
-                </p>
-              </div>
-            </div>
-
-            {/* Match Stats */}
-            <div className="glass-card p-6 rounded-xl border border-slate-850">
-               <h4 className="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-850 pb-3 mb-4 flex justify-between">
-                <span>{homeClub.shortName}</span>
-                <span>Match Stats</span>
-                <span>{awayClub.shortName}</span>
-              </h4>
-
-              <div className="flex flex-col gap-5 text-xs font-bold text-slate-300">
-                <div className="flex justify-between items-center">
-                  <span className="w-10 text-center">{simResult.stats?.possession?.home || 50}%</span>
-                  <span className="text-[10px] text-slate-500 uppercase tracking-widest">Possession</span>
-                  <span className="w-10 text-center">{simResult.stats?.possession?.away || 50}%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="w-10 text-center">{simResult.stats?.shots?.home || 0}</span>
-                  <span className="text-[10px] text-slate-500 uppercase tracking-widest">Shots</span>
-                  <span className="w-10 text-center">{simResult.stats?.shots?.away || 0}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="w-10 text-center">{simResult.stats?.shotsOnTarget?.home || 0}</span>
-                  <span className="text-[10px] text-slate-500 uppercase tracking-widest">On Target</span>
-                  <span className="w-10 text-center">{simResult.stats?.shotsOnTarget?.away || 0}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="w-10 text-center">{simResult.stats?.fouls?.home || 0}</span>
-                  <span className="text-[10px] text-slate-500 uppercase tracking-widest">Fouls</span>
-                  <span className="w-10 text-center">{simResult.stats?.fouls?.away || 0}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Player Ratings */}
-          <div className="lg:col-span-1 flex flex-col gap-4">
-            <div className="glass-card p-5 rounded-xl border border-slate-850 flex flex-col h-full max-h-[500px] overflow-y-auto">
-              <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-850 pb-3 mb-3 sticky top-0 bg-[#1e293b]/90 backdrop-blur">
-                Player Ratings
-              </h4>
-              
-              <div className="flex flex-col gap-2">
-                {[...homeLineups.starters, ...awayLineups.starters].map(p => {
-                  const rating = simResult.playerRatings ? simResult.playerRatings[p.id] : 6.0;
-                  const isMotm = p.id === simResult.motmId;
-
-                  return (
-                    <div key={p.id} className={`flex justify-between items-center p-2 rounded-lg border ${isMotm ? 'bg-amber-500/10 border-amber-500/20' : 'bg-slate-950/40 border-slate-900'}`}>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold text-slate-200">{p.name}</span>
-                        {isMotm && <Star className="w-3 h-3 text-amber-500 fill-current" />}
-                      </div>
-                      <span className={`text-xs font-black ${rating >= 8.0 ? 'text-green-400' : rating >= 6.0 ? 'text-slate-300' : 'text-rose-400'}`}>
-                        {rating ? rating.toFixed(1) : "6.0"}
+              {state.events.map((ev, i) => (
+                <motion.div 
+                  key={`${ev.minute}-${i}`}
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-[#0f1623] border border-[#1e2d40] rounded-xl p-3 flex gap-3 shadow-md"
+                >
+                  <div className="font-black text-[#22c55e] text-sm shrink-0 w-6">{ev.minute}'</div>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-1.5">
+                      {getEventIcon(ev.type)}
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${ev.clubId === "HOME" ? 'text-sky-400' : 'text-rose-400'}`}>
+                        {ev.clubId === "HOME" ? homeClub.shortName : awayClub.shortName}
                       </span>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <button
-              onClick={() => {
-                advanceToNextMatchday();
-                router.push("/game/dashboard");
-              }}
-              className="mt-auto px-6 py-4 bg-green-600 hover:bg-green-500 text-white font-black text-sm uppercase tracking-wider rounded-xl shadow-xl shadow-green-600/20 transition flex items-center justify-center gap-2 hover:scale-105 active:scale-95"
-            >
-              Continue <ChevronRight className="w-5 h-5" />
-            </button>
+                    <p className="text-[11px] text-slate-300 font-medium leading-snug">{ev.details}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
+        </div>
 
+      </div>
+
+      {/* Team Talk Overlay */}
+      <AnimatePresence>
+        {teamTalkModal && teamTalkMsg && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] bg-[#22c55e] text-[#05080f] px-8 py-4 rounded-full shadow-[0_0_40px_rgba(34,197,94,0.5)] flex items-center gap-3 font-black text-sm uppercase tracking-wider border-4 border-white"
+          >
+            <Megaphone className="w-5 h-5" />
+            {teamTalkMsg}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Sub Modal */}
+      {subModal && (
+        <div className="fixed inset-0 z-[100] bg-[#05080f]/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#0a0f1e] border border-[#1e2d40] p-6 rounded-3xl w-full max-w-md flex flex-col gap-4 shadow-2xl">
+            <h3 className="text-lg font-black text-white uppercase">Make Substitution</h3>
+            <p className="text-xs text-slate-400">Select a player from your bench to bring on. (UI simplified for demo).</p>
+            <button onClick={() => setSubModal(false)} className="mt-4 px-4 py-2 bg-slate-800 text-white rounded-xl font-bold">Close</button>
+          </div>
         </div>
       )}
-
     </div>
   );
 }

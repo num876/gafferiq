@@ -70,7 +70,7 @@ Rules:
       },
     });
 
-    const text = response.text();
+    const text = response.text;
     if (!text) {
       throw new Error("No text returned from Gemini");
     }
