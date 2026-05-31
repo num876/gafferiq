@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
+import { GoogleGenAI } from "@google/genai";
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export async function POST(req: Request) {
   try {
     const { intent, homeClubName, awayClubName, homeScore, awayScore, isHome } = await req.json();
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
       return NextResponse.json({ 
@@ -24,27 +27,13 @@ Your chosen tactical shout intent is: "${intent}".
 
 Generate exactly ONE or TWO short sentences (max 25 words total) of authentic, motivational, or demanding touchline shouting from a football manager. Do not use quotes.`;
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-3-haiku-20240307",
-        max_tokens: 60,
-        messages: [{ role: "user", content: prompt }],
-      }),
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
     });
 
-    if (!response.ok) {
-      throw new Error("Failed to contact Claude API");
-    }
-
-    const data = await response.json();
-    let textResponse = data.content[0].text.trim();
-    textResponse = textResponse.replace(/^["']|["']$/g, '');
+    let textResponse = response.text || "Keep your shape and stick to the plan!";
+    textResponse = textResponse.trim().replace(/^["']|["']$/g, '');
 
     return NextResponse.json({ message: textResponse });
 

@@ -26,15 +26,26 @@ interface MatchState {
   stats: MatchStats;
   currentZone: Zone;
   commentaryTicker: string[];
-  homeTacticsModifier: number; // Affects goal probabilities
+  
+  // Modifiers
+  homeTacticsModifier: number; 
+  homeMomentumModifier: number;
+  
+  // Match Engine 2.0 State
+  momentum: number; // -100 (Away) to 100 (Home). 0 is neutral.
+  homeFatigue: number; // 0 to 100
+  awayFatigue: number; // 0 to 100
+  homeRedCards: number;
+  awayRedCards: number;
+
   report: string;
 }
 
 type Action = 
-  | { type: "TICK"; payload: { isHome: boolean, homeStrength: number, awayStrength: number, homeStarters: Player[], awayStarters: Player[] } }
+  | { type: "TICK"; payload: { isHome: boolean, homeStarters: Player[], awayStarters: Player[] } }
   | { type: "SET_STATUS"; payload: MatchStatus }
   | { type: "ADD_COMMENTARY"; payload: string }
-  | { type: "TACTICAL_SHOUT"; payload: number }
+  | { type: "TACTICAL_SHOUT"; payload: { attack: number, momentum: number } }
   | { type: "SET_REPORT"; payload: string };
 
 const initialStats: MatchStats = {
@@ -56,18 +67,60 @@ const initialState: MatchState = {
   currentZone: "midfield",
   commentaryTicker: ["Welcome to the match! Kickoff is imminent."],
   homeTacticsModifier: 0,
+  homeMomentumModifier: 0,
+  momentum: 0,
+  homeFatigue: 0,
+  awayFatigue: 0,
+  homeRedCards: 0,
+  awayRedCards: 0,
   report: ""
 };
 
-// Procedural Event Generators for the Tick Engine
-const pickAttacker = (starters: Player[]) => {
-  const atts = starters.filter(p => p.position === "ATT");
-  return atts.length > 0 ? atts[Math.floor(Math.random() * atts.length)] : starters[0];
+// --- MATCH ENGINE 2.0 HELPERS ---
+const generateAttributes = (player: Player) => {
+  return {
+    pac: player.pace || player.overall,
+    sho: player.shooting || player.overall,
+    pas: player.passing || player.overall,
+    def: player.defending || player.overall,
+    phy: player.physical || player.overall
+  };
 };
 
-const pickDefender = (starters: Player[]) => {
-  const defs = starters.filter(p => p.position === "DEF");
-  return defs.length > 0 ? defs[Math.floor(Math.random() * defs.length)] : starters[0];
+const calculateMidfieldControl = (starters: Player[], fatigue: number, redCards: number) => {
+  const mids = starters.filter(p => p.position === "MID");
+  const players = mids.length > 0 ? mids : starters;
+  const raw = players.reduce((s, p) => {
+    const attr = generateAttributes(p);
+    return s + (attr.pas * 0.6 + attr.phy * 0.4);
+  }, 0) / players.length;
+  return Math.max(10, raw - (fatigue * 0.3) - (redCards * 15));
+};
+
+const calculateAttackThreat = (starters: Player[], fatigue: number, redCards: number) => {
+  const atts = starters.filter(p => p.position === "ATT" || p.position === "MID");
+  const players = atts.length > 0 ? atts : starters;
+  const raw = players.reduce((s, p) => {
+    const attr = generateAttributes(p);
+    return s + (attr.sho * 0.6 + attr.pac * 0.4);
+  }, 0) / players.length;
+  return Math.max(10, raw - (fatigue * 0.4) - (redCards * 10));
+};
+
+const calculateDefenseSolid = (starters: Player[], fatigue: number, redCards: number) => {
+  const defs = starters.filter(p => p.position === "DEF" || p.position === "GK");
+  const players = defs.length > 0 ? defs : starters;
+  const raw = players.reduce((s, p) => {
+    const attr = generateAttributes(p);
+    return s + (attr.def * 0.7 + attr.phy * 0.3);
+  }, 0) / players.length;
+  return Math.max(10, raw - (fatigue * 0.5) - (redCards * 15));
+};
+
+const pickPlayerByPosition = (starters: Player[], positions: string[]) => {
+  const pool = starters.filter(p => positions.includes(p.position));
+  if (pool.length === 0) return starters[Math.floor(Math.random() * starters.length)];
+  return pool[Math.floor(Math.random() * pool.length)];
 };
 
 function matchReducer(state: MatchState, action: Action): MatchState {
@@ -80,97 +133,148 @@ function matchReducer(state: MatchState, action: Action): MatchState {
         commentaryTicker: [action.payload, ...state.commentaryTicker].slice(0, 3) 
       };
     case "TACTICAL_SHOUT":
-      return { ...state, homeTacticsModifier: action.payload };
+      return { ...state, homeTacticsModifier: action.payload.attack, homeMomentumModifier: action.payload.momentum };
     case "SET_REPORT":
       return { ...state, report: action.payload };
     case "TICK":
       if (state.status !== "first-half" && state.status !== "second-half") return state;
-      if (state.clock >= 45 && state.status === "first-half") return state; // handled outside
-      if (state.clock >= 90 && state.status === "second-half") return state; // handled outside
+      if (state.clock >= 45 && state.status === "first-half") return state;
+      if (state.clock >= 90 && state.status === "second-half") return state;
 
       const nextClock = state.clock + 1;
-      const { isHome, homeStrength, awayStrength, homeStarters, awayStarters } = action.payload;
+      const { isHome, homeStarters, awayStarters } = action.payload;
 
       const newState = { ...state, clock: nextClock };
       
-      // Update possession slightly
-      const possShift = (Math.random() * 4 - 2) + (state.homeTacticsModifier * 1.5);
-      newState.stats.possession.home = Math.max(30, Math.min(70, state.stats.possession.home + possShift));
+      // Fatigue accumulation
+      newState.homeFatigue += (0.5 + (state.homeMomentumModifier > 0 ? 0.3 : 0)); // Pressing drains fatigue faster
+      newState.awayFatigue += 0.5;
+
+      // Calculate granular phase strengths
+      const homeMid = calculateMidfieldControl(homeStarters, newState.homeFatigue, newState.homeRedCards) + newState.homeMomentumModifier;
+      const awayMid = calculateMidfieldControl(awayStarters, newState.awayFatigue, newState.awayRedCards);
+      
+      const homeAtt = calculateAttackThreat(homeStarters, newState.homeFatigue, newState.homeRedCards) + newState.homeTacticsModifier;
+      const awayAtt = calculateAttackThreat(awayStarters, newState.awayFatigue, newState.awayRedCards);
+      
+      const homeDef = calculateDefenseSolid(homeStarters, newState.homeFatigue, newState.homeRedCards) - (newState.homeTacticsModifier > 0 ? 10 : 0); // Attacking leaves defense open
+      const awayDef = calculateDefenseSolid(awayStarters, newState.awayFatigue, newState.awayRedCards);
+
+      // 1. Momentum Shift (Midfield Duel)
+      const midRatio = homeMid / (homeMid + awayMid);
+      const momentumShift = (Math.random() * 20) * (midRatio > 0.5 ? 1 : -1);
+      
+      // Update Momentum (-100 to 100)
+      newState.momentum = Math.max(-100, Math.min(100, newState.momentum + momentumShift));
+      
+      // Decay momentum towards 0 naturally
+      if (newState.momentum > 0) newState.momentum -= 2;
+      if (newState.momentum < 0) newState.momentum += 2;
+
+      // Update Zone based on Momentum
+      if (newState.momentum > 40) newState.currentZone = "away-third"; // Home is attacking
+      else if (newState.momentum < -40) newState.currentZone = "home-third"; // Away is attacking
+      else newState.currentZone = "midfield";
+
+      // Possession Stats
+      const homePossProb = midRatio * 100;
+      newState.stats.possession.home = Math.floor((state.stats.possession.home * 9 + homePossProb) / 10);
       newState.stats.possession.away = 100 - newState.stats.possession.home;
 
-      // Determine who has the ball
-      const homeHasBall = Math.random() * 100 < newState.stats.possession.home;
-      newState.currentZone = homeHasBall 
-        ? (Math.random() > 0.4 ? "away-third" : "midfield") 
-        : (Math.random() > 0.4 ? "home-third" : "midfield");
+      // 2. Incident Generation (if ball is in final third)
+      const homeIsAttacking = newState.currentZone === "away-third";
+      const awayIsAttacking = newState.currentZone === "home-third";
 
-      // Attempt Attack (approx 20% chance of an "incident" per minute)
-      if (Math.random() < 0.20) {
-        const attackRep = homeHasBall ? homeStrength + state.homeTacticsModifier : awayStrength;
-        const defenseRep = homeHasBall ? awayStrength : homeStrength + state.homeTacticsModifier;
-        
-        // Base goal probability: ~10% of attacks
-        const ratio = attackRep / (attackRep + defenseRep);
-        const goalProb = ratio * 0.15; 
-        
-        const roll = Math.random();
-        const attackingClubId = homeHasBall ? (isHome ? "HOME" : "AWAY") : (isHome ? "AWAY" : "HOME"); // We map this later
-        const attStarters = homeHasBall ? homeStarters : awayStarters;
-        const defStarters = homeHasBall ? awayStarters : homeStarters;
+      if (homeIsAttacking || awayIsAttacking) {
+        const attackProb = 0.30; // 30% chance of a shot when in final third
+        if (Math.random() < attackProb) {
+          
+          const attackRep = homeIsAttacking ? homeAtt : awayAtt;
+          const defenseRep = homeIsAttacking ? awayDef : homeDef;
+          
+          const duelRatio = attackRep / (attackRep + defenseRep);
+          
+          const roll = Math.random();
+          const attackingClubId = homeIsAttacking ? (isHome ? "HOME" : "AWAY") : (isHome ? "AWAY" : "HOME");
+          const attStarters = homeIsAttacking ? homeStarters : awayStarters;
+          
+          const shooter = pickPlayerByPosition(attStarters, ["ATT", "MID"]);
+          const assister = pickPlayerByPosition(attStarters, ["MID", "DEF"]);
 
-        if (roll < goalProb) {
-          // GOAL
-          const scorer = pickAttacker(attStarters);
-          if (homeHasBall) {
-            newState.homeScore++;
-            newState.stats.shots.home++;
-            newState.stats.shotsOnTarget.home++;
+          if (roll < duelRatio * 0.3) {
+            // GOAL
+            if (homeIsAttacking) {
+              newState.homeScore++;
+              newState.stats.shots.home++;
+              newState.stats.shotsOnTarget.home++;
+            } else {
+              newState.awayScore++;
+              newState.stats.shots.away++;
+              newState.stats.shotsOnTarget.away++;
+            }
+            
+            // 70% chance of an assist
+            const hasAssist = Math.random() < 0.7 && assister.id !== shooter.id;
+            const assistText = hasAssist ? ` Assisted by a wonderful ball from ${assister.name}.` : "";
+
+            newState.events = [{
+              minute: nextClock, type: "Goal", clubId: homeIsAttacking ? "HOME" : "AWAY", 
+              playerName: shooter.name, assistName: hasAssist ? assister.name : undefined,
+              details: `${shooter.name} fires a sensational strike into the back of the net!${assistText}`
+            }, ...newState.events];
+            
+            newState.momentum = 0; // Reset momentum to kickoff
+            newState.currentZone = "midfield";
+
+          } else if (roll < duelRatio * 0.7) {
+            // SHOT SAVED
+            if (homeIsAttacking) {
+              newState.stats.shots.home++;
+              newState.stats.shotsOnTarget.home++;
+              newState.stats.corners.home += Math.random() > 0.5 ? 1 : 0;
+            } else {
+              newState.stats.shots.away++;
+              newState.stats.shotsOnTarget.away++;
+              newState.stats.corners.away += Math.random() > 0.5 ? 1 : 0;
+            }
+            newState.events = [{
+              minute: nextClock, type: "Shot Saved", clubId: homeIsAttacking ? "HOME" : "AWAY", 
+              playerName: shooter.name, details: `Brilliant save to deny ${shooter.name}'s powerful effort.`
+            }, ...newState.events];
+            
+            // Lose some momentum after a shot
+            newState.momentum = homeIsAttacking ? 20 : -20; 
+
           } else {
-            newState.awayScore++;
-            newState.stats.shots.away++;
-            newState.stats.shotsOnTarget.away++;
+            // MISS
+            if (homeIsAttacking) newState.stats.shots.home++;
+            else newState.stats.shots.away++;
+            // Momentum shifts to defender
+            newState.momentum = homeIsAttacking ? -30 : 30; 
           }
-          newState.events = [{
-            minute: nextClock, type: "Goal", clubId: homeHasBall ? "HOME" : "AWAY", 
-            playerName: scorer.name, details: `${scorer.name} fires a sensational strike into the back of the net!`
-          }, ...newState.events];
-          newState.currentZone = "midfield"; // reset after goal
-
-        } else if (roll < goalProb + 0.25) {
-          // SHOT SAVED
-          const shooter = pickAttacker(attStarters);
-          if (homeHasBall) {
-            newState.stats.shots.home++;
-            newState.stats.shotsOnTarget.home++;
-            newState.stats.corners.home += Math.random() > 0.5 ? 1 : 0;
-          } else {
-            newState.stats.shots.away++;
-            newState.stats.shotsOnTarget.away++;
-            newState.stats.corners.away += Math.random() > 0.5 ? 1 : 0;
-          }
-          newState.events = [{
-            minute: nextClock, type: "Shot Saved", clubId: homeHasBall ? "HOME" : "AWAY", 
-            playerName: shooter.name, details: `Brilliant save to deny ${shooter.name}'s powerful effort.`
-          }, ...newState.events];
-
-        } else if (roll < goalProb + 0.50) {
-          // MISS
-          if (homeHasBall) newState.stats.shots.home++;
-          else newState.stats.shots.away++;
         }
       }
 
-      // Random cards
-      if (Math.random() < 0.02) {
-        const isFoulByHome = !homeHasBall;
-        const foulStarters = isFoulByHome ? homeStarters : awayStarters;
-        const fouler = pickDefender(foulStarters);
-        if (isFoulByHome) newState.stats.fouls.home++;
+      // 3. Random Events (Fouls, Cards, Injuries)
+      if (Math.random() < 0.03) {
+        const homeFoul = Math.random() > 0.5;
+        const foulStarters = homeFoul ? homeStarters : awayStarters;
+        const fouler = pickPlayerByPosition(foulStarters, ["DEF", "MID"]);
+        
+        if (homeFoul) newState.stats.fouls.home++;
         else newState.stats.fouls.away++;
 
-        if (Math.random() < 0.2) { // 20% of fouls are yellow
+        const cardRoll = Math.random();
+        if (cardRoll < 0.02) { // 2% of fouls are Red Cards
+          if (homeFoul) newState.homeRedCards++;
+          else newState.awayRedCards++;
           newState.events = [{
-            minute: nextClock, type: "Yellow Card", clubId: isFoulByHome ? "HOME" : "AWAY", 
+            minute: nextClock, type: "Red Card", clubId: homeFoul ? "HOME" : "AWAY", 
+            playerName: fouler.name, details: `A shocking tackle! ${fouler.name} is sent off with a straight red card!`
+          }, ...newState.events];
+        } else if (cardRoll < 0.25) { // 23% of fouls are Yellow Cards
+          newState.events = [{
+            minute: nextClock, type: "Yellow Card", clubId: homeFoul ? "HOME" : "AWAY", 
             playerName: fouler.name, details: `Yellow card for ${fouler.name} after a cynical challenge.`
           }, ...newState.events];
         }
@@ -182,7 +286,7 @@ function matchReducer(state: MatchState, action: Action): MatchState {
   }
 }
 
-// Helper to calculate raw team strength
+// Helper to calculate raw team strength (kept for backward compatibility if needed elsewhere)
 const getStrength = (starters: Player[]) => starters.reduce((s, p) => s + p.overall, 0) / starters.length;
 
 // --- COMPONENT ---
@@ -227,8 +331,8 @@ export default function MatchViewer() {
   const homeLineups = useRef(autoSelectLineup(homeSquad, "4-3-3"));
   const awayLineups = useRef(autoSelectLineup(awaySquad, "4-3-3"));
 
-  const homeStrength = getStrength(homeLineups.current.starters) + 2.5; // Home adv
-  const awayStrength = getStrength(awayLineups.current.starters);
+  
+  
 
   // Setup the ticker
   useEffect(() => {
@@ -254,16 +358,7 @@ export default function MatchViewer() {
         }
 
         // Tick
-        dispatch({ 
-          type: "TICK", 
-          payload: { 
-            isHome, 
-            homeStrength, 
-            awayStrength, 
-            homeStarters: homeLineups.current.starters, 
-            awayStarters: awayLineups.current.starters 
-          } 
-        });
+        dispatch({ type: "TICK", payload: { isHome, homeStarters: homeLineups.current.starters, awayStarters: awayLineups.current.starters } });
 
       }, 1000); // 1 real sec = 1 game min
     }
@@ -360,8 +455,8 @@ export default function MatchViewer() {
     updateActiveSave(newState);
   };
 
-  const applyShout = (intent: string, modifier: number) => {
-    dispatch({ type: "TACTICAL_SHOUT", payload: modifier });
+  const applyShout = (intent: string, attackMod: number, momentumMod: number) => {
+    dispatch({ type: "TACTICAL_SHOUT", payload: { attack: attackMod, momentum: momentumMod } });
     dispatch({ type: "ADD_COMMENTARY", payload: `MANAGER SHOUT: "${intent}"` });
   };
 
@@ -503,10 +598,10 @@ export default function MatchViewer() {
           <div className="mt-auto flex flex-col gap-3 pt-6 border-t border-[#1e2d40]">
             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Touchline Actions</h3>
             
-            <button onClick={() => applyShout("Push Forward!", 2)} disabled={!isLive} className={`py-3 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition ${isLive ? 'bg-amber-500/20 text-amber-500 hover:bg-amber-500/30 border border-amber-500/30' : 'bg-[#0f1623] text-slate-600 border border-[#1e2d40] cursor-not-allowed'}`}>
+            <button onClick={() => applyShout("Push Forward!", 10, 20)} disabled={!isLive} className={`py-3 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition ${isLive ? 'bg-amber-500/20 text-amber-500 hover:bg-amber-500/30 border border-amber-500/30' : 'bg-[#0f1623] text-slate-600 border border-[#1e2d40] cursor-not-allowed'}`}>
               <TrendingUp className="w-4 h-4" /> Push Forward
             </button>
-            <button onClick={() => applyShout("Hold Shape!", 0)} disabled={!isLive} className={`py-3 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition ${isLive ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30' : 'bg-[#0f1623] text-slate-600 border border-[#1e2d40] cursor-not-allowed'}`}>
+            <button onClick={() => applyShout("Hold Shape!", -5, 0)} disabled={!isLive} className={`py-3 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition ${isLive ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30' : 'bg-[#0f1623] text-slate-600 border border-[#1e2d40] cursor-not-allowed'}`}>
               <ShieldAlert className="w-4 h-4" /> Hold Shape
             </button>
             <button onClick={() => setSubModal(true)} disabled={!isLive && state.status !== "half-time"} className={`py-3 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition ${(isLive || state.status === "half-time") ? 'bg-[#1e2d40] text-white hover:bg-slate-700 border border-slate-600' : 'bg-[#0f1623] text-slate-600 border border-[#1e2d40] cursor-not-allowed'}`}>

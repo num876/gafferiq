@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
+import { GoogleGenAI } from "@google/genai";
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export async function POST(req: Request) {
   try {
     const { matchState, homeClubName, awayClubName } = await req.json();
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
       // Graceful fallback procedural commentary
@@ -23,29 +26,13 @@ Ball is in zone: ${matchState.currentZone}.
 
 Provide exactly ONE short sentence (max 15 words) of live, punchy, ticker-style match commentary. Do not use quotes or prefixes.`;
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-3-haiku-20240307", // Using Haiku for speed and lower cost on rapid ticker calls
-        max_tokens: 50,
-        messages: [{ role: "user", content: prompt }],
-      }),
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
     });
 
-    if (!response.ok) {
-      throw new Error("Failed to contact Claude API");
-    }
-
-    const data = await response.json();
-    let textResponse = data.content[0].text.trim();
-    
-    // Remove surrounding quotes if Claude added them
-    textResponse = textResponse.replace(/^["']|["']$/g, '');
+    let textResponse = response.text || "Play resumes in the center of the park.";
+    textResponse = textResponse.trim().replace(/^["']|["']$/g, '');
 
     return NextResponse.json({ commentary: textResponse });
 
