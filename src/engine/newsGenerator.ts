@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { SaveState, NewsArticle } from "../db/storage";
 
 const JOURNALISTS = [

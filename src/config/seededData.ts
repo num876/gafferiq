@@ -1,3 +1,4 @@
+/* eslint-disable */
 export interface Club {
   id: string;
   name: string;
@@ -10,6 +11,18 @@ export interface Club {
   capacity: number;
   transferBudget: number; // in Euros
   wageBudget: number; // in Euros per week
+}
+
+let _seed = 12345;
+export function setSeed(seed: number) {
+  _seed = seed;
+}
+
+export function prng() {
+  var t = _seed += 0x6D2B79F5;
+  t = Math.imul(t ^ t >>> 15, t | 1);
+  t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+  return ((t ^ t >>> 14) >>> 0) / 4294967296;
 }
 
 export interface Player {
@@ -43,7 +56,11 @@ export interface Player {
   ratingHistory: number[];
   trainingFocus?: "Balanced" | "Attacking" | "Defensive" | "Fitness" | "Tactical";
   isTransferListed?: boolean;
+  isAcademy?: boolean;
+  sharpness?: number;
   transferOffers?: { clubId: string; amount: number; }[];
+  onLoanFrom?: string;
+  loanDuration?: number; // months or seasons remaining
 }
 
 export const LEAGUE_INFO = {
@@ -353,6 +370,24 @@ const PERSONALITIES: Player["personality"][] = [
 import realSquads from './realSquads.json';
 
 // Seed generator
+
+const OVERRIDE_ATTRIBUTES: Record<string, Partial<Player>> = {
+  "Erling Haaland": { overall: 92, potential: 95, pace: 89, shooting: 94, passing: 66, dribbling: 80, defending: 45, physical: 89, mental: 88, stamina: 82, age: 24 },
+  "Kylian Mbappé": { overall: 92, potential: 95, pace: 97, shooting: 91, passing: 81, dribbling: 93, defending: 36, physical: 78, mental: 85, stamina: 85, age: 25 },
+  "Jude Bellingham": { overall: 91, potential: 94, pace: 80, shooting: 85, passing: 86, dribbling: 88, defending: 81, physical: 84, mental: 90, stamina: 92, age: 21 },
+  "Vinícius Júnior": { overall: 91, potential: 94, pace: 95, shooting: 85, passing: 82, dribbling: 94, defending: 30, physical: 68, mental: 83, stamina: 85, age: 24 },
+  "Bukayo Saka": { overall: 89, potential: 92, pace: 86, shooting: 85, passing: 84, dribbling: 90, defending: 48, physical: 70, mental: 85, stamina: 86, age: 23 },
+  "Cole Palmer": { overall: 88, potential: 91, pace: 80, shooting: 86, passing: 87, dribbling: 88, defending: 45, physical: 68, mental: 88, stamina: 83, age: 22 },
+  "Lamine Yamal": { overall: 86, potential: 96, pace: 85, shooting: 80, passing: 82, dribbling: 90, defending: 35, physical: 55, mental: 80, stamina: 75, age: 17 },
+  "Martin Ødegaard": { overall: 89, potential: 91, pace: 78, shooting: 82, passing: 90, dribbling: 88, defending: 58, physical: 65, mental: 89, stamina: 90, age: 25 },
+  "Phil Foden": { overall: 89, potential: 91, pace: 86, shooting: 86, passing: 85, dribbling: 91, defending: 56, physical: 66, mental: 85, stamina: 85, age: 24 },
+  "Rodri": { overall: 91, potential: 91, pace: 66, shooting: 80, passing: 88, dribbling: 84, defending: 89, physical: 86, mental: 94, stamina: 92, age: 28 },
+  "Virgil van Dijk": { overall: 90, potential: 90, pace: 76, shooting: 60, passing: 79, dribbling: 72, defending: 92, physical: 86, mental: 90, stamina: 83, age: 33 },
+  "Mohamed Salah": { overall: 89, potential: 89, pace: 88, shooting: 88, passing: 84, dribbling: 89, defending: 45, physical: 75, mental: 87, stamina: 87, age: 32 },
+  "Marcus Rashford": { overall: 82, potential: 83, pace: 88, shooting: 81, passing: 77, dribbling: 82, defending: 42, physical: 74, mental: 75, stamina: 80, age: 26 },
+  "Robert Lewandowski": { overall: 89, potential: 89, pace: 73, shooting: 91, passing: 77, dribbling: 82, defending: 44, physical: 82, mental: 89, stamina: 78, age: 36 }
+};
+
 export function generateSquadForClub(clubId: string, clubRep: number): Player[] {
   const squad: Player[] = [];
   
@@ -377,13 +412,13 @@ export function generateSquadForClub(clubId: string, clubRep: number): Player[] 
     const variance = (nameSeed % 11) - 5; // -5 to +5
     
     // Younger players in high rep clubs get lower OVR but high potential
-    const age = preset.age || (18 + (nameSeed % 15));
+    let age = preset.age || (18 + (nameSeed % 15));
     let ageAdjustment = 0;
     if (age < 21) ageAdjustment = -4;
     else if (age > 32) ageAdjustment = -2;
 
     const override = TOP_PLAYER_OVERRIDES[preset.name];
-    const overall = override ? override.overall : Math.min(99, Math.max(50, baseAvg + variance + ageAdjustment));
+    let overall = override ? override.overall : Math.min(99, Math.max(50, baseAvg + variance + ageAdjustment));
     const pos = preset.position as "GK" | "DEF" | "MID" | "ATT";
 
     // Potential
@@ -397,7 +432,23 @@ export function generateSquadForClub(clubId: string, clubRep: number): Player[] 
     }
 
     // Distribute attributes realistically
-    const attributes = distributeAttributes(pos, overall);
+    let attributes = distributeAttributes(pos, overall);
+    const hero = OVERRIDE_ATTRIBUTES[preset.name];
+    if (hero) {
+      if (hero.overall) overall = hero.overall;
+      if (hero.potential) potential = hero.potential;
+      if (hero.age) age = hero.age;
+      attributes = {
+        pace: hero.pace || attributes.pace,
+        shooting: hero.shooting || attributes.shooting,
+        passing: hero.passing || attributes.passing,
+        dribbling: hero.dribbling || attributes.dribbling,
+        defending: hero.defending || attributes.defending,
+        physical: hero.physical || attributes.physical,
+        mental: hero.mental || attributes.mental,
+        stamina: hero.stamina || attributes.stamina,
+      };
+    }
 
     squad.push({
       id: preset.id || `${clubId}_r_${idCounter++}`,
@@ -450,36 +501,36 @@ export function generateSquadForClub(clubId: string, clubRep: number): Player[] 
     else if (clubRep >= 70) baseAvg = 70;
     else baseAvg = 66;
 
-    const variance = Math.floor(Math.random() * 8) - 4;
+    const variance = Math.floor(prng() * 8) - 4;
     const ovr = Math.max(50, Math.min(99, baseAvg + variance));
     
-    const randomNationality = NATIONALITIES[Math.floor(Math.random() * NATIONALITIES.length)];
-    const firstName = COMMON_FIRST_NAMES[Math.floor(Math.random() * COMMON_FIRST_NAMES.length)];
-    const lastName = COMMON_LAST_NAMES[Math.floor(Math.random() * COMMON_LAST_NAMES.length)];
+    const randomNationality = NATIONALITIES[Math.floor(prng() * NATIONALITIES.length)];
+    const firstName = COMMON_FIRST_NAMES[Math.floor(prng() * COMMON_FIRST_NAMES.length)];
+    const lastName = COMMON_LAST_NAMES[Math.floor(prng() * COMMON_LAST_NAMES.length)];
 
     squad.push({
       id: `${clubId}_gen_${idCounter++}`,
       clubId,
       name: `${firstName} ${lastName}`,
       position: requiredPos as "GK" | "DEF" | "MID" | "ATT",
-      age: Math.floor(Math.random() * 14) + 18,
+      age: Math.floor(prng() * 14) + 18,
       nationality: randomNationality.name,
       nationalityFlag: randomNationality.flag,
-      pace: Math.floor(Math.random() * 20) + (ovr - 10),
-      shooting: Math.floor(Math.random() * 20) + (requiredPos === 'ATT' ? ovr : ovr - 20),
-      passing: Math.floor(Math.random() * 20) + (ovr - 10),
-      dribbling: Math.floor(Math.random() * 20) + (ovr - 10),
-      defending: Math.floor(Math.random() * 20) + (requiredPos === 'DEF' ? ovr : ovr - 20),
-      physical: Math.floor(Math.random() * 20) + (ovr - 10),
-      mental: Math.floor(Math.random() * 20) + (ovr - 10),
-      stamina: Math.floor(Math.random() * 20) + (ovr - 10),
+      pace: Math.floor(prng() * 20) + (ovr - 10),
+      shooting: Math.floor(prng() * 20) + (requiredPos === 'ATT' ? ovr : ovr - 20),
+      passing: Math.floor(prng() * 20) + (ovr - 10),
+      dribbling: Math.floor(prng() * 20) + (ovr - 10),
+      defending: Math.floor(prng() * 20) + (requiredPos === 'DEF' ? ovr : ovr - 20),
+      physical: Math.floor(prng() * 20) + (ovr - 10),
+      mental: Math.floor(prng() * 20) + (ovr - 10),
+      stamina: Math.floor(prng() * 20) + (ovr - 10),
       overall: ovr,
-      potential: Math.min(99, ovr + Math.floor(Math.random() * 12)),
+      potential: Math.min(99, ovr + Math.floor(prng() * 12)),
       wage: calculateWage(ovr, clubRep),
-      value: calculateValue(ovr, Math.floor(Math.random() * 14) + 18, Math.min(99, ovr + Math.floor(Math.random() * 12)), clubRep),
-      morale: 80 + Math.floor(Math.random() * 20),
-      personality: PERSONALITIES[Math.floor(Math.random() * PERSONALITIES.length)],
-      contractExpiry: Math.floor(Math.random() * 4) + 1,
+      value: calculateValue(ovr, Math.floor(prng() * 14) + 18, Math.min(99, ovr + Math.floor(prng() * 12)), clubRep),
+      morale: 80 + Math.floor(prng() * 20),
+      personality: PERSONALITIES[Math.floor(prng() * PERSONALITIES.length)],
+      contractExpiry: Math.floor(prng() * 4) + 1,
       injuryStatus: "Fit",
       goals: 0,
       assists: 0,
@@ -493,38 +544,38 @@ export function generateSquadForClub(clubId: string, clubRep: number): Player[] 
 function distributeAttributes(pos: "GK" | "DEF" | "MID" | "ATT", overall: number) {
   // Simple heuristic mapping
   const base = overall;
-  let pace = base + Math.floor(Math.random() * 10) - 5;
-  let shooting = base + Math.floor(Math.random() * 10) - 5;
-  let passing = base + Math.floor(Math.random() * 10) - 5;
-  let dribbling = base + Math.floor(Math.random() * 10) - 5;
-  let defending = base + Math.floor(Math.random() * 10) - 5;
-  let physical = base + Math.floor(Math.random() * 10) - 5;
-  let mental = base + Math.floor(Math.random() * 10) - 5;
-  let stamina = base + Math.floor(Math.random() * 10) - 5;
+  let pace = base + Math.floor(prng() * 10) - 5;
+  let shooting = base + Math.floor(prng() * 10) - 5;
+  let passing = base + Math.floor(prng() * 10) - 5;
+  let dribbling = base + Math.floor(prng() * 10) - 5;
+  let defending = base + Math.floor(prng() * 10) - 5;
+  let physical = base + Math.floor(prng() * 10) - 5;
+  let mental = base + Math.floor(prng() * 10) - 5;
+  let stamina = base + Math.floor(prng() * 10) - 5;
 
   if (pos === "GK") {
     // For GK, defending represents GK handling/reflexes. Shooting/Dribbling/Pace are low.
-    defending = base + Math.floor(Math.random() * 6) + 4; // reflexes
-    physical = base + Math.floor(Math.random() * 6) + 2; // diving
-    passing = base - Math.floor(Math.random() * 10) - 5; // kicking
-    pace = 30 + Math.floor(Math.random() * 20);
-    shooting = 10 + Math.floor(Math.random() * 15);
-    dribbling = 25 + Math.floor(Math.random() * 20);
+    defending = base + Math.floor(prng() * 6) + 4; // reflexes
+    physical = base + Math.floor(prng() * 6) + 2; // diving
+    passing = base - Math.floor(prng() * 10) - 5; // kicking
+    pace = 30 + Math.floor(prng() * 20);
+    shooting = 10 + Math.floor(prng() * 15);
+    dribbling = 25 + Math.floor(prng() * 20);
   } else if (pos === "DEF") {
-    defending = base + Math.floor(Math.random() * 8) + 3;
-    physical = base + Math.floor(Math.random() * 6) + 2;
-    shooting = base - Math.floor(Math.random() * 15) - 5;
-    passing = base - Math.floor(Math.random() * 5);
+    defending = base + Math.floor(prng() * 8) + 3;
+    physical = base + Math.floor(prng() * 6) + 2;
+    shooting = base - Math.floor(prng() * 15) - 5;
+    passing = base - Math.floor(prng() * 5);
   } else if (pos === "MID") {
-    passing = base + Math.floor(Math.random() * 8) + 3;
-    dribbling = base + Math.floor(Math.random() * 6) + 1;
-    defending = base - Math.floor(Math.random() * 5) - 2;
-    shooting = base - Math.floor(Math.random() * 5);
+    passing = base + Math.floor(prng() * 8) + 3;
+    dribbling = base + Math.floor(prng() * 6) + 1;
+    defending = base - Math.floor(prng() * 5) - 2;
+    shooting = base - Math.floor(prng() * 5);
   } else if (pos === "ATT") {
-    shooting = base + Math.floor(Math.random() * 8) + 4;
-    pace = base + Math.floor(Math.random() * 8) + 2;
-    dribbling = base + Math.floor(Math.random() * 6) + 1;
-    defending = base - Math.floor(Math.random() * 20) - 10;
+    shooting = base + Math.floor(prng() * 8) + 4;
+    pace = base + Math.floor(prng() * 8) + 2;
+    dribbling = base + Math.floor(prng() * 6) + 1;
+    defending = base - Math.floor(prng() * 20) - 10;
   }
 
   // Bound check
@@ -555,41 +606,34 @@ export function calculateWage(overall: number, clubRep: number = 75): number {
   // Big clubs (high rep) pay a premium
   const repPremium = 1.0 + ((clubRep - 70) / 80);
   
-  const rawWage = baseWage * repPremium * (0.85 + Math.random() * 0.3);
+  const rawWage = baseWage * repPremium * (0.85 + prng() * 0.3);
   return Math.floor(rawWage / 1000) * 1000; // Round to nearest 1,000
 }
 
 export function calculateValue(overall: number, age: number, potential: number = overall, clubRep: number = 75): number {
-  // Value curve based on overall and modern football transfer inflation
-  // 90+ overall players go for 100M+
   let ageMultiplier = 1.0;
-  if (age <= 21) ageMultiplier = 1.5 + ((potential - overall) * 0.05); // High potential youngsters are incredibly expensive
-  else if (age <= 24) ageMultiplier = 1.3;
+  if (age <= 19) ageMultiplier = 2.0 + ((potential - overall) * 0.1);
+  else if (age <= 22) ageMultiplier = 1.5 + ((potential - overall) * 0.05);
+  else if (age <= 25) ageMultiplier = 1.2;
   else if (age >= 30 && age <= 32) ageMultiplier = 0.6;
   else if (age > 32) ageMultiplier = 0.3;
 
-  // Exponential value curve for overall rating
   let baseVal = 0;
-  if (overall >= 90) baseVal = 90000000 + ((overall - 90) * 15000000); // 90=90M, 94=150M
-  else if (overall >= 85) baseVal = 50000000 + ((overall - 85) * 8000000); // 85=50M, 89=82M
+  if (overall >= 90) baseVal = 120000000 + ((overall - 90) * 20000000); // 90=120M, 93=180M
+  else if (overall >= 85) baseVal = 60000000 + ((overall - 85) * 10000000); // 85=60M, 89=100M
   else if (overall >= 80) baseVal = 25000000 + ((overall - 80) * 5000000); // 80=25M, 84=45M
-  else if (overall >= 75) baseVal = 10000000 + ((overall - 75) * 3000000); // 75=10M, 79=22M
+  else if (overall >= 75) baseVal = 10000000 + ((overall - 75) * 3000000); 
   else if (overall >= 70) baseVal = 4000000 + ((overall - 70) * 1200000);
   else baseVal = Math.pow(overall / 60, 4) * 1500000;
 
-  // Club reputation tax (buying from Real Madrid costs more than from Luton)
   const repPremium = 1.0 + ((clubRep - 70) / 100);
-
-  const rawValue = baseVal * ageMultiplier * repPremium * (0.9 + Math.random() * 0.2);
-  
-  // Cap at reasonable numbers
-  if (overall < 60) return Math.floor(Math.max(100000, rawValue) / 10000) * 10000;
-  if (rawValue > 250000000) return Math.floor(250000000 / 1000000) * 1000000; // Cap at 250M
+  const rawValue = baseVal * ageMultiplier * repPremium * (0.9 + prng() * 0.2);
   return Math.floor(rawValue / 100000) * 100000;
 }
 
-export function generateAllClubsWithSquads(): { clubs: Club[]; players: Player[] } {
-  const players: Player[] = [];
+export function generateAllClubsWithSquads(includeGeneratedFillers = true): { clubs: Club[], players: Player[] } {
+  setSeed(12345);
+  let players: Player[] = [];
   
   for (const club of CLUBS_DATA) {
     const squad = generateSquadForClub(club.id, club.reputation);

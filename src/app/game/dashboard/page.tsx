@@ -38,7 +38,7 @@ export default function Dashboard() {
   const playerPos = standings.findIndex(s => s.clubId === playerClub.id) + 1;
 
   // Roster summaries
-  const squad = activeSave.players.filter(p => p.clubId === playerClub.id);
+  const squad = activeSave.players.filter(p => p.clubId === playerClub.id && !p.isAcademy);
   const avgMorale = squad.length > 0 ? squad.reduce((sum, p) => sum + p.morale, 0) / squad.length : 80;
 
   let moraleColor = "text-[#22c55e]";

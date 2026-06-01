@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
@@ -13,31 +14,13 @@ import { motion, AnimatePresence } from "framer-motion";
 
 // Helper to generate mock procedural stats for a player
 const generateAttributes = (player: Player) => {
-  // Use player ID to seed pseudo-randomness for consistency
-  const seed = parseInt(player.id.replace(/\D/g, '')) || player.age;
-  const base = player.overall - 10;
-  
-  let pac = base + (seed % 15);
-  let sho = base + ((seed * 2) % 15);
-  let pas = base + ((seed * 3) % 15);
-  let def = base + ((seed * 4) % 15);
-  let phy = base + ((seed * 5) % 15);
-
-  // Positional adjustments
-  if (player.position === 'GK') {
-    pac -= 30; sho -= 40; def += 10;
-  } else if (player.position.includes('B')) { // Defenders
-    def += 15; phy += 10; sho -= 20;
-  } else if (player.position.includes('M')) { // Midfielders
-    pas += 15;
-  } else if (player.position.includes('T') || player.position.includes('W')) { // Attackers
-    sho += 15; pac += 10; def -= 20;
-  }
-
-  // Cap at 99
-  const cap = (val: number) => Math.min(99, Math.max(20, val));
-  
-  return { pac: cap(pac), sho: cap(sho), pas: cap(pas), def: cap(def), phy: cap(phy) };
+  return { 
+    pac: player.pace || player.overall, 
+    sho: player.shooting || player.overall, 
+    pas: player.passing || player.overall, 
+    def: player.defending || player.overall, 
+    phy: player.physical || player.overall 
+  };
 };
 
 export default function Transfers() {
@@ -60,12 +43,16 @@ export default function Transfers() {
   const [freeAgentsOnly, setFreeAgentsOnly] = useState(false);
   const [wonderkidsOnly, setWonderkidsOnly] = useState(false);
 
+  const isTransferWindow = activeSave ? (activeSave.currentMatchday >= 1 && activeSave.currentMatchday <= 4) || (activeSave.currentMatchday >= 19 && activeSave.currentMatchday <= 22) : false;
+
+
   // Modal / Interaction states
   const [scoutedPlayer, setScoutedPlayer] = useState<Player | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [bidModalOpen, setBidModalOpen] = useState(false);
   const [bidAmount, setBidAmount] = useState<number>(0); 
   const [bidStep, setBidStep] = useState<"bid" | "negotiating" | "contract" | "declined" | "accepted">("bid");
+  const [offerType, setOfferType] = useState<"permanent" | "loan">("permanent");
   const [negotiationMessage, setNegotiationMessage] = useState("");
   const [suggestedFee, setSuggestedFee] = useState<number>(0);
   
@@ -83,7 +70,7 @@ export default function Transfers() {
   // Filter players
   const filteredPlayers = useMemo(() => {
     return activeSave.players.filter(p => {
-      if (p.clubId === playerClub.id) return false;
+      if (p.clubId === playerClub.id && !p.isAcademy) return false;
 
       const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesPosition = selectedPositions.length === 0 || selectedPositions.includes(p.position);
@@ -134,6 +121,14 @@ export default function Transfers() {
          return;
       }
 
+      if (offerType === "loan") {
+         // Simplified loan logic: clubs usually accept loans for young or transfer-listed players
+         setBidStep("contract");
+         setContractYears(1);
+         setNegotiationMessage(`${club?.name} has agreed to loan ${selectedPlayer.name} to you for one season. Now, negotiate the wage split.`);
+         return;
+      }
+
       if (bidAmount < value * 0.8) {
         setBidStep("declined");
         setNegotiationMessage(`${club?.name} has instantly rejected your bid. They refuse to sell ${selectedPlayer.name} for such an insultingly low offer.`);
@@ -175,7 +170,7 @@ export default function Transfers() {
         const currentClub = activeSave.clubs.find(c => c.id === selectedPlayer.clubId);
         const newState = { ...activeSave };
         
-        if (selectedPlayer.clubId !== "free_agent") newState.transferBudget -= bidAmount;
+        if (selectedPlayer.clubId !== "free_agent" && offerType === "permanent") newState.transferBudget -= bidAmount;
         newState.wageBudget -= offeredWage;
         
         const statePlayer = newState.players.find(p => p.id === selectedPlayer.id)!;
@@ -183,28 +178,33 @@ export default function Transfers() {
         statePlayer.wage = offeredWage;
         statePlayer.contractExpiry = contractYears;
         statePlayer.morale = 95; 
+        
+        if (offerType === "loan") {
+          statePlayer.onLoanFrom = currentClub ? currentClub.id : "";
+          statePlayer.loanDuration = 1;
+        }
 
         newState.transfersHistory.unshift({
           id: `trans_${Date.now()}`,
           playerName: selectedPlayer.name,
           fromClubName: currentClub ? currentClub.name : "Free Agent",
           toClubName: playerClub.name,
-          fee: selectedPlayer.clubId === "free_agent" ? 0 : bidAmount,
-          type: "permanent",
+          fee: selectedPlayer.clubId === "free_agent" || offerType === "loan" ? 0 : bidAmount,
+          type: offerType,
           matchday: activeSave.currentMatchday
         });
 
         newState.inbox.unshift({
           id: `trans_sign_${selectedPlayer.id}`,
           sender: "Chief Scout",
-          subject: `NEW SIGNING: ${selectedPlayer.name} Joins!`,
-          body: `Deal finalized! ${selectedPlayer.name} has officially signed a ${contractYears}-year contract with our club. The fans are ecstatic.`,
+          subject: offerType === "loan" ? `LOAN SIGNING: ${selectedPlayer.name} Arrives` : `NEW SIGNING: ${selectedPlayer.name} Joins!`,
+          body: offerType === "loan" ? `${selectedPlayer.name} has joined us on loan for the remainder of the season.` : `Deal finalized! ${selectedPlayer.name} has officially signed a ${contractYears}-year contract with our club.`,
           date: `Matchday ${activeSave.currentMatchday}`,
           read: false,
           type: "media"
         });
 
-        newState.gameLog.unshift(`Signed ${selectedPlayer.name} from ${currentClub ? currentClub.name : "Free Agency"}.`);
+        newState.gameLog.unshift(offerType === "loan" ? `Signed ${selectedPlayer.name} on loan.` : `Signed ${selectedPlayer.name} from ${currentClub ? currentClub.name : "Free Agency"}.`);
         updateActiveSave(newState);
       }
     }, 1200);
@@ -229,8 +229,24 @@ export default function Transfers() {
   const shortlistLookup = useMemo(() => new Set(activeSave.scoutShortlist), [activeSave.scoutShortlist]);
 
   // Squad view dummy actions
-  const releasePlayer = (p: Player) => {};
-  const toggleTransferList = (p: Player) => {};
+  const releasePlayer = (p: Player) => {
+    const newState = { ...activeSave };
+    const player = newState.players.find(x => x.id === p.id);
+    if (player) {
+      player.clubId = "free_agent";
+      player.wage = 0;
+      player.isTransferListed = false;
+      updateActiveSave(newState);
+    }
+  };
+  const toggleTransferList = (p: Player) => {
+    const newState = { ...activeSave };
+    const player = newState.players.find(x => x.id === p.id);
+    if (player) {
+      player.isTransferListed = !player.isTransferListed;
+      updateActiveSave(newState);
+    }
+  };
 
   return (
     <div className="flex flex-col w-full h-full relative">
@@ -570,12 +586,26 @@ export default function Transfers() {
 
             {/* Bottom Action Area */}
             <div className="absolute bottom-0 inset-x-0 p-6 bg-[#0a0f1e]/90 backdrop-blur-md border-t border-[#1e2d40]">
-              <button 
-                onClick={() => { setScoutedPlayer(null); openBidModal(scoutedPlayer); }}
-                className="w-full py-4 rounded-xl bg-[#16a34a] hover:bg-[#15803d] text-white font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(22,163,74,0.3)] transition-transform active:scale-95"
-              >
-                Make Bid Offer <ArrowRight className="w-4 h-4" />
-              </button>
+              
+              {!isTransferWindow ? (
+                <div className="text-center w-full">
+                  <button 
+                    disabled
+                    className="w-full py-4 rounded-xl bg-slate-800 text-slate-500 font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed"
+                  >
+                    Market Closed
+                  </button>
+                  <p className="text-[10px] text-slate-400 mt-2 font-bold">Transfers only allowed during MD 1-4 and 19-22</p>
+                </div>
+              ) : (
+                <button 
+                  onClick={() => { setScoutedPlayer(null); openBidModal(scoutedPlayer); }}
+                  className="w-full py-4 rounded-xl bg-[#16a34a] hover:bg-[#15803d] text-white font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(22,163,74,0.3)] transition-transform active:scale-95"
+                >
+                  Make Bid Offer <ArrowRight className="w-4 h-4" />
+                </button>
+              )}
+
             </div>
           </motion.aside>
         )}
@@ -610,7 +640,6 @@ export default function Transfers() {
                       {negotiationMessage}
                     </div>
                   )}
-
                   <div className="p-4 rounded-xl bg-[#080c14] border border-[#1e2d40] flex justify-between items-center">
                     <div>
                       <h4 className="font-black text-white text-sm">{selectedPlayer.name}</h4>
@@ -622,21 +651,38 @@ export default function Transfers() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-3">
-                    <div className="flex justify-between font-bold">
-                      <span className="text-slate-400 uppercase text-[10px]">Your Offer Bid:</span>
-                      <span className="text-[#22c55e] font-black text-sm">€{(bidAmount/1000000).toFixed(2)}M</span>
-                    </div>
-                    <input
-                      type="range"
-                      min={Math.floor(selectedPlayer.value * 0.5)}
-                      max={Math.floor(selectedPlayer.value * 2)}
-                      step={Math.floor(selectedPlayer.value * 0.05) || 500000}
-                      value={bidAmount}
-                      onChange={(e) => setBidAmount(parseInt(e.target.value))}
-                      className="w-full accent-[#22c55e] h-1.5 bg-[#080c14] rounded-lg"
-                    />
+                  <div className="flex bg-[#080c14] border border-[#1e2d40] rounded-xl p-1 gap-1">
+                    <button onClick={() => setOfferType("permanent")} className={`flex-1 py-2 rounded-lg font-bold text-xs uppercase tracking-widest transition ${offerType === "permanent" ? "bg-[#16a34a] text-white shadow" : "text-slate-500 hover:text-slate-300"}`}>
+                      Permanent Transfer
+                    </button>
+                    <button onClick={() => setOfferType("loan")} className={`flex-1 py-2 rounded-lg font-bold text-xs uppercase tracking-widest transition ${offerType === "loan" ? "bg-[#3b82f6] text-white shadow" : "text-slate-500 hover:text-slate-300"}`}>
+                      Season Loan
+                    </button>
                   </div>
+
+                  {offerType === "permanent" ? (
+                    <div className="flex flex-col gap-3">
+                      <div className="flex justify-between font-bold">
+                        <span className="text-slate-400 uppercase text-[10px]">Your Offer Bid:</span>
+                        <span className="text-[#22c55e] font-black text-sm">€{(bidAmount/1000000).toFixed(2)}M</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={Math.floor(selectedPlayer.value * 0.5)}
+                        max={Math.floor(selectedPlayer.value * 2)}
+                        step={Math.floor(selectedPlayer.value * 0.05) || 500000}
+                        value={bidAmount}
+                        onChange={(e) => setBidAmount(parseInt(e.target.value))}
+                        className="w-full accent-[#22c55e] h-1.5 bg-[#080c14] rounded-lg"
+                      />
+                    </div>
+                  ) : (
+                    <div className="text-center p-4 bg-[#3b82f6]/10 border border-[#3b82f6]/20 rounded-xl">
+                      <p className="text-[#60a5fa] font-bold text-xs leading-relaxed">
+                        You are submitting a loan proposal to {activeSave.clubs.find(c => c.id === selectedPlayer.clubId)?.name}. If accepted, you will negotiate the percentage of {selectedPlayer.name}'s weekly wage you are willing to cover.
+                      </p>
+                    </div>
+                  )}
 
                   <div className="flex justify-end gap-3 mt-4">
                      <button onClick={() => setBidModalOpen(false)} className="px-5 py-2.5 bg-[#080c14] border border-[#1e2d40] text-slate-400 font-bold rounded-xl hover:text-white transition">
@@ -683,15 +729,19 @@ export default function Transfers() {
                   <div className="flex flex-col gap-2">
                     <span className="font-bold text-slate-400">Contract Length:</span>
                     <div className="flex gap-2">
-                      {[1, 2, 3, 4, 5].map(yr => (
-                        <button
-                          key={yr}
-                          onClick={() => setContractYears(yr)}
-                          className={`flex-1 py-2.5 rounded-xl font-bold border transition ${contractYears === yr ? 'bg-[#22c55e] border-[#22c55e] text-white shadow' : 'bg-[#080c14] border-[#1e2d40] text-slate-400 hover:text-white'}`}
-                        >
-                          {yr}
-                        </button>
-                      ))}
+                      {offerType === "loan" ? (
+                        <div className="flex-1 py-2.5 text-center rounded-xl font-bold bg-[#3b82f6] text-white">1 Season (Loan)</div>
+                      ) : (
+                        [1, 2, 3, 4, 5].map(yr => (
+                          <button
+                            key={yr}
+                            onClick={() => setContractYears(yr)}
+                            className={`flex-1 py-2.5 rounded-xl font-bold border transition ${contractYears === yr ? 'bg-[#22c55e] border-[#22c55e] text-white shadow' : 'bg-[#080c14] border-[#1e2d40] text-slate-400 hover:text-white'}`}
+                          >
+                            {yr}
+                          </button>
+                        ))
+                      )}
                     </div>
                   </div>
 

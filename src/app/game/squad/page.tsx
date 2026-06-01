@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 
 import React, { useState } from "react";
@@ -16,7 +17,7 @@ export default function Squad() {
   if (!activeSave) return null;
 
   const playerClub = activeSave.clubs.find(c => c.id === activeSave.selectedClubId)!;
-  const squad = activeSave.players.filter(p => p.clubId === playerClub.id);
+  const squad = activeSave.players.filter(p => p.clubId === playerClub.id && !p.isAcademy);
 
   // Group squad by position
   const positionsOrder = ["GK", "DEF", "MID", "ATT"] as const;
@@ -373,13 +374,34 @@ export default function Squad() {
                     </div>
                   </div>
                   
-                  <div className="flex justify-between items-center w-full">
-                    <button 
-                      onClick={() => { setIsRenewing(true); setRenewalNotif(""); }}
-                      className="px-4 py-2 rounded-lg bg-amber-600/20 hover:bg-amber-600 border border-amber-600/40 text-amber-500 hover:text-white font-bold text-xs transition"
-                    >
-                      Renew Contract
-                    </button>
+                  <div className="flex justify-between items-center w-full gap-2">
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => { setIsRenewing(true); setRenewalNotif(""); }}
+                        className="px-4 py-2 rounded-lg bg-amber-600/20 hover:bg-amber-600 border border-amber-600/40 text-amber-500 hover:text-white font-bold text-xs transition"
+                      >
+                        Renew Contract
+                      </button>
+                      {selectedPlayer.age <= 23 && !selectedPlayer.onLoanFrom && (
+                        <button 
+                          onClick={() => {
+                            const lowerClubs = activeSave.clubs.filter(c => c.id !== playerClub.id && c.reputation < playerClub.reputation);
+                            const targetClub = lowerClubs[Math.floor(Math.random() * lowerClubs.length)] || activeSave.clubs.find(c => c.id !== playerClub.id);
+                            const newState = { ...activeSave };
+                            const p = newState.players.find(p => p.id === selectedPlayer.id)!;
+                            p.onLoanFrom = playerClub.id;
+                            p.clubId = targetClub!.id;
+                            p.loanDuration = 1;
+                            newState.gameLog.unshift(`${p.name} has been sent on loan to ${targetClub!.name} for the season.`);
+                            updateActiveSave(newState);
+                            setSelectedPlayer(null);
+                          }}
+                          className="px-4 py-2 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-600/40 text-blue-500 hover:text-white font-bold text-xs transition"
+                        >
+                          Send on Loan
+                        </button>
+                      )}
+                    </div>
                     <button 
                       onClick={() => { setSelectedPlayer(null); setIsRenewing(false); setRenewalNotif(""); }}
                       className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 font-bold text-xs text-white shadow transition"

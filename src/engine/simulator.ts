@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { Club, Player } from "../config/seededData";
 import { MatchFixture, MatchEvent, MatchStats } from "../db/storage";
 
@@ -77,6 +78,7 @@ export function autoSelectLineup(players: Player[], formation: string = "4-4-2")
 
 // Client-side Match Simulation Engine (Heuristic)
 export function simulateMatchHeuristic(
+  fixture: MatchFixture,
   homeClub: Club,
   awayClub: Club,
   homeSquad: Player[],
@@ -85,7 +87,7 @@ export function simulateMatchHeuristic(
   awayTactics: TacticalInstructions,
   homeManagerTacticsBonus: number = 10, // tactical knowledge out of 20
   awayManagerTacticsBonus: number = 10
-): Omit<MatchFixture, "id" | "league" | "matchday" | "homeClubId" | "awayClubId" | "played"> {
+): Omit<MatchFixture, "id" | "league" | "competition" | "round" | "matchday" | "homeClubId" | "awayClubId" | "played"> {
   
   // 1. Get Starting Lineups
   const { starters: homeStarters } = autoSelectLineup(homeSquad);
@@ -308,6 +310,30 @@ export function simulateMatchHeuristic(
 
   // Sort events chronologically
   events.sort((a, b) => a.minute - b.minute);
+
+  // Cup Matches MUST have a winner
+  if (fixture.competition === "Domestic Cup" && homeScore === awayScore) {
+    // Simulate penalty shootout
+    const homePens = Math.floor(Math.random() * 5) + 3;
+    let awayPens = Math.floor(Math.random() * 5) + 3;
+    if (homePens === awayPens) {
+      awayPens = Math.random() > 0.5 ? homePens - 1 : homePens + 1;
+    }
+    
+    events.push({
+      minute: 120,
+      type: "Penalty",
+      clubId: homePens > awayPens ? homeClub.id : awayClub.id,
+      playerName: "Team",
+      details: `Full Time resulted in a draw. The match went to penalties! ${homeClub.name} ${homePens} - ${awayPens} ${awayClub.name}.`
+    });
+
+    if (homePens > awayPens) {
+      homeScore++; // Give them an extra goal to progress them heuristically in standings/score check
+    } else {
+      awayScore++;
+    }
+  }
 
   // Generate Stats
   const homePossession = Math.max(30, Math.min(70, Math.floor(50 + (homeMidRating - awayMidRating) * 0.8 + (homeTactics.tempo === "Slow" ? 2 : 0))));

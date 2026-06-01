@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { SaveState, Manager, loadAllSaves, saveGame, deleteSave as dbDeleteSave, createNewSave as dbCreateNewSave, MatchFixture, Standing } from "../db/storage";
+import { SaveState, Manager, loadAllSaves, saveGame, deleteSave as dbDeleteSave, createNewSave as dbCreateNewSave, MatchFixture, Standing, generateCupFixturesForRound } from "../db/storage";
 import { simulateMatchHeuristic, autoSelectLineup, TacticalInstructions } from "../engine/simulator";
 import { Player, Club, calculateValue } from "../config/seededData";
 import { generateWeeklyNews } from "../engine/newsGenerator";
@@ -32,26 +32,28 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     // Check if there is an active save in sessionStorage to restore after page reload
     const storedActiveId = sessionStorage.getItem("gaffer_iq_active_save_id");
     if (storedActiveId) {
-      const list = loadAllSaves();
-      const found = list.find(s => s.id === storedActiveId);
-      if (found) {
-        setActiveSave(found);
-      }
+      loadAllSaves().then(list => {
+        const found = list.find(s => s.id === storedActiveId);
+        if (found) {
+          setActiveSave(found);
+        }
+      });
     }
     setLoading(false);
   }, []);
 
   const refreshSaves = () => {
-    setSavesList(loadAllSaves());
+    loadAllSaves().then(list => setSavesList(list));
   };
 
   const loadSave = (id: string) => {
-    const list = loadAllSaves();
-    const found = list.find(s => s.id === id);
-    if (found) {
-      setActiveSave(found);
-      sessionStorage.setItem("gaffer_iq_active_save_id", id);
-    }
+    loadAllSaves().then(list => {
+      const found = list.find(s => s.id === id);
+      if (found) {
+        setActiveSave(found);
+        sessionStorage.setItem("gaffer_iq_active_save_id", id);
+      }
+    });
   };
 
   const createNewGame = (saveName: string, manager: Manager, clubId: string, speed: "Quick Sim" | "Detailed Sim") => {
@@ -108,6 +110,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         const awaySquad = state.players.filter(p => p.clubId === awayClub.id);
 
         const result = simulateMatchHeuristic(
+          fixture,
           homeClub,
           awayClub,
           homeSquad,
@@ -138,6 +141,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       const awaySquad = state.players.filter(p => p.clubId === awayClub.id);
 
       const result = simulateMatchHeuristic(
+        fixture,
         homeClub,
         awayClub,
         homeSquad,
@@ -175,6 +179,76 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       playMatchdayCpuGames();
       // Reload state after sim
       state = { ...activeSave };
+    }
+
+    // Cup Progression Logic
+    const cupPlayedFixtures = state.fixtures.filter(f => f.matchday === state.currentMatchday && f.competition === "Domestic Cup" && f.played);
+    if (cupPlayedFixtures.length > 0 && state.cupState) {
+      const playerClubId = state.selectedClubId;
+      const playerClub = state.clubs.find(c => c.id === playerClubId)!;
+      
+      let playerEliminated = false;
+      let playerAdvanced = false;
+
+      cupPlayedFixtures.forEach(f => {
+        const winner = (f.homeScore! > f.awayScore!) ? f.homeClubId : f.awayClubId;
+        const loser = (f.homeScore! > f.awayScore!) ? f.awayClubId : f.homeClubId;
+        
+        state.cupState!.activeClubs = state.cupState!.activeClubs.filter(id => id !== loser);
+        state.cupState!.eliminatedClubs.push(loser);
+
+        if (loser === playerClubId) playerEliminated = true;
+        if (winner === playerClubId) playerAdvanced = true;
+      });
+
+      if (playerEliminated) {
+        state.inbox.unshift({
+          id: `cup_elim_${state.currentMatchday}`,
+          sender: "Board of Directors",
+          subject: `Eliminated from the Domestic Cup`,
+          body: `We are extremely disappointed with the team's exit from the cup. We expected a much deeper run.`,
+          date: `Matchday ${state.currentMatchday}`,
+          read: false,
+          type: "board"
+        });
+      } else if (playerAdvanced) {
+         state.inbox.unshift({
+          id: `cup_adv_${state.currentMatchday}`,
+          sender: "Board of Directors",
+          subject: `Advanced in the Domestic Cup!`,
+          body: `Congratulations on progressing to the next round of the cup!`,
+          date: `Matchday ${state.currentMatchday}`,
+          read: false,
+          type: "board"
+        });
+      }
+
+      const nextRounds: Record<string, string> = {
+        "Round 1": "Round 2",
+        "Round 2": "Quarter Final",
+        "Quarter Final": "Semi Final",
+        "Semi Final": "Final"
+      };
+      const nextRoundName = nextRounds[state.cupState.currentRound];
+
+      if (nextRoundName && state.cupState.activeClubs.length > 1) {
+        state.cupState.currentRound = nextRoundName;
+        const nextMatchday = state.currentMatchday + 5; 
+        const newFixtures = generateCupFixturesForRound(state.cupState.activeClubs, playerClub.league, nextRoundName, nextMatchday);
+        state.fixtures.push(...newFixtures);
+      } else if (state.cupState.activeClubs.length === 1) {
+        state.cupState.winnerId = state.cupState.activeClubs[0];
+        const winnerName = state.clubs.find(c => c.id === state.cupState!.winnerId)?.name;
+        state.inbox.unshift({
+          id: `cup_winner_${state.currentMatchday}`,
+          sender: "Football Association",
+          subject: `${winnerName} Wins the Domestic Cup!`,
+          body: `${winnerName} have lifted the Domestic Cup after a thrilling tournament run!`,
+          date: `Matchday ${state.currentMatchday}`,
+          read: false,
+          type: "media"
+        });
+      }
     }
 
     const nextMDay = state.currentMatchday + 1;
@@ -268,8 +342,8 @@ We have reset the standings and scheduled the fixtures for Season ${state.curren
         }));
       }
 
-      // Reset fixturesplayed status
-      state.fixtures = state.fixtures.map(f => ({
+      // Reset fixtures: purge all Domestic Cup fixtures, reset League fixtures
+      state.fixtures = state.fixtures.filter(f => f.competition === "League").map(f => ({
         ...f,
         played: false,
         homeScore: null,
@@ -281,6 +355,23 @@ We have reset the standings and scheduled the fixtures for Season ${state.curren
         tacticalAnalysis: undefined,
         pressQuote: undefined
       }));
+
+      // Generate new Round 1 Cup fixtures for the new season
+      for (const l of leagues) {
+        const leagueClubs = state.clubs.filter(c => c.league === l);
+        const cupFixtures = generateCupFixturesForRound(leagueClubs.map(c => c.id), l, "Round 1", 5);
+        state.fixtures.push(...cupFixtures);
+      }
+
+      // Reset Cup State
+      if (state.cupState) {
+        state.cupState = {
+          activeClubs: state.clubs.filter(c => c.league === playerClub.league).map(c => c.id),
+          eliminatedClubs: [],
+          currentRound: "Round 1",
+          winnerId: null
+        };
+      }
 
       // Replenish budget based on reputation
       state.transferBudget += Math.floor(playerClub.transferBudget * 0.5);
@@ -611,6 +702,77 @@ function triggerRandomSaveEvent(state: SaveState) {
       sender: "Club President",
       subject: "ULTIMATUM: Your Job is on the line",
       body: `We are extremely concerned by our current position in the table (${playerPos} place). The board is losing confidence rapidly. You must turn results around immediately, or we will be forced to terminate your contract.`,
+      date: `Matchday ${state.currentMatchday}`,
+      read: false,
+      type: "board"
+    });
+  }
+
+  // --- YOUTH ACADEMY INTAKE ---
+  // Generate youth players on Matchdays 15 and 35
+  if (state.currentMatchday === 15 || state.currentMatchday === 35) {
+    const academyLvl = state.academyLevel || 1;
+    // Generate 1-3 prospects
+    const numProspects = Math.floor(Math.random() * 3) + 1;
+    
+    for (let i = 0; i < numProspects; i++) {
+      const age = Math.floor(Math.random() * 2) + 15; // 15 or 16
+      
+      // Potential scales with academy level
+      const basePotential = 60 + (academyLvl * 5);
+      const potentialVariance = Math.floor(Math.random() * 15) - 5; // -5 to +10
+      const potential = Math.min(99, basePotential + potentialVariance);
+      
+      const overall = Math.floor(potential * 0.6) + Math.floor(Math.random() * 10); // Start at ~60-70% of potential
+      
+      const posArr = ["GK", "DEF", "MID", "ATT"];
+      const pos = posArr[Math.floor(Math.random() * posArr.length)];
+      
+      const newPlayer = {
+        id: `regen_${Date.now()}_${i}`,
+        name: `Youth Prospect ${state.currentMatchday}-${i+1}`, // Simplistic name gen
+        clubId: playerClub.id,
+        position: pos as any,
+        age: age,
+        overall: overall,
+        potential: potential,
+        pace: overall,
+        shooting: overall,
+        passing: overall,
+        dribbling: overall,
+        defending: overall,
+        physical: overall,
+        mental: overall,
+        stamina: overall,
+        morale: 100,
+        sharpness: 50,
+        trainingFocus: "Balanced" as any,
+        value: 100000 * academyLvl,
+        wage: 500,
+        contractLength: 3,
+        isTransferListed: false,
+        isAcademy: true,
+        nationality: "Unknown",
+        nationalityFlag: "🌍",
+        personality: "Professional" as any,
+        contractExpiry: 3,
+        injuryStatus: "Fit" as any,
+        goals: 0,
+        assists: 0,
+        appearances: 0,
+        cleanSheets: 0,
+        rating: 0,
+        ratingHistory: [],
+        transferOffers: []
+      };
+      state.players.push(newPlayer);
+    }
+
+    state.inbox.unshift({
+      id: `youth_intake_${state.currentMatchday}`,
+      sender: "Academy Director",
+      subject: "New Youth Academy Intake",
+      body: `Good news boss, we have ${numProspects} new prospects who have just joined the Youth Academy. Check the Academy dashboard to view their potential and assign training.`,
       date: `Matchday ${state.currentMatchday}`,
       read: false,
       type: "board"

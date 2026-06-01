@@ -39,6 +39,16 @@ interface MatchState {
   awayRedCards: number;
 
   report: string;
+
+  // Visualizer Exact Positions
+  ballPosition: { x: number, y: number };
+  activePlayerId: string | null;
+  lastAction: {
+    type: "pass" | "shot" | "tackle" | "goal" | "save" | "dribble" | "foul" | "idle";
+    startPos: { x: number, y: number };
+    endPos: { x: number, y: number };
+    color: string;
+  } | null;
 }
 
 type Action = 
@@ -46,6 +56,7 @@ type Action =
   | { type: "SET_STATUS"; payload: MatchStatus }
   | { type: "ADD_COMMENTARY"; payload: string }
   | { type: "TACTICAL_SHOUT"; payload: { attack: number, momentum: number } }
+  | { type: "INIT_MOMENTUM"; payload: number }
   | { type: "SET_REPORT"; payload: string };
 
 const initialStats: MatchStats = {
@@ -73,7 +84,10 @@ const initialState: MatchState = {
   awayFatigue: 0,
   homeRedCards: 0,
   awayRedCards: 0,
-  report: ""
+  report: "",
+  ballPosition: { x: 50, y: 50 },
+  activePlayerId: null,
+  lastAction: null
 };
 
 // --- MATCH ENGINE 2.0 HELPERS ---
@@ -132,6 +146,8 @@ function matchReducer(state: MatchState, action: Action): MatchState {
         ...state, 
         commentaryTicker: [action.payload, ...state.commentaryTicker].slice(0, 3) 
       };
+    case "INIT_MOMENTUM":
+      return { ...state, momentum: action.payload };
     case "TACTICAL_SHOUT":
       return { ...state, homeTacticsModifier: action.payload.attack, homeMomentumModifier: action.payload.momentum };
     case "SET_REPORT":
@@ -181,25 +197,42 @@ function matchReducer(state: MatchState, action: Action): MatchState {
       newState.stats.possession.home = Math.floor((state.stats.possession.home * 9 + homePossProb) / 10);
       newState.stats.possession.away = 100 - newState.stats.possession.home;
 
-      // 2. Incident Generation (if ball is in final third)
+      // 2. Advanced Incident Generation & Positioning
       const homeIsAttacking = newState.currentZone === "away-third";
       const awayIsAttacking = newState.currentZone === "home-third";
+      
+      newState.lastAction = null; // default idle
 
-      if (homeIsAttacking || awayIsAttacking) {
-        const attackProb = 0.30; // 30% chance of a shot when in final third
+      // Determine possessor
+      const possessingTeam = newState.momentum > 0 ? homeStarters : awayStarters;
+      
+      if (newState.currentZone === "midfield") {
+        const passRoll = Math.random();
+        if (passRoll > 0.3) {
+           const p1 = pickPlayerByPosition(possessingTeam, ["MID", "DEF"]);
+           const p2 = pickPlayerByPosition(possessingTeam, ["MID", "ATT"]);
+           newState.activePlayerId = p2.id;
+           newState.lastAction = { type: "pass", startPos: {x: 50, y: 50}, endPos: {x: 50, y: 50}, color: "rgba(255,255,255,0.4)" };
+        }
+      } else if (homeIsAttacking || awayIsAttacking) {
+        const attackProb = 0.40; // 40% chance of an event when in final third
         if (Math.random() < attackProb) {
-          
           const attackRep = homeIsAttacking ? homeAtt : awayAtt;
           const defenseRep = homeIsAttacking ? awayDef : homeDef;
-          
           const duelRatio = attackRep / (attackRep + defenseRep);
           
           const roll = Math.random();
-          const attackingClubId = homeIsAttacking ? (isHome ? "HOME" : "AWAY") : (isHome ? "AWAY" : "HOME");
           const attStarters = homeIsAttacking ? homeStarters : awayStarters;
+          const defStarters = homeIsAttacking ? awayStarters : homeStarters;
           
           const shooter = pickPlayerByPosition(attStarters, ["ATT", "MID"]);
-          const assister = pickPlayerByPosition(attStarters, ["MID", "DEF"]);
+          const assister = pickPlayerByPosition(attStarters, ["MID", "DEF", "ATT"]);
+          newState.activePlayerId = shooter.id;
+
+          // Spatial coordinates for actions
+          const startX = homeIsAttacking ? 75 : 25;
+          const endX = homeIsAttacking ? 100 : 0;
+          const centerY = 50 + (Math.random() * 20 - 10);
 
           if (roll < duelRatio * 0.3) {
             // GOAL
@@ -213,7 +246,6 @@ function matchReducer(state: MatchState, action: Action): MatchState {
               newState.stats.shotsOnTarget.away++;
             }
             
-            // 70% chance of an assist
             const hasAssist = Math.random() < 0.7 && assister.id !== shooter.id;
             const assistText = hasAssist ? ` Assisted by a wonderful ball from ${assister.name}.` : "";
 
@@ -223,8 +255,10 @@ function matchReducer(state: MatchState, action: Action): MatchState {
               details: `${shooter.name} fires a sensational strike into the back of the net!${assistText}`
             }, ...newState.events];
             
-            newState.momentum = 0; // Reset momentum to kickoff
+            newState.momentum = 0; 
             newState.currentZone = "midfield";
+            newState.lastAction = { type: "goal", startPos: {x: startX, y: centerY}, endPos: {x: endX, y: 50}, color: "#22c55e" };
+            newState.ballPosition = {x: 50, y: 50}; // Reset to center
 
           } else if (roll < duelRatio * 0.7) {
             // SHOT SAVED
@@ -242,16 +276,23 @@ function matchReducer(state: MatchState, action: Action): MatchState {
               playerName: shooter.name, details: `Brilliant save to deny ${shooter.name}'s powerful effort.`
             }, ...newState.events];
             
-            // Lose some momentum after a shot
             newState.momentum = homeIsAttacking ? 20 : -20; 
+            newState.lastAction = { type: "save", startPos: {x: startX, y: centerY}, endPos: {x: endX, y: 50}, color: "#38bdf8" };
 
           } else {
-            // MISS
+            // MISS / TACKLE
             if (homeIsAttacking) newState.stats.shots.home++;
             else newState.stats.shots.away++;
-            // Momentum shifts to defender
+            
             newState.momentum = homeIsAttacking ? -30 : 30; 
+            newState.lastAction = { type: "tackle", startPos: {x: startX, y: centerY}, endPos: {x: startX, y: centerY}, color: "#f43f5e" };
           }
+        } else {
+          // Normal Passing in final third
+          const attStarters = homeIsAttacking ? homeStarters : awayStarters;
+          const p1 = pickPlayerByPosition(attStarters, ["MID", "ATT"]);
+          newState.activePlayerId = p1.id;
+          newState.lastAction = { type: "pass", startPos: {x: homeIsAttacking ? 60 : 40, y: 50}, endPos: {x: homeIsAttacking ? 80 : 20, y: 50}, color: "rgba(255,255,255,0.3)" };
         }
       }
 
@@ -290,7 +331,34 @@ function matchReducer(state: MatchState, action: Action): MatchState {
 const getStrength = (starters: Player[]) => starters.reduce((s, p) => s + p.overall, 0) / starters.length;
 
 // --- COMPONENT ---
+
+const getPlayerPosition = (player: Player, isHome: boolean, index: number, zone: Zone) => {
+  let baseY = 15 + (index * 7);
+  let baseX = isHome ? 30 : 70;
+  
+  if (player.position === "GK") { baseX = isHome ? 5 : 95; baseY = 50; }
+  else if (player.position === "DEF") baseX = isHome ? 20 : 80;
+  else if (player.position === "MID") baseX = isHome ? 50 : 50;
+  else if (player.position === "ATT") baseX = isHome ? 75 : 25;
+
+  // Shift dynamically based on possession zone
+  if (zone === "home-third") {
+     if (isHome) baseX -= 5;
+     else baseX -= 15;
+  } else if (zone === "away-third") {
+     if (isHome) baseX += 15;
+     else baseX += 5;
+  }
+
+  // Slight jitter
+  const jitterX = Math.random() * 6 - 3;
+  const jitterY = Math.random() * 10 - 5;
+
+  return { x: Math.min(100, Math.max(0, baseX + jitterX)), y: Math.min(100, Math.max(0, baseY + jitterY)) };
+};
+
 export default function MatchViewer() {
+
   const router = useRouter();
   const { activeSave, updateActiveSave, advanceToNextMatchday } = useGame();
   
@@ -324,8 +392,8 @@ export default function MatchViewer() {
   const homeClub = isHome ? playerClub : opponentClub;
   const awayClub = isHome ? opponentClub : playerClub;
 
-  const homeSquad = activeSave.players.filter(p => p.clubId === homeClub.id);
-  const awaySquad = activeSave.players.filter(p => p.clubId === awayClub.id);
+  const homeSquad = activeSave.players.filter(p => p.clubId === homeClub.id && !p.isAcademy);
+  const awaySquad = activeSave.players.filter(p => p.clubId === awayClub.id && !p.isAcademy);
 
   // We memoize starters so they don't regenerate every render
   const homeLineups = useRef(autoSelectLineup(homeSquad, "4-3-3"));
@@ -369,6 +437,16 @@ export default function MatchViewer() {
   }, [state.status, state.clock]);
 
   const startMatch = () => {
+    // Calculate Average Sharpness
+    const homeSharpness = homeLineups.current.starters.reduce((acc, p) => acc + (p.sharpness || 50), 0) / 11;
+    const awaySharpness = awayLineups.current.starters.reduce((acc, p) => acc + (p.sharpness || 50), 0) / 11;
+    
+    // Convert difference to momentum advantage (max ~30 momentum swing)
+    const sharpnessDiff = homeSharpness - awaySharpness;
+    const initialMomentum = isHome ? (sharpnessDiff * 1.5) : (-sharpnessDiff * 1.5);
+    
+    dispatch({ type: "INIT_MOMENTUM", payload: Math.max(-50, Math.min(50, initialMomentum)) });
+    dispatch({ type: "ADD_COMMENTARY", payload: `Teams take the field. Home Sharpness: ${Math.round(homeSharpness)}% | Away Sharpness: ${Math.round(awaySharpness)}%` });
     dispatch({ type: "SET_STATUS", payload: "first-half" });
   };
 
@@ -482,40 +560,45 @@ export default function MatchViewer() {
         TOP BAR: SCORE & CLOCK
         ======================================================== 
       */}
-      <div className="h-24 bg-[#0a0f1e]/90 backdrop-blur-md border-b border-[#1e2d40] flex items-center justify-center px-8 relative shrink-0 shadow-2xl z-20">
+      <div className="h-28 bg-slate-950/60 backdrop-blur-3xl border-b border-white/5 flex items-center justify-center px-12 relative shrink-0 shadow-[0_10px_40px_rgba(0,0,0,0.8)] z-20 overflow-hidden">
         
+        {/* Ambient Glows */}
+        <div className="absolute top-0 left-1/4 w-64 h-32 bg-sky-500/10 blur-[80px] rounded-full pointer-events-none" />
+        <div className="absolute top-0 right-1/4 w-64 h-32 bg-rose-500/10 blur-[80px] rounded-full pointer-events-none" />
+
         {/* Home */}
-        <div className="flex items-center gap-4 absolute left-8">
+        <div className="flex items-center gap-6 absolute left-12">
           <div className="flex flex-col items-end">
-            <span className="text-xl font-black text-white uppercase tracking-tighter">{homeClub.shortName}</span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{homeClub.league}</span>
+            <span className="text-3xl font-black text-white uppercase tracking-tighter drop-shadow-md">{homeClub.shortName}</span>
+            <span className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">{homeClub.league}</span>
           </div>
-          <div className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg text-2xl font-black border border-white/10" style={{ backgroundColor: homeClub.primaryColor, color: homeClub.secondaryColor === "#ffffff" ? "#0f172a" : homeClub.secondaryColor }}>
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(0,0,0,0.5)] text-3xl font-black border border-white/20 transform transition hover:scale-105" style={{ backgroundColor: homeClub.primaryColor, color: homeClub.secondaryColor === "#ffffff" ? "#0f172a" : homeClub.secondaryColor }}>
             {homeClub.name.charAt(0)}
           </div>
         </div>
 
         {/* Center Score */}
-        <div className="flex flex-col items-center gap-1">
-          <div className="bg-[#0f1623] border border-[#1e2d40] px-8 py-2 rounded-2xl flex items-center gap-6 shadow-inner">
-            <span className="text-4xl font-black text-white">{state.homeScore}</span>
-            <div className="w-px h-8 bg-[#1e2d40]"></div>
-            <span className="text-4xl font-black text-white">{state.awayScore}</span>
+        <div className="flex flex-col items-center gap-3 relative z-10">
+          <div className="bg-black/40 backdrop-blur-md border border-white/10 px-10 py-3 rounded-3xl flex items-center gap-8 shadow-inner ring-1 ring-white/5">
+            <span className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 drop-shadow-lg">{state.homeScore}</span>
+            <div className="w-px h-10 bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
+            <span className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 drop-shadow-lg">{state.awayScore}</span>
           </div>
-          <div className="flex items-center gap-2 bg-[#1e2d40] px-4 py-1 rounded-full text-xs font-black text-white tracking-widest">
-            <Clock className={`w-3.5 h-3.5 ${isLive ? 'text-green-400 animate-pulse' : 'text-slate-400'}`} />
+          <div className={`flex items-center gap-2 px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase transition-all duration-300 ${isLive ? 'bg-green-500/10 text-green-400 border border-green-500/30 shadow-[0_0_15px_rgba(34,197,94,0.2)]' : 'bg-slate-800/50 text-slate-400 border border-slate-700/50'}`}>
+            {isLive && <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />}
+            {!isLive && <Clock className="w-3.5 h-3.5" />}
             {displayClock}
           </div>
         </div>
 
         {/* Away */}
-        <div className="flex items-center gap-4 absolute right-8">
-          <div className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg text-2xl font-black border border-white/10" style={{ backgroundColor: awayClub.primaryColor, color: awayClub.secondaryColor === "#ffffff" ? "#0f172a" : awayClub.secondaryColor }}>
+        <div className="flex items-center gap-6 absolute right-12">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(0,0,0,0.5)] text-3xl font-black border border-white/20 transform transition hover:scale-105" style={{ backgroundColor: awayClub.primaryColor, color: awayClub.secondaryColor === "#ffffff" ? "#0f172a" : awayClub.secondaryColor }}>
             {awayClub.name.charAt(0)}
           </div>
           <div className="flex flex-col items-start">
-            <span className="text-xl font-black text-white uppercase tracking-tighter">{awayClub.shortName}</span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Away</span>
+            <span className="text-3xl font-black text-white uppercase tracking-tighter drop-shadow-md">{awayClub.shortName}</span>
+            <span className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Away</span>
           </div>
         </div>
       </div>
@@ -653,39 +736,134 @@ export default function MatchViewer() {
             </div>
           )}
 
-          {/* Mini Pitch Tracker */}
-          <div className="flex-1 flex items-center justify-center w-full px-4">
-            <div className="w-full max-w-[600px] aspect-[2/1] bg-[#166534] border-4 border-[#0f4b23] rounded-3xl relative overflow-hidden shadow-2xl flex">
+          {/* Advanced SVG Pitch Visualizer */}
+          <div className="flex-1 flex flex-col items-center justify-center w-full px-4 relative">
+            <div className="w-full max-w-[800px] aspect-[2/1] bg-[#166534] rounded-xl relative overflow-hidden shadow-2xl flex border-4 border-[#0f4b23]">
               
-              {/* Pitch Lines */}
-              <div className="absolute inset-0 pointer-events-none opacity-40">
-                <svg width="100%" height="100%" viewBox="0 0 200 100" preserveAspectRatio="none">
-                  <rect x="0" y="0" width="200" height="100" fill="none" stroke="white" strokeWidth="1" />
-                  <line x1="100" y1="0" x2="100" y2="100" stroke="white" strokeWidth="1" />
-                  <circle cx="100" cy="50" r="15" fill="none" stroke="white" strokeWidth="1" />
-                  <circle cx="100" cy="50" r="1" fill="white" />
-                  {/* Penalty Areas */}
-                  <rect x="0" y="20" width="30" height="60" fill="none" stroke="white" strokeWidth="1" />
-                  <rect x="170" y="20" width="30" height="60" fill="none" stroke="white" strokeWidth="1" />
-                  <circle cx="20" cy="50" r="1" fill="white" />
-                  <circle cx="180" cy="50" r="1" fill="white" />
+              {/* Detailed SVG Pitch Lines */}
+              <div className="absolute inset-0 pointer-events-none opacity-50">
+                <svg width="100%" height="100%" viewBox="0 0 1000 500" preserveAspectRatio="none">
+                  {/* Outer Boundary */}
+                  <rect x="0" y="0" width="1000" height="500" fill="none" stroke="white" strokeWidth="3" />
+                  
+                  {/* Halfway Line */}
+                  <line x1="500" y1="0" x2="500" y2="500" stroke="white" strokeWidth="3" />
+                  
+                  {/* Centre Circle */}
+                  <circle cx="500" cy="250" r="80" fill="none" stroke="white" strokeWidth="3" />
+                  <circle cx="500" cy="250" r="4" fill="white" />
+                  
+                  {/* Left Penalty Area */}
+                  <rect x="0" y="100" width="160" height="300" fill="none" stroke="white" strokeWidth="3" />
+                  <rect x="0" y="180" width="50" height="140" fill="none" stroke="white" strokeWidth="3" />
+                  <circle cx="110" cy="250" r="3" fill="white" />
+                  <path d="M 160 190 A 80 80 0 0 1 160 310" fill="none" stroke="white" strokeWidth="3" />
+                  
+                  {/* Right Penalty Area */}
+                  <rect x="840" y="100" width="160" height="300" fill="none" stroke="white" strokeWidth="3" />
+                  <rect x="950" y="180" width="50" height="140" fill="none" stroke="white" strokeWidth="3" />
+                  <circle cx="890" cy="250" r="3" fill="white" />
+                  <path d="M 840 190 A 80 80 0 0 0 840 310" fill="none" stroke="white" strokeWidth="3" />
+
+                  {/* Corner Arcs */}
+                  <path d="M 0 15 A 15 15 0 0 0 15 0" fill="none" stroke="white" strokeWidth="3" />
+                  <path d="M 1000 15 A 15 15 0 0 1 985 0" fill="none" stroke="white" strokeWidth="3" />
+                  <path d="M 0 485 A 15 15 0 0 1 15 500" fill="none" stroke="white" strokeWidth="3" />
+                  <path d="M 1000 485 A 15 15 0 0 0 985 500" fill="none" stroke="white" strokeWidth="3" />
                 </svg>
               </div>
 
-              {/* Zone Highlights */}
-              <div className={`w-1/3 h-full transition-colors duration-1000 ${state.currentZone === 'home-third' ? 'bg-sky-500/20' : 'bg-transparent'}`} />
-              <div className={`w-1/3 h-full transition-colors duration-1000 ${state.currentZone === 'midfield' ? 'bg-white/10' : 'bg-transparent'}`} />
-              <div className={`w-1/3 h-full transition-colors duration-1000 ${state.currentZone === 'away-third' ? 'bg-rose-500/20' : 'bg-transparent'}`} />
+              {/* Dynamic Grass Stripes */}
+              <div className="absolute inset-0 flex pointer-events-none opacity-20 mix-blend-overlay">
+                {[...Array(10)].map((_, i) => (
+                  <div key={i} className={`h-full flex-1 ${i % 2 === 0 ? 'bg-black' : 'bg-transparent'}`} />
+                ))}
+              </div>
+
+              {/* Zone Gradients for Visual Flair */}
+              <div className={`w-1/3 h-full transition-opacity duration-1000 ${state.currentZone === 'home-third' ? 'bg-gradient-to-r from-rose-500/30 to-transparent opacity-100' : 'opacity-0'}`} />
+              <div className={`w-1/3 h-full transition-opacity duration-1000 ${state.currentZone === 'midfield' ? 'bg-white/5 opacity-100' : 'opacity-0'}`} />
+              <div className={`w-1/3 h-full transition-opacity duration-1000 ${state.currentZone === 'away-third' ? 'bg-gradient-to-l from-rose-500/30 to-transparent opacity-100' : 'opacity-0'}`} />
+
+              {/* Dynamic Action Animations */}
+              <AnimatePresence>
+                {state.lastAction && state.lastAction.type !== "idle" && (
+                  <motion.div 
+                    key={state.clock + state.lastAction.type}
+                    initial={{ opacity: 1 }}
+                    animate={{ opacity: 0 }}
+                    transition={{ duration: 1.5, delay: 0.5 }}
+                    className="absolute inset-0 z-10 pointer-events-none"
+                  >
+                    <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <motion.line 
+                        x1={`${state.lastAction.startPos.x}%`} 
+                        y1={`${state.lastAction.startPos.y}%`} 
+                        x2={`${state.lastAction.endPos.x}%`} 
+                        y2={`${state.lastAction.endPos.y}%`} 
+                        stroke={state.lastAction.color} 
+                        strokeWidth="1.5"
+                        strokeDasharray="4 2"
+                        initial={{ pathLength: 0 }}
+                        animate={{ pathLength: 1 }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                      />
+                    </svg>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* The Ball */}
               <motion.div 
                 animate={{
                   left: state.currentZone === 'home-third' ? '15%' : state.currentZone === 'midfield' ? '50%' : '85%',
-                  top: `${Math.random() * 40 + 30}%`
+                  top: `${Math.random() * 60 + 20}%`,
+                  scale: state.lastAction?.type === "goal" ? [1, 1.5, 1] : 1
                 }}
                 transition={{ type: "spring", stiffness: 50, damping: 20 }}
-                className="absolute w-4 h-4 bg-white rounded-full shadow-[0_0_15px_rgba(255,255,255,1)] z-10 -ml-2 -mt-2"
-              />
+                className="absolute w-4 h-4 bg-white rounded-full shadow-[0_0_20px_rgba(255,255,255,1)] z-30 -ml-2 -mt-2 flex items-center justify-center overflow-hidden border border-slate-300"
+              >
+                <div className="w-1.5 h-1.5 bg-black rounded-full opacity-50" />
+              </motion.div>
+
+              {/* Home Team Dots */}
+              {homeLineups.current.starters.map((p, i) => {
+                const pos = getPlayerPosition(p, true, i, state.currentZone);
+                const isActive = state.activePlayerId === p.id;
+                return (
+                  <motion.div
+                    key={`home-${p.id}`}
+                    animate={{ left: `${pos.x}%`, top: `${pos.y}%`, scale: isActive ? 1.5 : 1 }}
+                    transition={{ type: "spring", stiffness: 40, damping: 25 }}
+                    className={`absolute w-3 h-3 rounded-full border ${isActive ? 'border-white z-30' : 'border-white/50 z-20'} -ml-1.5 -mt-1.5 group cursor-pointer`}
+                    style={{ backgroundColor: homeClub.primaryColor }}
+                  >
+                     <div className="absolute opacity-0 group-hover:opacity-100 bg-black/80 text-white text-[8px] whitespace-nowrap px-1 py-0.5 rounded -top-5 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
+                       {p.name} ({p.position})
+                     </div>
+                  </motion.div>
+                );
+              })}
+
+              {/* Away Team Dots */}
+              {awayLineups.current.starters.map((p, i) => {
+                const pos = getPlayerPosition(p, false, i, state.currentZone);
+                const isActive = state.activePlayerId === p.id;
+                return (
+                  <motion.div
+                    key={`away-${p.id}`}
+                    animate={{ left: `${pos.x}%`, top: `${pos.y}%`, scale: isActive ? 1.5 : 1 }}
+                    transition={{ type: "spring", stiffness: 40, damping: 25 }}
+                    className={`absolute w-3 h-3 rounded-full border ${isActive ? 'border-white z-30' : 'border-white/50 z-20'} -ml-1.5 -mt-1.5 group cursor-pointer`}
+                    style={{ backgroundColor: awayClub.primaryColor }}
+                  >
+                     <div className="absolute opacity-0 group-hover:opacity-100 bg-black/80 text-white text-[8px] whitespace-nowrap px-1 py-0.5 rounded -top-5 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
+                       {p.name} ({p.position})
+                     </div>
+                  </motion.div>
+                );
+              })}
+
             </div>
           </div>
 
@@ -713,35 +891,54 @@ export default function MatchViewer() {
         </div>
 
         {/* RIGHT: EVENT LOG */}
-        <div className="w-80 bg-[#0a0f1e] border-l border-[#1e2d40] p-6 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
-           <h3 className="text-xs font-black text-white uppercase tracking-widest border-b border-[#1e2d40] pb-3 flex items-center gap-2 sticky top-0 bg-[#0a0f1e] z-10">
+        <div className="w-96 bg-slate-900/60 backdrop-blur-2xl border-l border-slate-800/50 p-6 flex flex-col gap-4 overflow-y-auto custom-scrollbar shadow-[-10px_0_30px_rgba(0,0,0,0.5)] z-10">
+           <h3 className="text-xs font-black text-white uppercase tracking-widest border-b border-white/5 pb-4 flex items-center gap-2 sticky top-0 bg-transparent z-10 backdrop-blur-3xl">
             <Flag className="w-4 h-4 text-purple-400" /> Match Events
           </h3>
 
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4 relative mt-2">
+            {/* Timeline Track */}
+            <div className="absolute left-[19px] top-2 bottom-2 w-px bg-gradient-to-b from-slate-700 via-slate-600 to-transparent pointer-events-none" />
+
             <AnimatePresence>
               {state.events.length === 0 && (
-                <div className="text-slate-500 text-[10px] font-bold uppercase text-center mt-10">Waiting for kickoff...</div>
+                <div className="text-slate-500 text-[10px] font-bold uppercase text-center mt-10 w-full">Waiting for kickoff...</div>
               )}
-              {state.events.map((ev, i) => (
-                <motion.div 
-                  key={`${ev.minute}-${i}`}
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-[#0f1623] border border-[#1e2d40] rounded-xl p-3 flex gap-3 shadow-md"
-                >
-                  <div className="font-black text-[#22c55e] text-sm shrink-0 w-6">{ev.minute}'</div>
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-1.5">
-                      {getEventIcon(ev.type)}
-                      <span className={`text-[10px] font-black uppercase tracking-widest ${ev.clubId === "HOME" ? 'text-sky-400' : 'text-rose-400'}`}>
-                        {ev.clubId === "HOME" ? homeClub.shortName : awayClub.shortName}
-                      </span>
+              {[...state.events].reverse().map((ev, i) => {
+                const isHome = ev.clubId === "HOME";
+                const clubColor = isHome ? homeClub.primaryColor : awayClub.primaryColor;
+                
+                return (
+                  <motion.div 
+                    key={`${ev.minute}-${i}`}
+                    initial={{ opacity: 0, x: 50, scale: 0.9 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    transition={{ type: "spring", stiffness: 100, damping: 15 }}
+                    className="relative flex gap-4 w-full group"
+                  >
+                    {/* Time Node */}
+                    <div className="relative z-10 flex flex-col items-center mt-1">
+                      <div className="w-10 h-10 rounded-full bg-slate-800 border-2 border-slate-700 flex items-center justify-center shadow-lg group-hover:border-white/50 transition-colors">
+                        <span className="font-black text-xs text-white">{ev.minute}'</span>
+                      </div>
                     </div>
-                    <p className="text-[11px] text-slate-300 font-medium leading-snug">{ev.details}</p>
-                  </div>
-                </motion.div>
-              ))}
+
+                    {/* Event Card */}
+                    <div className="flex-1 bg-slate-800/40 backdrop-blur-md border border-white/5 rounded-2xl p-4 shadow-lg hover:bg-slate-800/60 transition duration-300">
+                      <div className="flex items-center gap-2 mb-2">
+                        {getEventIcon(ev.type)}
+                        <span 
+                          className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
+                          style={{ backgroundColor: `${clubColor}30`, color: clubColor }}
+                        >
+                          {isHome ? homeClub.shortName : awayClub.shortName}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-300 font-medium leading-relaxed">{ev.details}</p>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </AnimatePresence>
           </div>
         </div>

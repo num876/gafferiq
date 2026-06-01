@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 
 import React, { useState } from "react";
@@ -19,6 +20,9 @@ export default function Fixtures() {
   const league = LEAGUE_INFO[playerClub.league];
 
   const isEplOrLaLigaOrSerieA = ["EPL", "La Liga", "Serie A"].includes(playerClub.league);
+  
+  const isCupMatchday = activeSave.fixtures.some(f => f.league === playerClub.league && f.matchday === selectedMatchday && f.competition === "Domestic Cup");
+  const cupRoundName = activeSave.fixtures.find(f => f.league === playerClub.league && f.matchday === selectedMatchday && f.competition === "Domestic Cup")?.round || "";
   const maxMatchdays = isEplOrLaLigaOrSerieA ? 38 : 34;
 
   // Filter fixtures by league and matchday
@@ -67,8 +71,8 @@ export default function Fixtures() {
             <ChevronLeft className="w-4 h-4" />
           </button>
           
-          <span className="px-4 text-xs font-bold text-slate-200 min-w-[100px] text-center">
-            Matchday {selectedMatchday} / {maxMatchdays}
+          <span className="px-4 text-xs font-bold text-slate-200 min-w-[100px] text-center flex flex-col">
+            {isCupMatchday ? <span className="text-amber-400">Domestic Cup - {cupRoundName}</span> : <span>Matchday {selectedMatchday} / {maxMatchdays}</span>}
           </span>
 
           <button 

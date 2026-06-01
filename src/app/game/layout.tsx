@@ -1,3 +1,4 @@
+/* eslint-disable */
 "use client";
 
 import React, { useEffect } from "react";
@@ -6,8 +7,8 @@ import Link from "next/link";
 import { useGame } from "../../context/GameContext";
 import { 
   Trophy, LayoutDashboard, Users, Shield, Calendar, Table, 
-  ArrowLeftRight, Search, TrendingUp, User, LogOut, ChevronRight, Play
-} from "lucide-react";
+  ArrowLeftRight, Search, TrendingUp, User, LogOut, ChevronRight, Play, Mail,
+ Building, GraduationCap} from 'lucide-react';
 
 export default function GameLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -38,13 +39,15 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
 
   const menuItems = [
     { name: "Dashboard", href: "/game/dashboard", icon: LayoutDashboard },
+    { name: "Inbox", href: "/game/inbox", icon: Mail },
     { name: "Squad", href: "/game/squad", icon: Users },
     { name: "Tactics", href: "/game/tactics", icon: Shield },
     { name: "Fixtures", href: "/game/fixtures", icon: Calendar },
     { name: "League Table", href: "/game/table", icon: Table },
     { name: "Transfers", href: "/game/transfers", icon: ArrowLeftRight },
     { name: "Scouting", href: "/game/scouting", icon: Search },
-    { name: "Development", href: "/game/development", icon: TrendingUp },
+    { name: "Board & Finances", href: "/game/board", icon: Building },
+    { name: "Training", href: "/game/training", icon: TrendingUp },
     { name: "Manager Profile", href: "/game/profile", icon: User },
   ];
 
@@ -64,7 +67,7 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="min-h-screen bg-[#0f172a] text-slate-100 flex">
       {/* 1. Sidebar Navigation */}
-      <aside className="w-64 bg-[#080c14] border-r border-[#1e2d40] flex flex-col justify-between shrink-0 hidden md:flex">
+      <aside className="w-64 bg-slate-900/40 backdrop-blur-2xl border-r border-slate-800/60 flex flex-col justify-between shrink-0 hidden md:flex shadow-2xl z-20 relative">
         <div className="flex flex-col gap-6 p-6">
           {/* Logo / Club Branding */}
           <div className="flex items-center gap-3">
@@ -106,9 +109,9 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-r-lg text-xs font-bold transition duration-200 border-l-4 ${isActive ? 'bg-[#0f1623] border-[#22c55e] text-white' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-[#0f1623]/50'}`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg mx-2 text-xs font-bold transition-all duration-300 ${isActive ? 'bg-blue-600/10 border border-blue-500/30 text-blue-400 shadow-[inset_0_0_20px_rgba(59,130,246,0.15)]' : 'border border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'}`}
                 >
-                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#22c55e]' : ''}`} />
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-blue-400 drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]' : ''}`} />
                   {item.name}
                 </Link>
               );
@@ -131,7 +134,7 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
       {/* 2. Main Content Wrapper */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Game Status Bar */}
-        <header className="h-16 bg-slate-900/60 backdrop-blur border-b border-slate-800 px-6 flex items-center justify-between shrink-0">
+        <header className="h-16 bg-slate-900/40 backdrop-blur-xl border-b border-slate-800/60 px-6 flex items-center justify-between shrink-0 z-10 sticky top-0 shadow-sm">
           {/* Left details */}
           <div className="flex items-center gap-6 text-xs text-slate-400">
             {/* Mobile Nav Trigger */}

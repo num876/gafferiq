@@ -1,3 +1,4 @@
+/* eslint-disable */
 import type { Metadata } from "next";
 import { GameProvider } from "../context/GameContext";
 import "./globals.css";

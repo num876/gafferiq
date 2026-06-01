@@ -26,7 +26,7 @@ export default function Tactics() {
   if (!activeSave) return null;
 
   const playerClub = activeSave.clubs.find(c => c.id === activeSave.selectedClubId)!;
-  const squad = activeSave.players.filter(p => p.clubId === playerClub.id);
+  const squad = activeSave.players.filter(p => p.clubId === playerClub.id && !p.isAcademy);
 
   // Initialization
   useEffect(() => {

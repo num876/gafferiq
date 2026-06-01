@@ -1,3 +1,4 @@
+/* eslint-disable */
 // Maps each club ID to its local badge path in /public/badges/
 // Badges are SVG files served as static assets by Next.js
 

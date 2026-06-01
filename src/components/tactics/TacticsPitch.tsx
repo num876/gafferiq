@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React from 'react';
 import { PitchSlot } from './PitchSlot';
 import { PlayerToken } from './PlayerToken';

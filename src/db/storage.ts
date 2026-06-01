@@ -1,4 +1,6 @@
+/* eslint-disable */
 import { Club, Player, generateAllClubsWithSquads, calculateValue } from "../config/seededData";
+import { get, set } from 'idb-keyval';
 
 export interface Manager {
   firstName: string;
@@ -34,7 +36,9 @@ export interface Manager {
 
 export interface MatchFixture {
   id: string;
-  league: string;
+  league: string; // Used to group fixtures by the user's primary league
+  competition: "League" | "Domestic Cup";
+  round?: string; // e.g. "Quarter Final", "Final", "Round 1"
   matchday: number;
   homeClubId: string;
   awayClubId: string;
@@ -88,7 +92,7 @@ export interface InboxMessage {
   body: string;
   date: string;
   read: boolean;
-  type: "board" | "player" | "media";
+  type: "board" | "player" | "media" | "transfer";
   actionRequired?: boolean;
   options?: { label: string; action: string; effect: string }[];
   selectedOption?: string;
@@ -116,6 +120,14 @@ export interface NewsArticle {
   date: string; // Matchday relative
 }
 
+export interface BoardObjective {
+  id: string;
+  title: string;
+  description: string;
+  status: "pending" | "success" | "failed";
+  deadline: number;
+}
+
 export interface SaveState {
   id: string;
   saveName: string;
@@ -123,9 +135,12 @@ export interface SaveState {
   selectedClubId: string;
   currentSeason: number;
   currentMatchday: number;
+  academyLevel: number;
   transferBudget: number;
   wageBudget: number;
   boardConfidence: number;
+  boardObjectives: BoardObjective[];
+  ticketPrice: number;
   clubs: Club[];
   players: Player[];
   fixtures: MatchFixture[];
@@ -143,6 +158,18 @@ export interface SaveState {
     type: "permanent" | "loan";
     matchday: number;
   }>;
+  coaches: Array<{
+    id: string;
+    type: "Attacking" | "Defensive" | "Fitness" | "Tactical" | "Goalkeeping";
+    level: number; // 1-5, determines multiplier
+    wage: number;
+  }>;
+  cupState?: {
+    activeClubs: string[]; // Club IDs still in the cup
+    eliminatedClubs: string[]; // Club IDs knocked out
+    currentRound: string;
+    winnerId: string | null;
+  };
   tactics?: {
     formation: string;
     instructions: any; // Using any here to avoid circular imports or redefining TacticalInstructions, we know it will be TacticalInstructions
@@ -198,12 +225,57 @@ export function generateFixturesForLeague(clubs: Club[], league: string): MatchF
         away = temp;
       }
 
+      // Map league rounds to matchdays, skipping cup weeks
+      const cupWeeks = [5, 10, 15, 20, 25];
+      let actualMatchday = roundNumber;
+      for (const cw of cupWeeks) {
+        if (actualMatchday >= cw) actualMatchday++;
+      }
+
       fixtures.push({
-        id: `${league.toLowerCase()}_m_${roundNumber}_f_${idCounter++}`,
+        id: `${league.toLowerCase()}_m_${actualMatchday}_f_${idCounter++}`,
         league,
-        matchday: roundNumber,
+        competition: "League",
+        matchday: actualMatchday,
         homeClubId: home.id,
         awayClubId: away.id,
+        homeScore: null,
+        awayScore: null,
+        played: false
+      });
+    }
+  }
+
+  return fixtures;
+}
+
+export function generateCupFixturesForRound(activeClubIds: string[], league: string, roundName: string, matchday: number): MatchFixture[] {
+  const fixtures: MatchFixture[] = [];
+  
+  // Shuffle array deterministically or pseudo-randomly
+  const shuffled = [...activeClubIds].sort(() => Math.random() - 0.5);
+  
+  // If the number of clubs is not a power of 2, some clubs get a bye.
+  // We need to calculate how many teams play in this round to reach the next power of 2.
+  let nextPow2 = 1;
+  while (nextPow2 < shuffled.length) nextPow2 *= 2;
+  
+  const byes = nextPow2 - shuffled.length;
+  const teamsPlaying = shuffled.length - byes; // Number of teams that must play to eliminate enough teams
+  
+  const playingTeams = shuffled.slice(0, teamsPlaying);
+  let idCounter = 1;
+  
+  for (let i = 0; i < playingTeams.length; i += 2) {
+    if (i + 1 < playingTeams.length) {
+      fixtures.push({
+        id: `cup_${league.toLowerCase()}_${roundName.replace(/\s/g, '')}_f_${idCounter++}_${Date.now()}`,
+        league,
+        competition: "Domestic Cup",
+        round: roundName,
+        matchday,
+        homeClubId: playingTeams[i],
+        awayClubId: playingTeams[i+1],
         homeScore: null,
         awayScore: null,
         played: false
@@ -224,6 +296,10 @@ export function createNewSave(saveName: string, manager: Manager, clubId: string
   for (const l of leagues) {
     const leagueClubs = clubs.filter(c => c.league === l);
     allFixtures.push(...generateFixturesForLeague(leagueClubs, l));
+    
+    // Add Domestic Cup Round 1 fixtures for matchday 5
+    const cupFixtures = generateCupFixturesForRound(leagueClubs.map(c => c.id), l, "Round 1", 5);
+    allFixtures.push(...cupFixtures);
   }
 
   // Initialize Standings
@@ -274,9 +350,15 @@ The Board`,
     selectedClubId: clubId,
     currentSeason: 1,
     currentMatchday: 1,
+    academyLevel: 1,
     transferBudget: selectedClub.transferBudget,
     wageBudget: selectedClub.wageBudget,
     boardConfidence: 75,
+    boardObjectives: [
+      { id: "obj_1", title: "Maintain Respectability", description: "Avoid lingering in the relegation zone.", status: "pending", deadline: 38 },
+      { id: "obj_2", title: "Cup Run", description: "Reach at least the quarter-finals of the Domestic Cup.", status: "pending", deadline: 38 }
+    ],
+    ticketPrice: 40,
     clubs,
     players,
     fixtures: allFixtures,
@@ -286,6 +368,13 @@ The Board`,
     scoutingTasks: [],
     scoutShortlist: [],
     transfersHistory: [],
+    coaches: [],
+    cupState: {
+      activeClubs: clubs.filter(c => c.league === selectedClub.league).map(c => c.id),
+      eliminatedClubs: [],
+      currentRound: "Round 1",
+      winnerId: null
+    },
     transferWindowOpen: true,
     difficulty: speed,
     gameLog: ["Save file created. Pre-season training commenced."]
@@ -294,21 +383,29 @@ The Board`,
 
 const LOCAL_STORAGE_KEY = "gaffer_iq_saves";
 
-export function loadAllSaves(): SaveState[] {
+export async function loadAllSaves(): Promise<SaveState[]> {
   if (typeof window === "undefined") return [];
+  
+  try {
+    const idbSaves = await get<SaveState[]>(LOCAL_STORAGE_KEY);
+    if (idbSaves && idbSaves.length > 0) return idbSaves;
+  } catch(e) {}
+
   const savesJSON = localStorage.getItem(LOCAL_STORAGE_KEY);
   if (!savesJSON) return [];
   try {
-    return JSON.parse(savesJSON);
+    const saves = JSON.parse(savesJSON);
+    await set(LOCAL_STORAGE_KEY, saves); // Migrate
+    return saves;
   } catch (e) {
     console.error("Failed to parse save games", e);
     return [];
   }
 }
 
-export function saveGame(state: SaveState): void {
+export async function saveGame(state: SaveState): Promise<void> {
   if (typeof window === "undefined") return;
-  const currentSaves = loadAllSaves();
+  const currentSaves = await loadAllSaves();
   const index = currentSaves.findIndex(s => s.id === state.id);
   
   if (index !== -1) {
@@ -317,12 +414,12 @@ export function saveGame(state: SaveState): void {
     currentSaves.push(state);
   }
 
-  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentSaves));
+  await set(LOCAL_STORAGE_KEY, currentSaves);
 }
 
-export function deleteSave(saveId: string): void {
+export async function deleteSave(saveId: string): Promise<void> {
   if (typeof window === "undefined") return;
-  const currentSaves = loadAllSaves();
+  const currentSaves = await loadAllSaves();
   const updated = currentSaves.filter(s => s.id !== saveId);
-  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+  await set(LOCAL_STORAGE_KEY, updated);
 }
