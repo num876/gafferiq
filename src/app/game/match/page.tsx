@@ -378,9 +378,9 @@ const getJitter = (id: string, clock: number) => {
 
 const getPlayerPosition = (player: Player, isHome: boolean, starters: Player[], zone: Zone, clock: number) => {
   const getLine = (pos: string) => {
-    if (['CB', 'LB', 'RB', 'LWB', 'RWB'].includes(pos)) return "DEF";
-    if (['CDM', 'CM', 'CAM', 'LM', 'RM'].includes(pos)) return "MID";
-    if (['ST', 'LW', 'RW', 'CF'].includes(pos)) return "ATT";
+    if (['DEF', 'CB', 'LB', 'RB', 'LWB', 'RWB'].includes(pos)) return "DEF";
+    if (['MID', 'CDM', 'CM', 'CAM', 'LM', 'RM'].includes(pos)) return "MID";
+    if (['ATT', 'ST', 'LW', 'RW', 'CF'].includes(pos)) return "ATT";
     return "GK";
   };
   const line = getLine(player.position);
@@ -912,6 +912,7 @@ export default function MatchViewer() {
                         y2={state.lastAction.endPos.y} 
                         stroke={state.lastAction.color} 
                         strokeWidth="1.5"
+                        vectorEffect="non-scaling-stroke"
                         strokeDasharray="4 2"
                         initial={{ pathLength: 0 }}
                         animate={{ pathLength: 1 }}
