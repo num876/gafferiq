@@ -13,6 +13,8 @@ export default function Squad() {
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [isRenewing, setIsRenewing] = useState(false);
   const [renewalNotif, setRenewalNotif] = useState("");
+  const [proposedWage, setProposedWage] = useState(0);
+  const [proposedYears, setProposedYears] = useState(3);
 
   if (!activeSave) return null;
 
@@ -48,19 +50,24 @@ export default function Squad() {
   const handleRenewContract = () => {
     if (!selectedPlayer || !activeSave) return;
     
-    // Suggest 20% wage increase, minimum 5k
-    const demandedWage = Math.floor((selectedPlayer.wage * 1.2) / 1000) * 1000 + (selectedPlayer.wage < 5000 ? 5000 : 0);
-    const wageIncrease = demandedWage - selectedPlayer.wage;
+    const wageIncrease = proposedWage - selectedPlayer.wage;
 
-    if (activeSave.wageBudget < wageIncrease) {
+    if (wageIncrease > 0 && activeSave.wageBudget < wageIncrease) {
       setRenewalNotif(`Insufficient Wage Budget. You need €${(wageIncrease/1000).toFixed(0)}k more to renew this contract.`);
+      return;
+    }
+
+    // Evaluate proposal (Basic logic: if wage offered is >= their overall-based expectation)
+    const expectedWage = Math.floor((selectedPlayer.overall / 60) * 8000);
+    if (proposedWage < expectedWage * 0.9) {
+      setRenewalNotif(`Player rejected the offer. Demands at least €${(expectedWage/1000).toFixed(0)}k.`);
       return;
     }
 
     // Process renewal
     const updatedPlayers = activeSave.players.map(p => {
       if (p.id === selectedPlayer.id) {
-        return { ...p, wage: demandedWage, contractExpiry: p.contractExpiry + 3, morale: Math.min(100, p.morale + 15) };
+        return { ...p, wage: proposedWage, contractExpiry: p.contractExpiry + proposedYears, morale: Math.min(100, p.morale + 10) };
       }
       return p;
     });
@@ -68,13 +75,13 @@ export default function Squad() {
     updateActiveSave({
       ...activeSave,
       players: updatedPlayers,
-      wageBudget: activeSave.wageBudget - wageIncrease,
-      gameLog: [`Renewed ${selectedPlayer.name}'s contract for 3 years at €${(demandedWage/1000).toFixed(0)}k/week.`, ...activeSave.gameLog]
+      wageBudget: activeSave.wageBudget - Math.max(0, wageIncrease),
+      gameLog: [`Renewed ${selectedPlayer.name}'s contract for ${proposedYears} years at €${(proposedWage/1000).toFixed(0)}k/week.`, ...activeSave.gameLog]
     });
 
-    setSelectedPlayer({ ...selectedPlayer, wage: demandedWage, contractExpiry: selectedPlayer.contractExpiry + 3, morale: Math.min(100, selectedPlayer.morale + 15) });
-    setRenewalNotif("Contract Renewed successfully for 3 years!");
-    setIsRenewing(false);
+    setSelectedPlayer({ ...selectedPlayer, wage: proposedWage, contractExpiry: selectedPlayer.contractExpiry + proposedYears, morale: Math.min(100, selectedPlayer.morale + 10) });
+    setRenewalNotif(`Contract Renewed successfully for ${proposedYears} years!`);
+    setTimeout(() => setIsRenewing(false), 2000);
   };
 
   return (
@@ -308,13 +315,32 @@ export default function Squad() {
                 </div>
               )}
               {isRenewing ? (
-                <div className="flex flex-col gap-2 p-3 bg-slate-800 rounded border border-slate-700">
-                  <span className="text-xs text-slate-300">
-                    {selectedPlayer.name} is demanding €{(((selectedPlayer.wage * 1.2) / 1000) * 1000 + (selectedPlayer.wage < 5000 ? 5000 : 0)) / 1000}k/week for a 3-year extension.
-                  </span>
-                  <div className="flex gap-2">
-                    <button onClick={handleRenewContract} className="px-3 py-1.5 rounded bg-green-600 hover:bg-green-500 font-bold text-xs text-white">Accept</button>
-                    <button onClick={() => setIsRenewing(false)} className="px-3 py-1.5 rounded bg-slate-700 hover:bg-slate-600 font-bold text-xs text-white">Cancel</button>
+                <div className="bg-slate-900 rounded-xl p-4 border border-slate-700 mt-2">
+                  <h4 className="text-sm font-bold text-slate-200 mb-2">Contract Negotiation</h4>
+                  <div className="flex flex-col gap-3">
+                    <div>
+                      <label className="text-xs text-slate-400 block mb-1">Proposed Wage (€/week)</label>
+                      <input 
+                        type="number" 
+                        value={proposedWage} 
+                        onChange={(e) => setProposedWage(Number(e.target.value))}
+                        className="w-full bg-slate-800 text-white rounded p-2 text-sm border border-slate-700" 
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-400 block mb-1">Contract Extension (Years)</label>
+                      <input 
+                        type="number" 
+                        min="1" max="5" 
+                        value={proposedYears} 
+                        onChange={(e) => setProposedYears(Number(e.target.value))}
+                        className="w-full bg-slate-800 text-white rounded p-2 text-sm border border-slate-700" 
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <button onClick={handleRenewContract} className="flex-1 px-3 py-2 rounded bg-green-600 hover:bg-green-500 text-white font-bold text-xs transition">Submit Offer</button>
+                    <button onClick={() => setIsRenewing(false)} className="flex-1 px-3 py-2 rounded bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs transition">Cancel</button>
                   </div>
                 </div>
               ) : (
@@ -325,11 +351,18 @@ export default function Squad() {
                         onClick={() => {
                           const newState = { ...activeSave };
                           const p = newState.players.find(p => p.id === selectedPlayer.id)!;
-                          p.morale = Math.min(100, p.morale + 10);
-                          newState.gameLog.unshift(`Praised ${p.name}'s form. Morale increased.`);
+                          const wCount = (p.stats?.form || []).filter(f => f === "W").length;
+                          if (wCount >= 2) {
+                            p.morale = Math.min(100, p.morale + 10);
+                            newState.gameLog.unshift(`Praised ${p.name}'s good form. Morale increased.`);
+                            setRenewalNotif(`Praised ${p.name}. Morale increased to ${p.morale}%`);
+                          } else {
+                            p.morale = Math.max(0, p.morale - 10);
+                            newState.gameLog.unshift(`Praised ${p.name}'s poor form. The player felt patronized. Morale dropped.`);
+                            setRenewalNotif(`Praised ${p.name}. The player felt patronized. Morale dropped to ${p.morale}%`);
+                          }
                           updateActiveSave(newState);
                           setSelectedPlayer({...selectedPlayer, morale: p.morale});
-                          setRenewalNotif(`Praised ${p.name}. Morale is now ${p.morale}%`);
                         }}
                         className="px-3 py-2 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 border border-emerald-600/40 text-emerald-500 hover:text-white font-bold text-[10px] uppercase transition"
                       >
@@ -339,13 +372,18 @@ export default function Squad() {
                         onClick={() => {
                           const newState = { ...activeSave };
                           const p = newState.players.find(p => p.id === selectedPlayer.id)!;
-                          p.morale = Math.max(0, p.morale - 15);
-                          // Slight boost to focus/potential if criticized
-                          if (p.age < 24) p.potential = Math.min(99, p.potential + 1);
-                          newState.gameLog.unshift(`Criticized ${p.name}'s performance. Morale dropped.`);
+                          const wCount = (p.stats?.form || []).filter(f => f === "W").length;
+                          if (wCount <= 2) {
+                            p.morale = Math.min(100, p.morale + 5);
+                            newState.gameLog.unshift(`Criticized ${p.name}'s poor form. He appreciated the tough love. Morale slightly increased.`);
+                            setRenewalNotif(`Criticized ${p.name}. Morale increased to ${p.morale}%`);
+                          } else {
+                            p.morale = Math.max(0, p.morale - 15);
+                            newState.gameLog.unshift(`Criticized ${p.name}'s good form. He felt unfairly targeted. Morale dropped.`);
+                            setRenewalNotif(`Criticized ${p.name}. Morale dropped to ${p.morale}%`);
+                          }
                           updateActiveSave(newState);
-                          setSelectedPlayer({...selectedPlayer, morale: p.morale, potential: p.potential});
-                          setRenewalNotif(`Criticized ${p.name}. Morale dropped to ${p.morale}%`);
+                          setSelectedPlayer({...selectedPlayer, morale: p.morale});
                         }}
                         className="px-3 py-2 rounded-lg bg-rose-600/20 hover:bg-rose-600 border border-rose-600/40 text-rose-500 hover:text-white font-bold text-[10px] uppercase transition"
                       >
@@ -377,7 +415,12 @@ export default function Squad() {
                   <div className="flex justify-between items-center w-full gap-2">
                     <div className="flex gap-2">
                       <button 
-                        onClick={() => { setIsRenewing(true); setRenewalNotif(""); }}
+                        onClick={() => { 
+                          setProposedWage(selectedPlayer.wage); 
+                          setProposedYears(3); 
+                          setIsRenewing(true); 
+                          setRenewalNotif(""); 
+                        }}
                         className="px-4 py-2 rounded-lg bg-amber-600/20 hover:bg-amber-600 border border-amber-600/40 text-amber-500 hover:text-white font-bold text-xs transition"
                       >
                         Renew Contract
@@ -385,20 +428,17 @@ export default function Squad() {
                       {selectedPlayer.age <= 23 && !selectedPlayer.onLoanFrom && (
                         <button 
                           onClick={() => {
-                            const lowerClubs = activeSave.clubs.filter(c => c.id !== playerClub.id && c.reputation < playerClub.reputation);
-                            const targetClub = lowerClubs[Math.floor(Math.random() * lowerClubs.length)] || activeSave.clubs.find(c => c.id !== playerClub.id);
                             const newState = { ...activeSave };
                             const p = newState.players.find(p => p.id === selectedPlayer.id)!;
-                            p.onLoanFrom = playerClub.id;
-                            p.clubId = targetClub!.id;
-                            p.loanDuration = 1;
-                            newState.gameLog.unshift(`${p.name} has been sent on loan to ${targetClub!.name} for the season.`);
+                            p.isLoanListed = !p.isLoanListed;
+                            newState.gameLog.unshift(`${p.name} has been ${p.isLoanListed ? 'added to' : 'removed from'} the loan list.`);
                             updateActiveSave(newState);
-                            setSelectedPlayer(null);
+                            setSelectedPlayer({...selectedPlayer, isLoanListed: p.isLoanListed});
+                            setRenewalNotif(p.isLoanListed ? "Player added to loan list." : "Player removed from loan list.");
                           }}
                           className="px-4 py-2 rounded-lg bg-blue-600/20 hover:bg-blue-600 border border-blue-600/40 text-blue-500 hover:text-white font-bold text-xs transition"
                         >
-                          Send on Loan
+                          {selectedPlayer.isLoanListed ? "Remove from Loan List" : "List for Loan"}
                         </button>
                       )}
                     </div>

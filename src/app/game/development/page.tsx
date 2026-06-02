@@ -145,14 +145,23 @@ export default function Development() {
     alert(`${prospect.name} has been promoted to the first-team squad!`);
   };
 
-  const getFocusIcon = (focus: string) => {
-    switch (focus) {
-      case "Attacking": return <Target className="w-4 h-4 text-rose-500" />;
-      case "Defensive": return <Shield className="w-4 h-4 text-blue-500" />;
-      case "Fitness": return <Flame className="w-4 h-4 text-amber-500" />;
-      case "Tactical": return <Activity className="w-4 h-4 text-emerald-500" />;
-      default: return <Dribbble className="w-4 h-4 text-slate-400" />;
-    }
+  // Mapping of training focus to the attributes it boosts (mirrors developPlayers logic)
+  const focusAttributeMap: Record<string, { attrs: string[]; color: string; icon: React.ReactNode }> = {
+    Balanced: { attrs: ["All Attributes"], color: "slate", icon: <Dribbble className="w-4 h-4 text-slate-400" /> },
+    Attacking: { attrs: ["Shooting", "Dribbling", "Passing"], color: "rose", icon: <Target className="w-4 h-4 text-rose-500" /> },
+    Defensive: { attrs: ["Defending", "Physical", "Stamina"], color: "blue", icon: <Shield className="w-4 h-4 text-blue-500" /> },
+    Fitness: { attrs: ["Pace", "Stamina", "Physical"], color: "amber", icon: <Flame className="w-4 h-4 text-amber-500" /> },
+    Tactical: { attrs: ["Mental", "Passing", "Stamina"], color: "emerald", icon: <Activity className="w-4 h-4 text-emerald-500" /> },
+  };
+
+  const getFocusIcon = (focus: string) => focusAttributeMap[focus]?.icon ?? <Dribbble className="w-4 h-4 text-slate-400" />;
+
+  const focusColorClasses: Record<string, string> = {
+    slate: "bg-slate-500/10 text-slate-400 border-slate-500/20",
+    rose: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+    blue: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+    amber: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+    emerald: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
   };
 
   return (
@@ -168,6 +177,28 @@ export default function Development() {
             Configure training programs to grow player attributes or promote prospects from the youth academy.
           </p>
         </div>
+      </div>
+
+      {/* Training Focus Legend */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        {Object.entries(focusAttributeMap).map(([name, info]) => (
+          <div key={name} className="flex flex-col gap-1.5 p-3 rounded-xl border border-slate-850 bg-slate-900/40">
+            <div className="flex items-center gap-1.5 text-[11px] font-extrabold text-slate-200">
+              {info.icon}
+              {name}
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {info.attrs.map(attr => (
+                <span
+                  key={attr}
+                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${focusColorClasses[info.color]}`}
+                >
+                  +{attr}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Tabs Menu */}
@@ -199,7 +230,7 @@ export default function Development() {
                   <th className="py-3 px-4">Name</th>
                   <th className="py-3 px-4">Age / Position</th>
                   <th className="py-3 px-4">Growth potential</th>
-                  <th className="py-3 px-4">Current Focus</th>
+                  <th className="py-3 px-4">Current Focus & Effects</th>
                   <th className="py-3 px-4">Change Focus</th>
                   <th className="py-3 px-4 text-right">OVR</th>
                 </tr>
@@ -208,6 +239,8 @@ export default function Development() {
                 {squad.map(player => {
                   const focus = player.trainingFocus || "Balanced";
                   const potentialGap = player.potential - player.overall;
+                  const focusInfo = focusAttributeMap[focus] || focusAttributeMap["Balanced"];
+                  const colorClass = focusColorClasses[focusInfo.color] || focusColorClasses["slate"];
                   return (
                     <tr key={player.id} className="hover:bg-slate-900/40 transition">
                       <td className="py-3.5 px-4 font-bold text-slate-200">
@@ -230,25 +263,40 @@ export default function Development() {
                           <span className="text-[10px] text-slate-550 font-bold">Max +{potentialGap}</span>
                         </div>
                       </td>
-                      <td className="py-3.5 px-4 font-semibold text-slate-300 flex items-center gap-1.5 mt-0.5">
-                        {getFocusIcon(focus)}
-                        <span>{focus}</span>
+                      <td className="py-3.5 px-4">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-1.5 font-semibold text-slate-300">
+                            {getFocusIcon(focus)}
+                            <span>{focus}</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {focusInfo.attrs.map(attr => (
+                              <span key={attr} className={`text-[8px] font-bold px-1 py-px rounded border ${colorClass}`}>
+                                +{attr}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
                       </td>
                       <td className="py-3.5 px-4">
                         <div className="flex gap-1">
-                          {["Balanced", "Attacking", "Defensive", "Fitness", "Tactical"].map(f => (
-                            <button
-                              key={f}
-                              onClick={() => handleFocusChange(player.id, f as any)}
-                              className={`px-2 py-1 rounded text-[9px] font-bold border transition ${
-                                focus === f 
-                                  ? 'bg-green-600 border-green-500 text-white shadow shadow-green-600/10' 
-                                  : 'bg-slate-950 border-slate-850 text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-                              }`}
-                            >
-                              {f}
-                            </button>
-                          ))}
+                          {["Balanced", "Attacking", "Defensive", "Fitness", "Tactical"].map(f => {
+                            const btnInfo = focusAttributeMap[f];
+                            return (
+                              <button
+                                key={f}
+                                onClick={() => handleFocusChange(player.id, f as any)}
+                                title={`Boosts: ${btnInfo.attrs.join(", ")}`}
+                                className={`px-2 py-1 rounded text-[9px] font-bold border transition ${
+                                  focus === f 
+                                    ? 'bg-green-600 border-green-500 text-white shadow shadow-green-600/10' 
+                                    : 'bg-slate-950 border-slate-850 text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                                }`}
+                              >
+                                {f}
+                              </button>
+                            );
+                          })}
                         </div>
                       </td>
                       <td className="py-3.5 px-4 text-right font-black text-green-400 text-sm">{player.overall}</td>

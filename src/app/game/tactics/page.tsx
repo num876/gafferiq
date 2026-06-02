@@ -22,6 +22,7 @@ export default function Tactics() {
   const [selectedNode, setSelectedNode] = useState<{ index: number, player: Player, spot: any } | null>(null);
 
   const [initialized, setInitialized] = useState(false);
+  const pitchRef = useRef<HTMLDivElement>(null);
 
   if (!activeSave) return null;
 
@@ -226,7 +227,7 @@ export default function Tactics() {
           </div>
 
           {/* SVG Pitch Canvas */}
-          <div className="relative w-full max-w-[500px] mx-auto aspect-[4/5] bg-[#166534] rounded-2xl overflow-hidden shadow-2xl border-4 border-[#0f4b23] select-none">
+          <div ref={pitchRef} className="relative w-full max-w-[500px] mx-auto aspect-[4/5] bg-[#166534] rounded-2xl overflow-hidden shadow-2xl border-4 border-[#0f4b23] select-none">
             
             {/* SVG Pitch Lines */}
             <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 z-0 opacity-40">
@@ -326,9 +327,11 @@ export default function Tactics() {
                     <div>
                       <span className="text-[9px] text-slate-500 font-bold uppercase mb-1 block">Current Form</span>
                       <div className="flex items-center gap-1">
-                        {Array.from({length: 5}).map((_, i) => (
-                          <div key={i} className={`w-2.5 h-2.5 rounded-full ${i < 3 ? 'bg-[#22c55e]' : i < 4 ? 'bg-[#f59e0b]' : 'bg-rose-500'}`} />
-                        ))}
+                        {Array.from({length: 5}).map((_, i) => {
+                          const f = selectedNode.player.stats?.form?.[i] || "D";
+                          const color = f === "W" ? "bg-[#22c55e]" : f === "L" ? "bg-rose-500" : "bg-[#f59e0b]";
+                          return <div key={i} className={`w-2.5 h-2.5 rounded-full ${color}`} />;
+                        })}
                       </div>
                     </div>
 
@@ -336,7 +339,14 @@ export default function Tactics() {
                     <div>
                       <span className="text-[9px] text-slate-500 font-bold uppercase mb-1 block">Tactical Role</span>
                       <div className="relative">
-                        <select className="w-full appearance-none bg-[#0f1623] border border-[#1e2d40] text-white text-xs font-bold rounded-lg px-3 py-2 pr-8 focus:outline-none focus:border-[#22c55e]">
+                        <select 
+                          className="w-full appearance-none bg-[#0f1623] border border-[#1e2d40] text-white text-xs font-bold rounded-lg px-3 py-2 pr-8 focus:outline-none focus:border-[#22c55e]"
+                          value={tactics.playerRoles[selectedNode.player.id] || selectedNode.spot.roleOptions[0]}
+                          onChange={(e) => setTactics({
+                            ...tactics,
+                            playerRoles: { ...tactics.playerRoles, [selectedNode.player.id]: e.target.value }
+                          })}
+                        >
                           {selectedNode.spot.roleOptions.map((role: string) => (
                             <option key={role} value={role}>{role}</option>
                           ))}

@@ -15,6 +15,8 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
   const { activeSave, advanceToNextMatchday, exitToMainMenu } = useGame();
 
+  const { activeSave, advanceToNextMatchday, exitToMainMenu } = useGame();
+
   useEffect(() => {
     if (!activeSave) {
       router.push("/");
@@ -25,6 +27,25 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
     return (
       <div className="min-h-screen bg-[#0f172a] text-slate-100 flex items-center justify-center">
         <div className="animate-pulse font-medium text-slate-400">Loading career save game...</div>
+      </div>
+    );
+  }
+
+  const handleExit = () => {
+    exitToMainMenu();
+    router.push("/");
+  };
+
+  if (activeSave.isGameOver) {
+    return (
+      <div className="min-h-screen bg-[#0f172a] text-slate-100 flex flex-col items-center justify-center p-6">
+        <h1 className="text-6xl font-black text-rose-500 mb-4 uppercase tracking-tighter">Sacked!</h1>
+        <p className="text-xl text-slate-300 max-w-lg text-center mb-10">
+          The Board of Directors have lost all confidence in your ability to manage the club. Your contract has been terminated immediately.
+        </p>
+        <button onClick={handleExit} className="bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 px-8 rounded-xl transition shadow-xl border border-slate-700">
+          Return to Main Menu
+        </button>
       </div>
     );
   }
@@ -46,28 +67,6 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
     { name: "League Table", href: "/game/table", icon: Table },
     { name: "Transfers", href: "/game/transfers", icon: ArrowLeftRight },
     { name: "Scouting", href: "/game/scouting", icon: Search },
-    { name: "Board & Finances", href: "/game/board", icon: Building },
-    { name: "Training", href: "/game/training", icon: TrendingUp },
-    { name: "Manager Profile", href: "/game/profile", icon: User },
-  ];
-
-  const handleAdvance = () => {
-    if (!isMatchPlayed) {
-      router.push("/game/match");
-    } else {
-      advanceToNextMatchday();
-    }
-  };
-
-  const handleExit = () => {
-    exitToMainMenu();
-    router.push("/");
-  };
-
-  return (
-    <div className="min-h-screen bg-[#0f172a] text-slate-100 flex">
-      {/* 1. Sidebar Navigation */}
-      <aside className="w-64 bg-slate-900/40 backdrop-blur-2xl border-r border-slate-800/60 flex flex-col justify-between shrink-0 hidden md:flex shadow-2xl z-20 relative">
         <div className="flex flex-col gap-6 p-6">
           {/* Logo / Club Branding */}
           <div className="flex items-center gap-3">

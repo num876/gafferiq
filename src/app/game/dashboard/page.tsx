@@ -73,7 +73,7 @@ export default function Dashboard() {
   };
 
   const gafferFeed = activeSave.newsFeed || [];
-  const latestNews = gafferFeed[0];
+  const latestNewsList = gafferFeed.slice(0, 3);
 
   const handleMessageRead = (msgId: string) => {
     const updatedInbox = activeSave.inbox.map(m => {
@@ -135,9 +135,12 @@ export default function Dashboard() {
                   <span className="text-3xl font-black text-slate-700 italic">VS</span>
                   <div className="mt-4 flex gap-1">
                     {/* Predicted Difficulty Stars */}
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className={`w-4 h-4 ${i < Math.ceil(opponentClub.reputation / 20) ? 'text-[#f59e0b] fill-current' : 'text-slate-700'}`} />
-                    ))}
+                    {Array.from({ length: 5 }).map((_, i) => {
+                      const playerAvgOvr = activeSave.players.filter(p => p.clubId === playerClub.id).reduce((s, p, _, arr) => s + p.overall / arr.length, 0);
+                      const oppAvgOvr = activeSave.players.filter(p => p.clubId === opponentClub.id).reduce((s, p, _, arr) => s + p.overall / arr.length, 0);
+                      const diff = Math.min(5, Math.max(1, Math.round(((oppAvgOvr - playerAvgOvr) + 15) / 6) + 2));
+                      return <Star key={i} className={`w-4 h-4 ${i < diff ? 'text-[#f59e0b] fill-current' : 'text-slate-700'}`} />;
+                    })}
                   </div>
                   <span className="text-[10px] text-slate-500 font-bold uppercase mt-1">Est. Difficulty</span>
                 </div>
@@ -170,19 +173,20 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
           {/* Form Guide */}
-          <div className="rounded-2xl bg-[#0f1623] border border-[#1e2d40] p-6 shadow-lg flex flex-col gap-4">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-              <Activity className="w-4 h-4 text-[#22c55e]" /> Form Guide
+          <div className="group rounded-3xl bg-slate-900/60 backdrop-blur-2xl border border-sky-500/20 p-6 shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex flex-col gap-4 relative overflow-hidden transition-all hover:border-sky-500/40">
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-sky-500/10 blur-[50px] rounded-full group-hover:bg-sky-500/20 transition-all duration-700 pointer-events-none" />
+            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <Activity className="w-4 h-4 text-sky-400" /> Form Guide
             </h3>
             <div className="flex-1 flex items-center justify-center gap-3">
               {recentFixtures.length === 0 ? (
-                <span className="text-slate-500 text-sm">No matches played</span>
+                <span className="text-slate-500 text-sm font-bold tracking-widest uppercase">No matches played</span>
               ) : (
                 recentFixtures.map((f, i) => {
                   const res = getResult(f);
-                  const color = res === 'W' ? 'bg-[#22c55e]' : res === 'D' ? 'bg-slate-500' : 'bg-rose-500';
+                  const color = res === 'W' ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)]' : res === 'D' ? 'bg-slate-700 text-slate-300 border-slate-600' : 'bg-rose-500 text-white border-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.3)]';
                   return (
-                    <div key={i} className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-white text-xs shadow-md ${color}`}>
+                    <div key={i} className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm border ${color}`}>
                       {res}
                     </div>
                   );
@@ -192,44 +196,46 @@ export default function Dashboard() {
           </div>
 
           {/* Squad Morale */}
-          <div className="rounded-2xl bg-[#0f1623] border border-[#1e2d40] p-6 shadow-lg flex flex-col gap-4">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+          <div className="group rounded-3xl bg-slate-900/60 backdrop-blur-2xl border border-sky-500/20 p-6 shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex flex-col gap-4 relative overflow-hidden transition-all hover:border-sky-500/40">
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-sky-500/10 blur-[50px] rounded-full group-hover:bg-sky-500/20 transition-all duration-700 pointer-events-none" />
+            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
               <Heart className={`w-4 h-4 ${moraleColor}`} /> Squad Morale
             </h3>
-            <div className="flex-1 flex items-center gap-4">
+            <div className="flex-1 flex items-center gap-5 relative z-10">
               {/* Circular Gauge */}
-              <div className="relative w-16 h-16 shrink-0">
-                <svg className="w-full h-full transform -rotate-90">
-                  <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-[#1e2d40]" />
-                  <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray="175.93" strokeDashoffset={175.93 - (175.93 * avgMorale) / 100} className={`${moraleColor} transition-all duration-1000 ease-out`} />
+              <div className="relative w-20 h-20 shrink-0">
+                <svg className="w-full h-full transform -rotate-90 filter drop-shadow-[0_0_8px_currentColor]" style={{ color: moraleColor }}>
+                  <circle cx="40" cy="40" r="34" stroke="rgba(255,255,255,0.05)" strokeWidth="8" fill="transparent" />
+                  <circle cx="40" cy="40" r="34" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray="213.6" strokeDashoffset={213.6 - (213.6 * avgMorale) / 100} className="transition-all duration-1000 ease-out" />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className={`text-sm font-black ${moraleColor}`}>{Math.round(avgMorale)}</span>
+                  <span className={`text-xl font-black ${moraleColor}`}>{Math.round(avgMorale)}</span>
                 </div>
               </div>
-              <p className="text-[10px] leading-relaxed text-slate-400 font-medium">
+              <p className="text-xs leading-relaxed text-slate-400 font-medium">
                 {moraleText}
               </p>
             </div>
           </div>
 
           {/* League Position Widget */}
-          <div className="rounded-2xl bg-[#0f1623] border border-[#1e2d40] p-6 shadow-lg flex flex-col gap-3">
-            <div className="flex justify-between items-center">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+          <div className="group rounded-3xl bg-slate-900/60 backdrop-blur-2xl border border-sky-500/20 p-6 shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex flex-col gap-3 relative overflow-hidden transition-all hover:border-sky-500/40">
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-sky-500/10 blur-[50px] rounded-full group-hover:bg-sky-500/20 transition-all duration-700 pointer-events-none" />
+            <div className="flex justify-between items-center relative z-10">
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                 <Trophy className="w-4 h-4 text-[#f59e0b]" /> Standings
               </h3>
-              <Link href="/game/table" className="text-[10px] text-blue-400 font-bold uppercase hover:underline">Full Table</Link>
+              <Link href="/game/table" className="text-[10px] text-sky-400 font-black uppercase tracking-widest hover:text-sky-300 transition">Full Table</Link>
             </div>
-            <div className="flex flex-col gap-1.5 mt-2">
+            <div className="flex flex-col gap-2 mt-2 relative z-10">
               {standings.slice(Math.max(0, playerPos - 3), Math.min(standings.length, playerPos + 2)).map((st) => {
                 const pos = standings.findIndex(s => s.clubId === st.clubId) + 1;
                 const isPlayer = st.clubId === playerClub.id;
                 return (
-                  <div key={st.clubId} className={`flex items-center justify-between text-[11px] py-1.5 px-2 rounded ${isPlayer ? 'bg-[#22c55e]/10 text-[#22c55e] font-bold border border-[#22c55e]/20' : 'text-slate-400'}`}>
-                    <div className="flex items-center gap-2 truncate">
-                      <span className="w-4 text-right opacity-50">{pos}</span>
-                      <span className="truncate w-24">{st.clubName}</span>
+                  <div key={st.clubId} className={`flex items-center justify-between text-[11px] py-2 px-3 rounded-lg transition-all ${isPlayer ? 'bg-sky-500/20 text-sky-400 font-black border border-sky-500/30 shadow-[0_0_15px_rgba(56,189,248,0.2)]' : 'text-slate-400 hover:bg-white/5'}`}>
+                    <div className="flex items-center gap-3 truncate">
+                      <span className="w-5 text-right opacity-60 font-black">{pos}</span>
+                      <span className="truncate w-24 font-bold">{st.clubName}</span>
                     </div>
                     <span className="font-black text-white">{st.points} pts</span>
                   </div>
@@ -247,66 +253,77 @@ export default function Dashboard() {
       <div className="w-full lg:w-72 flex flex-col gap-6 z-10 shrink-0">
         
         {/* Inbox Widget */}
-        <div className="rounded-2xl bg-[#0f1623] border border-[#1e2d40] shadow-lg flex flex-col h-72">
-          <div className="p-4 border-b border-[#1e2d40] flex items-center justify-between bg-[#080c14]/50 rounded-t-2xl">
-            <h3 className="text-xs font-bold text-slate-200 flex items-center gap-2">
+        <div className="rounded-3xl bg-slate-900/60 backdrop-blur-2xl border border-sky-500/20 shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex flex-col h-80 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/10 blur-[50px] rounded-full group-hover:bg-sky-500/20 transition-all duration-700 pointer-events-none" />
+          <div className="p-5 border-b border-white/5 flex items-center justify-between bg-black/20 rounded-t-3xl relative z-10">
+            <h3 className="text-xs font-black text-slate-200 uppercase tracking-widest flex items-center gap-2">
               <Mail className="w-4 h-4 text-sky-400" /> Inbox
             </h3>
             {activeSave.inbox.filter(m => !m.read).length > 0 && (
-              <span className="bg-sky-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
+              <span className="bg-sky-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow-[0_0_10px_rgba(56,189,248,0.5)]">
                 {activeSave.inbox.filter(m => !m.read).length} New
               </span>
             )}
           </div>
           
-          <div className="flex-1 overflow-y-auto p-2 scrollbar-hide flex flex-col gap-1">
+          <div className="flex-1 overflow-y-auto p-3 custom-scrollbar flex flex-col gap-2 relative z-10">
             {activeSave.inbox.slice(0, 3).map(msg => (
               <button
                 key={msg.id}
                 onClick={() => handleMessageRead(msg.id)}
-                className={`w-full text-left p-3 rounded-xl border text-[11px] flex flex-col gap-1 transition ${!msg.read ? 'bg-sky-500/10 border-sky-500/50' : 'bg-transparent border-transparent hover:bg-[#1e2d40]/50 text-slate-400'}`}
+                className={`w-full text-left p-4 rounded-2xl border text-xs flex flex-col gap-1.5 transition-all hover:scale-[1.02] ${!msg.read ? 'bg-sky-500/10 border-sky-500/40 shadow-[0_4px_20px_rgba(56,189,248,0.1)]' : 'bg-black/20 border-white/5 hover:border-white/10 text-slate-400'}`}
               >
-                <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-wider">
+                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
                   <span className={msg.type === 'board' ? 'text-amber-400' : msg.type === 'media' ? 'text-purple-400' : 'text-emerald-400'}>{msg.sender}</span>
                   <span className="text-slate-500 opacity-70">{msg.date}</span>
                 </div>
-                <h4 className="font-bold text-white truncate text-[12px]">{msg.subject}</h4>
+                <h4 className="font-bold text-white truncate text-[13px]">{msg.subject}</h4>
               </button>
             ))}
           </div>
-          <Link href="/game/dashboard/inbox" className="p-3 text-center text-[10px] font-bold text-slate-400 hover:text-white border-t border-[#1e2d40] transition">
+          <Link href="/game/inbox" className="p-4 text-center text-[11px] font-black uppercase tracking-widest text-slate-500 hover:text-sky-400 border-t border-white/5 bg-black/20 transition relative z-10 hover:bg-black/40">
             View All Messages
           </Link>
         </div>
 
         {/* Latest News */}
-        {latestNews && (
-          <div className="rounded-2xl bg-[#0f1623] border border-[#1e2d40] p-5 shadow-lg flex flex-col gap-3">
-            <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest border-l-2 border-blue-500 pl-2 mb-1">Latest News</h3>
-            <h4 className="font-bold text-white text-sm leading-snug">{latestNews.content}</h4>
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-[10px] text-slate-400 bg-[#080c14] px-2 py-1 rounded border border-[#1e2d40]">{latestNews.author}</span>
+        {/* Latest News */}
+        {latestNewsList.length > 0 && (
+          <div className="rounded-3xl bg-slate-900/60 backdrop-blur-2xl border border-sky-500/20 p-6 shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex flex-col gap-3 relative overflow-hidden group max-h-80 overflow-y-auto custom-scrollbar">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 blur-[50px] rounded-full group-hover:bg-purple-500/20 transition-all duration-700 pointer-events-none" />
+            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-l-2 border-purple-500 pl-3 mb-1 relative z-10 shrink-0">Latest News</h3>
+            
+            <div className="flex flex-col gap-4 relative z-10">
+              {latestNewsList.map(news => (
+                <div key={news.id} className="bg-black/20 p-3 rounded-xl border border-white/5">
+                  <h4 className="font-bold text-white text-sm leading-relaxed mb-2">{news.content}</h4>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-bold tracking-widest text-slate-400 uppercase">{news.author}</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
 
         {/* Upcoming Fixture (Next Next) */}
         {nextNextFixture && (
-          <div className="rounded-2xl bg-[#0f1623] border border-[#1e2d40] p-5 shadow-lg flex flex-col gap-3 mt-auto">
-            <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest border-l-2 border-[#f59e0b] pl-2 mb-1">On the Horizon</h3>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-[#080c14] border border-white/5 flex items-center justify-center p-2">
+          <div className="rounded-3xl bg-slate-900/60 backdrop-blur-2xl border border-sky-500/20 p-6 shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex flex-col gap-4 mt-auto relative overflow-hidden group">
+            <div className="absolute bottom-0 right-0 w-32 h-32 bg-amber-500/10 blur-[50px] rounded-full group-hover:bg-amber-500/20 transition-all duration-700 pointer-events-none" />
+            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-l-2 border-amber-500 pl-3 relative z-10">On the Horizon</h3>
+            <div className="flex items-center gap-4 relative z-10 bg-black/20 p-3 rounded-2xl border border-white/5">
+              <div className="w-12 h-12 rounded-xl bg-[#080c14] border border-white/10 flex items-center justify-center p-2 shadow-inner">
                 {CLUB_LOGOS[nextNextFixture.homeClubId === playerClub.id ? nextNextFixture.awayClubId : nextNextFixture.homeClubId] ? (
-                  <img src={CLUB_LOGOS[nextNextFixture.homeClubId === playerClub.id ? nextNextFixture.awayClubId : nextNextFixture.homeClubId]} alt="" className="w-full h-full object-contain" />
+                  <img src={CLUB_LOGOS[nextNextFixture.homeClubId === playerClub.id ? nextNextFixture.awayClubId : nextNextFixture.homeClubId]} alt="" className="w-full h-full object-contain filter drop-shadow-md" />
                 ) : (
-                  <span className="font-bold text-xs">{(nextNextFixture.homeClubId === playerClub.id ? nextNextFixture.awayClubId : nextNextFixture.homeClubId).charAt(0)}</span>
+                  <span className="font-black text-sm text-slate-300">{(nextNextFixture.homeClubId === playerClub.id ? nextNextFixture.awayClubId : nextNextFixture.homeClubId).charAt(0)}</span>
                 )}
               </div>
               <div className="flex flex-col">
-                <span className="font-bold text-sm text-white truncate max-w-[150px]">
+                <span className="font-black text-sm text-white truncate max-w-[140px]">
                   {nextNextFixture.homeClubId === playerClub.id ? nextNextFixture.awayClubId : nextNextFixture.homeClubId}
                 </span>
-                <span className="text-[10px] text-slate-400 flex items-center gap-1 font-medium mt-0.5">
+                <span className="text-[10px] text-amber-400/80 flex items-center gap-1.5 font-bold uppercase tracking-wider mt-1">
                   <Clock className="w-3 h-3" /> Matchday {nextNextFixture.matchday}
                 </span>
               </div>

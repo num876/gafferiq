@@ -100,6 +100,62 @@ export default function Transfers() {
     setBidStep("bid");
     setContractYears(3);
     setOfferedWage(Math.floor(player.wage * 1.1));
+
+
+  // Modal / Interaction states
+  const [scoutedPlayer, setScoutedPlayer] = useState<Player | null>(null);
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const [bidModalOpen, setBidModalOpen] = useState(false);
+  const [bidAmount, setBidAmount] = useState<number>(0); 
+  const [bidStep, setBidStep] = useState<"bid" | "negotiating" | "contract" | "declined" | "accepted">("bid");
+  const [offerType, setOfferType] = useState<"permanent" | "loan">("permanent");
+  const [negotiationMessage, setNegotiationMessage] = useState("");
+  const [suggestedFee, setSuggestedFee] = useState<number>(0);
+  
+  // Contract offer state
+  const [contractYears, setContractYears] = useState<number>(3);
+  const [offeredWage, setOfferedWage] = useState<number>(0);
+  const [contractMessage, setContractMessage] = useState("");
+
+  const [reviewingPlayer, setReviewingPlayer] = useState<Player | null>(null);
+
+  if (!activeSave) return null;
+
+  const playerClub = activeSave.clubs.find(c => c.id === activeSave.selectedClubId)!;
+
+  // Filter players
+  const filteredPlayers = useMemo(() => {
+    return activeSave.players.filter(p => {
+      if (p.clubId === playerClub.id && !p.isAcademy) return false;
+
+      const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesPosition = selectedPositions.length === 0 || selectedPositions.includes(p.position);
+      
+      const pClub = activeSave.clubs.find(c => c.id === p.clubId);
+      const matchesLeague = selectedLeagues.length === 0 || (pClub && selectedLeagues.includes(pClub.league));
+      
+      const matchesOvr = p.overall >= minOvr && p.overall <= maxOvr;
+      const matchesAge = p.age >= minAge && p.age <= maxAge;
+      
+      const matchesFreeAgent = !freeAgentsOnly || p.clubId === "free_agent";
+      const matchesWonderkid = !wonderkidsOnly || (p.age <= 21 && p.potential >= 85);
+
+      return matchesSearch && matchesPosition && matchesLeague && matchesOvr && matchesAge && matchesFreeAgent && matchesWonderkid;
+    });
+  }, [activeSave.players, playerClub.id, searchQuery, selectedPositions, selectedLeagues, minOvr, maxOvr, minAge, maxAge, freeAgentsOnly, wonderkidsOnly]);
+
+  // Open Scout Panel
+  const openScoutPanel = (player: Player) => {
+    setScoutedPlayer(player);
+  };
+
+  // Open Bid screen
+  const openBidModal = (player: Player) => {
+    setSelectedPlayer(player);
+    setBidAmount(player.value);
+    setBidStep("bid");
+    setContractYears(3);
+    setOfferedWage(Math.floor(player.wage * 1.1));
     setBidModalOpen(true);
     setNegotiationMessage("");
     setContractMessage("");
@@ -108,40 +164,43 @@ export default function Transfers() {
   // Negotiation Logic
   const submitBid = () => {
     if (!selectedPlayer) return;
-    setBidStep("negotiating");
-    setTimeout(() => {
-      const value = selectedPlayer.value;
-      const club = activeSave.clubs.find(c => c.id === selectedPlayer.clubId);
-      const premiumFactor = club ? (club.reputation / 80) : 1.0;
-      const expectedMinimum = value * 0.95 * premiumFactor;
-      
-      if (selectedPlayer.clubId === "free_agent") {
-         setBidStep("contract");
-         setNegotiationMessage(`${selectedPlayer.name} is a free agent. You can proceed directly to negotiating personal terms.`);
-         return;
-      }
-
-      if (offerType === "loan") {
-         // Simplified loan logic: clubs usually accept loans for young or transfer-listed players
-         setBidStep("contract");
-         setContractYears(1);
-         setNegotiationMessage(`${club?.name} has agreed to loan ${selectedPlayer.name} to you for one season. Now, negotiate the wage split.`);
-         return;
-      }
-
-      if (bidAmount < value * 0.8) {
-        setBidStep("declined");
-        setNegotiationMessage(`${club?.name} has instantly rejected your bid. They refuse to sell ${selectedPlayer.name} for such an insultingly low offer.`);
-      } else if (bidAmount < expectedMinimum) {
-        const counter = Math.floor(expectedMinimum * (1.05 + Math.random() * 0.1));
-        setSuggestedFee(counter);
-        setBidStep("bid"); 
-        setNegotiationMessage(`${club?.name} rejected your bid of €${(bidAmount/1000000).toFixed(2)}M. However, they are open to negotiations and counter with €${(counter/1000000).toFixed(2)}M.`);
-      } else {
+    
+    const value = selectedPlayer.value;
+    const club = activeSave.clubs.find(c => c.id === selectedPlayer.clubId);
+    const premiumFactor = club ? (club.reputation / 80) : 1.0;
+    const expectedMinimum = value * 0.95 * premiumFactor;
+    
+    if (selectedPlayer.clubId === "free_agent") {
         setBidStep("contract");
-        setNegotiationMessage(`Great news! ${club?.name} has accepted your transfer bid of €${(bidAmount/1000000).toFixed(2)}M. You are now cleared to negotiate personal terms with ${selectedPlayer.name}.`);
-      }
-    }, 1200);
+        setNegotiationMessage(`${selectedPlayer.name} is a free agent. You can proceed directly to negotiating personal terms.`);
+        return;
+    }
+
+    if (offerType === "loan") {
+        const acceptsLoan = Math.random() > 0.3; // 70% chance
+        if (acceptsLoan || selectedPlayer.isLoanListed) {
+          setBidStep("contract");
+          setContractYears(1);
+          setNegotiationMessage(`${club?.name} has agreed to loan ${selectedPlayer.name} to you for one season. Now, negotiate the wage split.`);
+        } else {
+          setBidStep("declined");
+          setNegotiationMessage(`${club?.name} is not interested in loaning out ${selectedPlayer.name} at this time.`);
+        }
+        return;
+    }
+
+    if (bidAmount < value * 0.8) {
+      setBidStep("declined");
+      setNegotiationMessage(`${club?.name} has instantly rejected your bid. They refuse to sell ${selectedPlayer.name} for such an insultingly low offer.`);
+    } else if (bidAmount < expectedMinimum) {
+      const counter = Math.floor(expectedMinimum * (1.05 + Math.random() * 0.1));
+      setSuggestedFee(counter);
+      setBidStep("bid"); 
+      setNegotiationMessage(`${club?.name} rejected your bid of €${(bidAmount/1000000).toFixed(2)}M. However, they are open to negotiations and counter with €${(counter/1000000).toFixed(2)}M.`);
+    } else {
+      setBidStep("contract");
+      setNegotiationMessage(`Great news! ${club?.name} has accepted your transfer bid of €${(bidAmount/1000000).toFixed(2)}M. You are now cleared to negotiate personal terms with ${selectedPlayer.name}.`);
+    }
   };
 
   const submitContract = () => {
@@ -154,60 +213,60 @@ export default function Transfers() {
       setContractMessage(`Insufficient wage limit! Your wage limit is €${(activeSave.wageBudget/1000).toFixed(0)}k/week.`);
       return;
     }
-    setBidStep("negotiating");
 
-    setTimeout(() => {
-      const demandWage = selectedPlayer.wage > 0 ? selectedPlayer.wage * (1.0 + (5 - contractYears) * 0.05) : 5000 * (selectedPlayer.overall / 60);
-      const negotiationSkill = activeSave.manager.attributes.negotiation; 
-      const wageDiscountFactor = 1.0 - (negotiationSkill / 20) * 0.15; 
-      const acceptableWage = demandWage * wageDiscountFactor;
+    const demandWage = selectedPlayer.wage > 0 ? selectedPlayer.wage * (1.0 + (5 - contractYears) * 0.05) : 5000 * (selectedPlayer.overall / 60);
+    const negotiationSkill = activeSave.manager.attributes.negotiation; 
+    const wageDiscountFactor = 1.0 - (negotiationSkill / 20) * 0.15; 
+    const acceptableWage = demandWage * wageDiscountFactor;
 
-      if (offeredWage < acceptableWage * 0.9) {
-        setBidStep("contract");
-        setContractMessage(`${selectedPlayer.name} has rejected your contract proposal. His agent demands a wage closer to €${(acceptableWage/1000).toFixed(0)}k/week.`);
-      } else {
-        setBidStep("accepted");
-        const currentClub = activeSave.clubs.find(c => c.id === selectedPlayer.clubId);
-        const newState = { ...activeSave };
-        
-        if (selectedPlayer.clubId !== "free_agent" && offerType === "permanent") newState.transferBudget -= bidAmount;
-        newState.wageBudget -= offeredWage;
-        
-        const statePlayer = newState.players.find(p => p.id === selectedPlayer.id)!;
-        statePlayer.clubId = playerClub.id;
-        statePlayer.wage = offeredWage;
-        statePlayer.contractExpiry = contractYears;
-        statePlayer.morale = 95; 
-        
+    if (offeredWage < acceptableWage * 0.9) {
+      setBidStep("contract");
+      setContractMessage(`${selectedPlayer.name} has rejected your contract proposal. His agent demands a wage closer to €${(acceptableWage/1000).toFixed(0)}k/week.`);
+    } else {
+      setBidStep("accepted");
+      const currentClub = activeSave.clubs.find(c => c.id === selectedPlayer.clubId);
+      
+      const newState = { ...activeSave };
+      const playerIndex = newState.players.findIndex(p => p.id === selectedPlayer.id);
+      
+      if (playerIndex !== -1) {
         if (offerType === "loan") {
-          statePlayer.onLoanFrom = currentClub ? currentClub.id : "";
-          statePlayer.loanDuration = 1;
+          newState.players[playerIndex] = {
+            ...newState.players[playerIndex],
+            onLoanFrom: selectedPlayer.clubId,
+            clubId: newState.selectedClubId,
+            loanDuration: contractYears,
+            wage: offeredWage,
+            morale: 95
+          };
+          newState.wageBudget -= offeredWage;
+          newState.gameLog.unshift(`${selectedPlayer.name} has joined on loan from ${currentClub?.name || "Free Agency"}.`);
+        } else {
+          newState.players[playerIndex] = {
+            ...newState.players[playerIndex],
+            clubId: newState.selectedClubId,
+            wage: offeredWage,
+            contractExpiry: newState.currentSeason + contractYears,
+            isTransferListed: false,
+            isLoanListed: false,
+            morale: 95
+          };
+          newState.transferBudget -= bidAmount;
+          newState.wageBudget -= offeredWage;
+          newState.gameLog.unshift(`Signed ${selectedPlayer.name} from ${currentClub?.name || "Free Agency"} for €${(bidAmount/1000000).toFixed(2)}M.`);
+          
+          if (!newState.transfersHistory) newState.transfersHistory = [];
+          newState.transfersHistory.unshift({
+             date: `Season ${newState.currentSeason}, Matchday ${newState.currentMatchday}`,
+             playerName: selectedPlayer.name,
+             fromClubName: currentClub?.name || "Free Agent",
+             toClubName: activeSave.clubs.find(c => c.id === activeSave.selectedClubId)!.name,
+             fee: bidAmount
+          });
         }
-
-        newState.transfersHistory.unshift({
-          id: `trans_${Date.now()}`,
-          playerName: selectedPlayer.name,
-          fromClubName: currentClub ? currentClub.name : "Free Agent",
-          toClubName: playerClub.name,
-          fee: selectedPlayer.clubId === "free_agent" || offerType === "loan" ? 0 : bidAmount,
-          type: offerType,
-          matchday: activeSave.currentMatchday
-        });
-
-        newState.inbox.unshift({
-          id: `trans_sign_${selectedPlayer.id}`,
-          sender: "Chief Scout",
-          subject: offerType === "loan" ? `LOAN SIGNING: ${selectedPlayer.name} Arrives` : `NEW SIGNING: ${selectedPlayer.name} Joins!`,
-          body: offerType === "loan" ? `${selectedPlayer.name} has joined us on loan for the remainder of the season.` : `Deal finalized! ${selectedPlayer.name} has officially signed a ${contractYears}-year contract with our club.`,
-          date: `Matchday ${activeSave.currentMatchday}`,
-          read: false,
-          type: "media"
-        });
-
-        newState.gameLog.unshift(offerType === "loan" ? `Signed ${selectedPlayer.name} on loan.` : `Signed ${selectedPlayer.name} from ${currentClub ? currentClub.name : "Free Agency"}.`);
         updateActiveSave(newState);
       }
-    }, 1200);
+    }
   };
 
   const togglePosFilter = (pos: string) => {
@@ -267,6 +326,7 @@ export default function Transfers() {
             <div className="flex gap-1 bg-[#0f1623] p-1 rounded-lg border border-[#1e2d40]">
               <button onClick={() => setActiveTab("browse")} className={`px-3 py-1 rounded text-xs font-bold transition ${activeTab === 'browse' ? 'bg-[#1e2d40] text-white' : 'text-slate-500 hover:text-slate-300'}`}>Scouting</button>
               <button onClick={() => setActiveTab("squad")} className={`px-3 py-1 rounded text-xs font-bold transition ${activeTab === 'squad' ? 'bg-[#1e2d40] text-white' : 'text-slate-500 hover:text-slate-300'}`}>Your Squad</button>
+              <button onClick={() => setActiveTab("history")} className={`px-3 py-1 rounded text-xs font-bold transition ${activeTab === 'history' ? 'bg-[#1e2d40] text-white' : 'text-slate-500 hover:text-slate-300'}`}>History</button>
             </div>
           </div>
 
@@ -611,9 +671,6 @@ export default function Transfers() {
         )}
       </AnimatePresence>
 
-      {/* NOTE: The massive Negotiation Modals (bidModalOpen) from the previous iteration 
-          would be rendered here, retaining all state updates. For brevity in this artifact, 
-          they remain functionally identical. */}
       {/* Negotiation & Bid Modal */}
       {bidModalOpen && selectedPlayer && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#080c14]/90 backdrop-blur-sm p-4">
@@ -772,6 +829,73 @@ export default function Transfers() {
               )}
             </div>
           </div>
+        </div>
+      )}
+      {activeTab === "squad" && (
+        <div className="flex-1 w-full max-w-7xl mx-auto px-6 pb-6">
+          <h2 className="text-xl font-bold text-slate-100 mb-4">Your Squad Transfer Status</h2>
+          <div className="bg-[#0a0f1e] rounded-xl border border-[#1e2d40] overflow-hidden">
+            <table className="w-full text-left text-sm text-slate-300">
+              <thead className="bg-[#1e2d40] text-slate-400 font-bold uppercase text-[10px]">
+                  <tr>
+                    <th className="p-4">Player</th>
+                    <th className="p-4">Position</th>
+                    <th className="p-4">OVR</th>
+                    <th className="p-4">Value</th>
+                    <th className="p-4">Status</th>
+                  </tr>
+              </thead>
+              <tbody className="divide-y divide-[#1e2d40]">
+                {activeSave.players.filter(p => p.clubId === activeSave.selectedClubId).map(p => (
+                  <tr key={p.id} className="hover:bg-[#0f1623]">
+                      <td className="p-4 font-bold text-white">{p.name}</td>
+                      <td className="p-4">{p.position}</td>
+                      <td className="p-4">{p.overall}</td>
+                      <td className="p-4">€{(p.value/1000000).toFixed(2)}M</td>
+                      <td className="p-4">
+                        <span className={`px-2 py-1 rounded text-xs font-bold ${p.isTransferListed ? 'bg-amber-500/20 text-amber-500' : 'bg-slate-800 text-slate-400'}`}>
+                          {p.isTransferListed ? 'Listed' : 'Not Listed'}
+                        </span>
+                      </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "history" && (
+        <div className="flex-1 w-full max-w-7xl mx-auto px-6 pb-6">
+          <h2 className="text-xl font-bold text-slate-100 mb-4">Transfer History</h2>
+          {activeSave.transfersHistory && activeSave.transfersHistory.length > 0 ? (
+            <div className="bg-[#0a0f1e] rounded-xl border border-[#1e2d40] overflow-hidden">
+              <table className="w-full text-left text-sm text-slate-300">
+                <thead className="bg-[#1e2d40] text-slate-400 font-bold uppercase text-[10px]">
+                    <tr>
+                      <th className="p-4">Date</th>
+                      <th className="p-4">Player</th>
+                      <th className="p-4">From</th>
+                      <th className="p-4">To</th>
+                      <th className="p-4">Fee</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-[#1e2d40]">
+                  {activeSave.transfersHistory.map((t, idx) => (
+                      <tr key={idx} className="hover:bg-[#0f1623]">
+                        <td className="p-4">{t.date}</td>
+                        <td className="p-4 font-bold text-white">{t.playerName}</td>
+                        <td className="p-4 text-rose-400">{t.fromClubName}</td>
+                        <td className="p-4 text-emerald-400">{t.toClubName}</td>
+                        <td className="p-4 font-bold">€{(t.fee/1000000).toFixed(2)}M</td>
+                      </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="py-10 text-center text-slate-500 font-bold">No transfer history recorded yet.</div>
+          )}
         </div>
       )}
     </div>

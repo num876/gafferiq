@@ -15,6 +15,7 @@ interface GameContextType {
   deleteGame: (id: string) => void;
   updateActiveSave: (state: SaveState) => void;
   playMatchdayCpuGames: () => void;
+  completeLiveMatch: (fixtureId: string, result: Partial<MatchFixture>) => void;
   advanceToNextMatchday: () => void;
   exitToMainMenu: () => void;
 }
@@ -84,6 +85,32 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     sessionStorage.removeItem("gaffer_iq_active_save_id");
   };
 
+  const completeLiveMatch = (fixtureId: string, result: Partial<MatchFixture>) => {
+    if (!activeSave) return;
+    const state = { ...activeSave };
+    const fixture = state.fixtures.find(f => f.id === fixtureId);
+    if (!fixture) return;
+
+    const homeClub = state.clubs.find(c => c.id === fixture.homeClubId)!;
+    const awayClub = state.clubs.find(c => c.id === fixture.awayClubId)!;
+    const homeSquad = state.players.filter(p => p.clubId === homeClub.id);
+    const awaySquad = state.players.filter(p => p.clubId === awayClub.id);
+
+    fixture.homeScore = result.homeScore ?? fixture.homeScore;
+    fixture.awayScore = result.awayScore ?? fixture.awayScore;
+    fixture.played = true;
+    fixture.events = result.events ?? [];
+    fixture.stats = result.stats ?? fixture.stats;
+    fixture.playerRatings = result.playerRatings ?? {};
+    fixture.motmId = result.motmId ?? "";
+    fixture.tacticalAnalysis = result.tacticalAnalysis ?? "";
+    fixture.pressQuote = result.pressQuote ?? "";
+
+    updatePlayerStatsFromFixture(state, fixture, homeSquad, awaySquad);
+    updateManagerStatsFromFixture(state, fixture);
+    updateActiveSave(state);
+  };
+
   // Simulates all matches on the current matchday for other teams
   const playMatchdayCpuGames = () => {
     if (!activeSave) return;
@@ -115,8 +142,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           awayClub,
           homeSquad,
           awaySquad,
-          DEFAULT_TACTICS_MOCK(),
-          DEFAULT_TACTICS_MOCK()
+          isPlayerMatch && fixture.homeClubId === playerClubId && state.tactics ? state.tactics : DEFAULT_TACTICS_MOCK(),
+          isPlayerMatch && fixture.awayClubId === playerClubId && state.tactics ? state.tactics : DEFAULT_TACTICS_MOCK()
         );
 
         fixture.homeScore = result.homeScore;
@@ -129,8 +156,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         fixture.tacticalAnalysis = result.tacticalAnalysis;
         fixture.pressQuote = result.pressQuote;
 
-        // Update player stats for this game
+        // Update player & manager stats for this game
         updatePlayerStatsFromFixture(state, fixture, homeSquad, awaySquad);
+        updateManagerStatsFromFixture(state, fixture);
         return;
       }
 
@@ -289,6 +317,37 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       state.manager.reputation = Math.max(1, Math.min(100, state.manager.reputation + repGained));
       updateReputationLabel(state.manager);
 
+      // Resolve Board Objectives
+      state.boardObjectives.forEach(obj => {
+        if (obj.id === "obj_1") { // Maintain Respectability
+          if (playerPos <= maxMatchdays - 3) {
+            obj.status = "success";
+            state.boardConfidence = Math.min(100, state.boardConfidence + 15);
+          } else {
+            obj.status = "failed";
+            state.boardConfidence -= 25;
+          }
+        }
+        if (obj.id === "obj_2") { // Cup Run
+          const eliminatedEarly = state.cupState && state.cupState.eliminatedClubs.includes(playerClub.id) && 
+            (state.cupState.currentRound === "Round 1" || state.cupState.currentRound === "Round 2");
+          if (!eliminatedEarly) {
+            obj.status = "success";
+            state.boardConfidence = Math.min(100, state.boardConfidence + 10);
+          } else {
+            obj.status = "failed";
+            state.boardConfidence -= 15;
+          }
+        }
+      });
+
+      // Manager Attribute Growth
+      if (repGained > 0) {
+        state.manager.attributes.scouting = Math.min(20, state.manager.attributes.scouting + 1);
+        state.manager.attributes.tacticalKnowledge = Math.min(20, state.manager.attributes.tacticalKnowledge + 1);
+        state.manager.attributes.manManagement = Math.min(20, state.manager.attributes.manManagement + 1);
+      }
+
       // Contract logic
       const expiredPlayers: Player[] = [];
       state.players.forEach(p => {
@@ -381,6 +440,56 @@ We have reset the standings and scheduled the fixtures for Season ${state.curren
       state.currentMatchday = nextMDay;
       state.gameLog.unshift(`Advanced to Matchday ${nextMDay}.`);
 
+      const playerClub = state.clubs.find(c => c.id === state.selectedClubId)!;
+
+      // Matchday Economics
+      const myPlayers = state.players.filter(p => p.clubId === playerClub.id);
+      const currentWages = myPlayers.reduce((sum, p) => sum + p.wage, 0);
+      const scoutWages = (state.scouts || []).reduce((sum, s) => sum + s.wage, 0);
+      const totalWages = currentWages + scoutWages;
+
+      state.transferBudget -= totalWages; // deduct weekly wages
+      state.transferBudget -= 25000; // base stadium maintenance / travel cost
+
+      // Penalty for overspending
+      if (totalWages > state.wageBudget) {
+        state.boardConfidence -= 1;
+      }
+      if (state.transferBudget < 0) {
+        state.boardConfidence -= 5;
+      }
+
+      // Home Matchday Revenue
+      const currentFixture = state.fixtures.find(f => f.matchday === state.currentMatchday && f.homeClubId === playerClub.id);
+      if (currentFixture) {
+        const priceModifier = Math.max(0, 1 - ((state.ticketPrice - 40) / 100)); // 40 = 1, 90 = 0.5
+        const repModifier = state.manager.reputation / 100;
+        const attendancePct = Math.min(1, 0.4 + (repModifier * 0.4) + (priceModifier * 0.2));
+        const matchdayIncome = Math.floor(playerClub.capacity * attendancePct * state.ticketPrice);
+        state.transferBudget += matchdayIncome;
+        state.gameLog.unshift(`Home Matchday Revenue: +£${matchdayIncome.toLocaleString()}`);
+      }
+
+      // Check stadium expansion completion
+      if (state.stadiumExpansion && state.currentMatchday >= state.stadiumExpansion.targetMatchday) {
+        playerClub.capacity += state.stadiumExpansion.capacityIncrease;
+        state.inbox.unshift({
+          id: `stadium_exp_${state.currentMatchday}`,
+          sender: "Board of Directors",
+          subject: `Stadium Expansion Completed!`,
+          body: `Great news! The stadium expansion project has been completed. Our capacity has increased by ${state.stadiumExpansion.capacityIncrease.toLocaleString()} to a total of ${playerClub.capacity.toLocaleString()}!`,
+          date: `Matchday ${state.currentMatchday}`,
+          read: false,
+          type: "board"
+        });
+        state.stadiumExpansion = undefined;
+      }
+
+      // Sacking Check
+      if (state.boardConfidence <= 0) {
+        state.isGameOver = true;
+      }
+
       // Decrease scouting task timers
       state.scoutingTasks = state.scoutingTasks.map(task => {
         if (task.completed) return task;
@@ -393,7 +502,7 @@ We have reset the standings and scheduled the fixtures for Season ${state.curren
             subject: `Scouting Completed: ${task.playerName}`,
             body: `We have completed our detailed report on ${task.playerName} (${task.position}) from ${task.playerClub}. 
             
-Our analysis reveals his hidden potential is rated at ${task.playerRating}/99. His estimated market value is €${(calculateValue(task.playerRating, 22) / 1000000).toFixed(1)}M. We have added him to your scouted reports database.`,
+Our analysis reveals his estimated potential is rated between ${task.playerRatingMin}-${task.playerRatingMax}/99. His estimated market value is €${(task.estimatedValue / 1000000).toFixed(1)}M. We have added him to your scouted reports database.`,
             date: `Matchday ${state.currentMatchday}`,
             read: false,
             type: "media"
@@ -464,6 +573,7 @@ Our analysis reveals his hidden potential is rated at ${task.playerRating}/99. H
       deleteGame,
       updateActiveSave,
       playMatchdayCpuGames,
+      completeLiveMatch,
       advanceToNextMatchday,
       exitToMainMenu
     }}>
@@ -492,7 +602,40 @@ function DEFAULT_TACTICS_MOCK(): TacticalInstructions {
   };
 }
 
+function updateManagerStatsFromFixture(state: SaveState, fixture: MatchFixture) {
+  const isPlayerHome = fixture.homeClubId === state.selectedClubId;
+  const isPlayerAway = fixture.awayClubId === state.selectedClubId;
+  if (!isPlayerHome && !isPlayerAway) return;
+
+  const m = state.manager;
+  if (fixture.homeScore! > fixture.awayScore!) {
+    if (isPlayerHome) m.winCount++; else m.lossCount++;
+  } else if (fixture.homeScore! < fixture.awayScore!) {
+    if (isPlayerAway) m.winCount++; else m.lossCount++;
+  } else {
+    m.drawCount++;
+  }
+
+  m.goalsScored += isPlayerHome ? fixture.homeScore! : fixture.awayScore!;
+
+  // Achievements
+  if (m.winCount === 1 && !m.achievements.includes("First Win")) {
+    m.achievements.push("First Win");
+  }
+}
+
 function updatePlayerStatsFromFixture(state: SaveState, fixture: MatchFixture, homeSquad: Player[], awaySquad: Player[]) {
+  // Grant Sharpness and Appearances to players who played
+  if (fixture.playerRatings) {
+    Object.keys(fixture.playerRatings).forEach(playerId => {
+      const p = state.players.find(pl => pl.id === playerId);
+      if (p) {
+        p.sharpness = Math.min(100, (p.sharpness || 50) + 5);
+        p.appearances = (p.appearances || 0) + 1;
+      }
+    });
+  }
+
   if (!fixture.events) return;
   
   fixture.events.forEach(event => {
@@ -613,6 +756,23 @@ function updateReputationLabel(manager: Manager) {
 
 function developPlayers(state: SaveState) {
   state.players.forEach(p => {
+    // Sharpness decay for not playing (matchday advance)
+    p.sharpness = Math.max(0, (p.sharpness || 50) - 2);
+
+    // Determine coach multipliers
+    let coachMultiplier = 1;
+    if (state.coaches && p.clubId === state.selectedClubId) {
+      const relevantCoaches = state.coaches.filter(c => 
+        (c.type === "Fitness" && (p.trainingFocus === "Fitness" || p.trainingFocus === "Balanced")) ||
+        (c.type === "Attacking" && p.trainingFocus === "Attacking") ||
+        (c.type === "Defensive" && p.trainingFocus === "Defensive") ||
+        (c.type === "Tactical" && p.trainingFocus === "Tactical")
+      );
+      relevantCoaches.forEach(c => {
+        coachMultiplier += c.level * 0.25;
+      });
+    }
+
     // Determine training focus speed
     // Older players (28+) start to decline slightly in physical attributes
     // Young players (<21) develop rapidly if potential is high
@@ -621,7 +781,7 @@ function developPlayers(state: SaveState) {
 
     const potentialGap = p.potential - p.overall;
     if (potentialGap > 0) {
-      const baseGrowth = isYoung ? 0.25 : 0.08;
+      const baseGrowth = (isYoung ? 0.25 : 0.08) * coachMultiplier;
       const growthRoll = Math.random();
       
       if (growthRoll < baseGrowth) {

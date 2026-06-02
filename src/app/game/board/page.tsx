@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useGame } from "../../../context/GameContext";
 import { 
-  Building, DollarSign, Target, Settings, TrendingUp, AlertTriangle, Users, HardHat, Check, X
+  Building, DollarSign, Target, Settings, TrendingUp, AlertTriangle, Users, HardHat, Check, X, CheckCircle
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -12,6 +12,14 @@ export default function BoardAndFinancesPage() {
   
   const [ticketPrice, setTicketPrice] = useState(activeSave?.ticketPrice || 40);
   const [wageAllocation, setWageAllocation] = useState(activeSave?.wageBudget || 0);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (toastMessage) {
+      const timer = setTimeout(() => setToastMessage(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toastMessage]);
 
   if (!activeSave) return null;
 
@@ -34,25 +42,37 @@ export default function BoardAndFinancesPage() {
     newState.wageBudget = wageAllocation;
     newState.transferBudget = tempTransferBudget;
     updateActiveSave(newState);
+    setToastMessage("Finances updated successfully.");
   };
 
   const expandStadium = () => {
     const cost = 15000000;
+    if (activeSave.stadiumExpansion) {
+      setToastMessage("A stadium expansion is already in progress.");
+      return;
+    }
     if (tempTransferBudget >= cost) {
       const newState = { ...activeSave };
-      const club = newState.clubs.find(c => c.id === playerClub.id)!;
-      club.capacity += 5000;
+      newState.stadiumExpansion = {
+        targetMatchday: activeSave.currentMatchday + 5,
+        capacityIncrease: 5000
+      };
       newState.transferBudget -= cost;
       updateActiveSave(newState);
       setWageAllocation(newState.wageBudget);
+      setToastMessage("Stadium expansion project initiated.");
     } else {
-      alert("Not enough funds in Transfer Budget to expand stadium (£15M required).");
+      setToastMessage("Not enough funds in Transfer Budget to expand stadium (£15M required).");
     }
   };
 
   const confColor = activeSave.boardConfidence >= 70 ? "bg-[#22c55e]" : activeSave.boardConfidence >= 35 ? "bg-[#eab308]" : "bg-[#ef4444]";
   const confText = activeSave.boardConfidence >= 70 ? "text-[#22c55e]" : activeSave.boardConfidence >= 35 ? "text-[#eab308]" : "text-[#ef4444]";
-  const projectedMatchdayIncome = playerClub.capacity * ticketPrice * 0.85; // 85% attendance
+  
+  const priceModifier = Math.max(0, 1 - ((ticketPrice - 40) / 100));
+  const repModifier = activeSave.manager.reputation / 100;
+  const attendancePct = Math.min(1, 0.4 + (repModifier * 0.4) + (priceModifier * 0.2));
+  const projectedMatchdayIncome = playerClub.capacity * attendancePct * ticketPrice;
 
   return (
     <div className="flex-1 p-8 overflow-y-auto max-h-screen">
@@ -62,6 +82,13 @@ export default function BoardAndFinancesPage() {
           <p className="text-slate-400">Manage the club's financial health, stadium infrastructure, and board expectations.</p>
         </div>
       </header>
+
+      {toastMessage && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] bg-green-600/90 text-white px-6 py-3 rounded-full font-bold shadow-2xl backdrop-blur-sm border border-green-500 flex items-center gap-2">
+          <CheckCircle className="w-4 h-4" />
+          {toastMessage}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
@@ -225,19 +252,28 @@ export default function BoardAndFinancesPage() {
                 <p className="text-3xl font-black text-white">{playerClub.capacity.toLocaleString()}</p>
               </div>
 
-              <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl mb-6">
-                <h4 className="font-bold text-blue-400 text-sm mb-1">Expansion Project</h4>
-                <p className="text-xs text-slate-300">Add 5,000 new seats to generate higher matchday revenue.</p>
-                <p className="text-sm font-bold text-white mt-2">Cost: £15.0M</p>
-              </div>
-
-              <button 
-                onClick={expandStadium}
-                disabled={tempTransferBudget < 15000000}
-                className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
-              >
-                <HardHat className="w-4 h-4" /> Fund Expansion
-              </button>
+              {activeSave.stadiumExpansion ? (
+                <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl mb-6">
+                  <h4 className="font-bold text-amber-400 text-sm mb-1 flex items-center gap-2"><HardHat className="w-4 h-4" /> Construction in Progress</h4>
+                  <p className="text-xs text-slate-300 mt-2">Expected Completion: Matchday {activeSave.stadiumExpansion.targetMatchday}</p>
+                </div>
+              ) : (
+                <>
+                  <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl mb-6">
+                    <h4 className="font-bold text-blue-400 text-sm mb-1">Expansion Project</h4>
+                    <p className="text-xs text-slate-300">Add 5,000 new seats to generate higher matchday revenue.</p>
+                    <p className="text-sm font-bold text-white mt-2">Cost: £15.0M</p>
+                  </div>
+    
+                  <button 
+                    onClick={expandStadium}
+                    disabled={tempTransferBudget < 15000000}
+                    className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  >
+                    <HardHat className="w-4 h-4" /> Fund Expansion
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

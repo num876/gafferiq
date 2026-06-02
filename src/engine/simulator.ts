@@ -13,6 +13,7 @@ export interface TacticalInstructions {
     corners: string;
     freeKicks: string;
   };
+  playerRoles?: Record<string, string>; // Maps player ID to their assigned tactical role
 }
 
 export const DEFAULT_TACTICS: TacticalInstructions = {
@@ -21,7 +22,8 @@ export const DEFAULT_TACTICS: TacticalInstructions = {
   defensiveLine: "Standard",
   width: "Standard",
   tempo: "Normal",
-  takers: { penalties: "", corners: "", freeKicks: "" }
+  takers: { penalties: "", corners: "", freeKicks: "" },
+  playerRoles: {}
 };
 
 // Selects the starting 11 for a club automatically based on player ratings
@@ -95,7 +97,7 @@ export function simulateMatchHeuristic(
 
   // 2. Compute Core Ratings (Weighted based on positions)
   const computeAverageOverall = (players: Player[]) => 
-    players.reduce((sum, p) => sum + p.overall, 0) / players.length;
+    players.reduce((sum, p) => sum + p.overall + ((p.sharpness || 50) - 50) * 0.1, 0) / players.length;
 
   const homeAvgOverall = computeAverageOverall(homeStarters);
   const awayAvgOverall = computeAverageOverall(awayStarters);

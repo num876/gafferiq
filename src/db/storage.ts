@@ -98,12 +98,23 @@ export interface InboxMessage {
   selectedOption?: string;
 }
 
+export interface Scout {
+  id: string;
+  name: string;
+  rating: number; // 1-5 stars
+  specialty: string;
+  wage: number;
+}
+
 export interface ScoutTask {
   id: string;
   playerName: string;
   playerClub: string;
   playerClubId: string;
-  playerRating: number;
+  playerRatingMin: number;
+  playerRatingMax: number;
+  playerAge: number;
+  estimatedValue: number;
   position: string;
   scoutId: string;
   daysRemaining: number;
@@ -141,6 +152,11 @@ export interface SaveState {
   boardConfidence: number;
   boardObjectives: BoardObjective[];
   ticketPrice: number;
+  stadiumExpansion?: {
+    targetMatchday: number;
+    capacityIncrease: number;
+  };
+  isGameOver?: boolean;
   clubs: Club[];
   players: Player[];
   fixtures: MatchFixture[];
@@ -164,6 +180,7 @@ export interface SaveState {
     level: number; // 1-5, determines multiplier
     wage: number;
   }>;
+  scouts: Scout[];
   cupState?: {
     activeClubs: string[]; // Club IDs still in the cup
     eliminatedClubs: string[]; // Club IDs knocked out
@@ -369,6 +386,9 @@ The Board`,
     scoutShortlist: [],
     transfersHistory: [],
     coaches: [],
+    scouts: [
+      { id: "scout_1", name: "Gary Cahill", rating: 2, specialty: "General", wage: 800 }
+    ],
     cupState: {
       activeClubs: clubs.filter(c => c.league === selectedClub.league).map(c => c.id),
       eliminatedClubs: [],
