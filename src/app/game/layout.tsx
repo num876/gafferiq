@@ -56,6 +56,14 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
 
   const isMatchPlayed = currentFixture ? currentFixture.played : true;
 
+  const handleAdvance = () => {
+    if (!isMatchPlayed) {
+      router.push("/game/match");
+    } else {
+      advanceToNextMatchday();
+    }
+  };
+
   const menuItems = [
     { name: "Dashboard", href: "/game/dashboard", icon: LayoutDashboard },
     { name: "Inbox", href: "/game/inbox", icon: Mail },
