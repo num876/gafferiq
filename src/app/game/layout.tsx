@@ -15,8 +15,6 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
   const { activeSave, advanceToNextMatchday, exitToMainMenu } = useGame();
 
-  const { activeSave, advanceToNextMatchday, exitToMainMenu } = useGame();
-
   useEffect(() => {
     if (!activeSave) {
       router.push("/");
@@ -67,6 +65,15 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
     { name: "League Table", href: "/game/table", icon: Table },
     { name: "Transfers", href: "/game/transfers", icon: ArrowLeftRight },
     { name: "Scouting", href: "/game/scouting", icon: Search },
+    { name: "Development", href: "/game/development", icon: GraduationCap },
+    { name: "Board", href: "/game/board", icon: Building },
+  ];
+
+  return (
+    <div className="flex h-screen bg-[#080c14] overflow-hidden font-sans">
+      
+      {/* Sidebar Navigation */}
+      <aside className="w-64 bg-[#0a0f1e] border-r border-[#1e2d40] flex flex-col relative z-20 shrink-0">
         <div className="flex flex-col gap-6 p-6">
           {/* Logo / Club Branding */}
           <div className="flex items-center gap-3">
