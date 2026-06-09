@@ -5,7 +5,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useGame } from "../../../context/GameContext";
 import { Player, Club, calculateValue } from "../../../config/seededData";
-import { ScoutTask, Scout } from "../../../db/storage";
+import { ScoutTask, Scout, SCOUTING_REGIONS } from "../../../db/storage";
 import { 
   Search, Eye, Shield, Users, Calendar, Sparkles, UserPlus, 
   Trash2, Compass, AlertCircle, BarChart2, Star, CheckCircle, PlusCircle
@@ -125,6 +125,35 @@ export default function Scouting() {
     setScoutingResults([]);
     setToastMessage(`Assigned scout to analyze ${player.name}.`);
   };
+
+  const assignRegionScout = (region: string, scoutId: string) => {
+    const activeTasks = activeSave.scoutingTasks.filter(t => !t.completed);
+    if (activeTasks.some(t => t.scoutId === scoutId)) {
+      alert("This scout is already busy on another assignment.");
+      return;
+    }
+    const scout = (activeSave.scouts || []).find(s => s.id === scoutId);
+    if (!scout) return;
+
+    const newTask: ScoutTask = {
+      id: `task_${Date.now()}`,
+      type: "Region",
+      region,
+      scoutId,
+      daysRemaining: 30, // 30 matchdays duration
+      completed: false
+    };
+
+    const newState = {
+      ...activeSave,
+      scoutingTasks: [...activeSave.scoutingTasks, newTask]
+    };
+    newState.gameLog.unshift(`Sent ${scout.name} to scout ${region}. Reports arriving periodically.`);
+    
+    updateActiveSave(newState);
+    setToastMessage(`Sent ${scout.name} to scout ${region}.`);
+  };
+
 
   // Remove scout task
   const cancelScoutTask = (taskId: string) => {
@@ -368,6 +397,35 @@ export default function Scouting() {
                   <p className="text-[10px] text-rose-400 font-semibold">{errorMessage}</p>
                 )}
 
+                {/* Global Region Scouting */}
+                <div className="pt-4 mt-2 border-t border-slate-800 flex flex-col gap-3">
+                  <div>
+                    <h3 className="font-extrabold text-slate-100 text-xs">Global Region Scouting</h3>
+                    <p className="text-[10px] text-slate-500 mt-1">Send scouts to patrol global regions indefinitely.</p>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {SCOUTING_REGIONS.map(region => (
+                      <div key={region} className="flex justify-between items-center p-2 bg-slate-900 border border-slate-800 rounded">
+                        <span className="font-bold text-xs text-slate-300">{region}</span>
+                        <div className="flex gap-1">
+                          {scoutsList.filter(s => s.status !== "Scouting").slice(0,3).map(s => (
+                             <button
+                               key={s.id}
+                               onClick={() => assignRegionScout(region, s.id)}
+                               className="px-2 py-1 rounded text-[9px] font-bold border transition bg-indigo-600/10 border-indigo-500/20 text-indigo-400 hover:bg-indigo-600 hover:text-white"
+                             >
+                               Send {s.name.split(" ")[0]}
+                             </button>
+                           ))}
+                           {scoutsList.filter(s => s.status !== "Scouting").length === 0 && (
+                             <span className="text-[9px] text-slate-500 italic">No idle scouts</span>
+                           )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Scouting search results */}
                 {scoutingResults.length > 0 && (
                   <div className="flex flex-col border border-slate-850 rounded-xl divide-y divide-slate-850 overflow-hidden bg-slate-950/20 text-xs">
@@ -430,8 +488,12 @@ export default function Scouting() {
                       >
                         <div className="flex justify-between items-start">
                           <div>
-                            <h4 className="font-extrabold text-slate-200">{task.playerName}</h4>
-                            <span className="text-[10px] text-slate-450 mt-1 block font-semibold">{task.position} • {task.playerClub}</span>
+                            <h4 className="font-extrabold text-slate-200">
+                              {task.type === "Region" ? `Region: ${task.region}` : task.playerName}
+                            </h4>
+                            <span className="text-[10px] text-slate-450 mt-1 block font-semibold">
+                              {task.type === "Region" ? "Periodic Reports" : `${task.position} • ${task.playerClub}`}
+                            </span>
                           </div>
                           
                           <button
@@ -576,11 +638,11 @@ export default function Scouting() {
                           <span className="text-[10px] text-slate-450 mt-1 block font-bold">{report.position} • {report.playerClub}</span>
                         </div>
                         <div className="flex gap-2">
-                          <button onClick={() => addShortlist(report.playerClubId)} className="w-7 h-7 flex items-center justify-center rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 transition border border-blue-500/20" title="Add to Shortlist">
+                          <button onClick={() => addShortlist(report.playerClubId!)} className="w-7 h-7 flex items-center justify-center rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 transition border border-blue-500/20" title="Add to Shortlist">
                             <Star className="w-3.5 h-3.5" />
                           </button>
                           <button onClick={() => {
-                            addShortlist(report.playerClubId);
+                            addShortlist(report.playerClubId!);
                             router.push("/game/transfers");
                           }} className="w-7 h-7 flex items-center justify-center rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 transition border border-amber-500/20" title="Make Transfer Offer">
                             <BarChart2 className="w-3.5 h-3.5" />
@@ -598,15 +660,15 @@ export default function Scouting() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-slate-500">Est Value:</span>
-                          <span className="font-extrabold text-slate-350">€{(report.estimatedValue/1000000).toFixed(1)}M</span>
+                          <span className="font-extrabold text-slate-350">€{(report.estimatedValue!/1000000).toFixed(1)}M</span>
                         </div>
                       </div>
 
                       <div className="bg-slate-950/60 p-2.5 rounded-lg border border-slate-850 flex items-center gap-2 text-[10px] leading-relaxed text-slate-400 mt-1">
                         <CheckCircle className="w-3.5 h-3.5 text-green-500 shrink-0" />
                         <span>
-                          {report.playerAge > 28 ? "Experienced player, good for short-term impact." : 
-                           report.playerAge < 22 ? "High developmental headroom, strong prospect." : 
+                          {report.playerAge! > 28 ? "Experienced player, good for short-term impact." : 
+                           report.playerAge! < 22 ? "High developmental headroom, strong prospect." : 
                            "In their prime, ready for first-team action."}
                         </span>
                       </div>

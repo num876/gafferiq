@@ -351,7 +351,7 @@ export default function Squad() {
                         onClick={() => {
                           const newState = { ...activeSave };
                           const p = newState.players.find(p => p.id === selectedPlayer.id)!;
-                          const wCount = (p.stats?.form || []).filter(f => f === "W").length;
+                          const wCount = (p.stats?.form || []).filter((f: string) => f === "W").length;
                           if (wCount >= 2) {
                             p.morale = Math.min(100, p.morale + 10);
                             newState.gameLog.unshift(`Praised ${p.name}'s good form. Morale increased.`);
@@ -372,7 +372,7 @@ export default function Squad() {
                         onClick={() => {
                           const newState = { ...activeSave };
                           const p = newState.players.find(p => p.id === selectedPlayer.id)!;
-                          const wCount = (p.stats?.form || []).filter(f => f === "W").length;
+                          const wCount = (p.stats?.form || []).filter((f: string) => f === "W").length;
                           if (wCount <= 2) {
                             p.morale = Math.min(100, p.morale + 5);
                             newState.gameLog.unshift(`Criticized ${p.name}'s poor form. He appreciated the tough love. Morale slightly increased.`);

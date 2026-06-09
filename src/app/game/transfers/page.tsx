@@ -47,6 +47,25 @@ const generateAttributes = (player: Player) => {
 export default function Transfers() {
   const { activeSave, updateActiveSave } = useGame();
 
+  // Modal / Interaction states
+  const [scoutedPlayer, setScoutedPlayer] = useState<Player | null>(null);
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const [bidModalOpen, setBidModalOpen] = useState(false);
+  const [bidAmount, setBidAmount] = useState<number>(0);
+  const [bidStep, setBidStep] = useState<
+    "bid" | "negotiating" | "contract" | "declined" | "accepted"
+  >("bid");
+  const [offerType, setOfferType] = useState<"permanent" | "loan">("permanent");
+  const [negotiationMessage, setNegotiationMessage] = useState("");
+  const [suggestedFee, setSuggestedFee] = useState<number>(0);
+
+  // Contract offer state
+  const [contractYears, setContractYears] = useState<number>(3);
+  const [offeredWage, setOfferedWage] = useState<number>(0);
+  const [contractMessage, setContractMessage] = useState("");
+
+  const [reviewingPlayer, setReviewingPlayer] = useState<Player | null>(null);
+
   // State for tabs
   const [activeTab, setActiveTab] = useState<"browse" | "squad" | "history">(
     "browse",
@@ -71,24 +90,7 @@ export default function Transfers() {
       (activeSave.currentMatchday >= 19 && activeSave.currentMatchday <= 22)
     : false;
 
-  // Modal / Interaction states
-  const [scoutedPlayer, setScoutedPlayer] = useState<Player | null>(null);
-  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
-  const [bidModalOpen, setBidModalOpen] = useState(false);
-  const [bidAmount, setBidAmount] = useState<number>(0);
-  const [bidStep, setBidStep] = useState<
-    "bid" | "negotiating" | "contract" | "declined" | "accepted"
-  >("bid");
-  const [offerType, setOfferType] = useState<"permanent" | "loan">("permanent");
-  const [negotiationMessage, setNegotiationMessage] = useState("");
-  const [suggestedFee, setSuggestedFee] = useState<number>(0);
-
-  // Contract offer state
-  const [contractYears, setContractYears] = useState<number>(3);
-  const [offeredWage, setOfferedWage] = useState<number>(0);
-  const [contractMessage, setContractMessage] = useState("");
-
-  const [reviewingPlayer, setReviewingPlayer] = useState<Player | null>(null);
+  
 
   if (!activeSave) return null;
 
@@ -157,29 +159,7 @@ export default function Transfers() {
     setContractYears(3);
     setOfferedWage(Math.floor(player.wage * 1.1));
 
-    // Modal / Interaction states
-    const [scoutedPlayer, setScoutedPlayer] = useState<Player | null>(null);
-    const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
-    const [bidModalOpen, setBidModalOpen] = useState(false);
-    const [bidAmount, setBidAmount] = useState<number>(0);
-    const [bidStep, setBidStep] = useState<
-      "bid" | "negotiating" | "contract" | "declined" | "accepted"
-    >("bid");
-    const [offerType, setOfferType] = useState<"permanent" | "loan">(
-      "permanent",
-    );
-    const [negotiationMessage, setNegotiationMessage] = useState("");
-    const [suggestedFee, setSuggestedFee] = useState<number>(0);
-
-    // Contract offer state
-    const [contractYears, setContractYears] = useState<number>(3);
-    const [offeredWage, setOfferedWage] = useState<number>(0);
-    const [contractMessage, setContractMessage] = useState("");
-
-    const [reviewingPlayer, setReviewingPlayer] = useState<Player | null>(null);
-
     if (!activeSave) return null;
-
     const playerClub = activeSave.clubs.find(
       (c) => c.id === activeSave.selectedClubId,
     )!;
@@ -379,6 +359,7 @@ export default function Transfers() {
 
             if (!newState.transfersHistory) newState.transfersHistory = [];
             newState.transfersHistory.unshift({
+              id: `transfer_${Date.now()}`,
               date: `Season ${newState.currentSeason}, Matchday ${newState.currentMatchday}`,
               playerName: selectedPlayer.name,
               fromClubName: currentClub?.name || "Free Agent",
@@ -386,6 +367,8 @@ export default function Transfers() {
                 (c) => c.id === activeSave.selectedClubId,
               )!.name,
               fee: bidAmount,
+              type: "permanent",
+              matchday: newState.currentMatchday
             });
           }
           updateActiveSave(newState);
@@ -614,9 +597,12 @@ export default function Transfers() {
               /* GRID VIEW (Ultimate Team style cards) */
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
                 {filteredPlayers.map((player) => {
-                  const club = activeSave.clubs.find(
-                    (c) => c.id === player.clubId,
-                  );
+                  const club = activeSave.clubs.find((c) => c.id === player.clubId);
+                  const kl = activeSave.playerKnowledge?.[player.id] ?? 0;
+                  const displayOvr = kl === 2 ? player.overall : kl === 1 ? `${Math.max(50, player.overall - 5)}-${Math.min(99, player.overall + 5)}` : "??";
+                  const displayVal = kl === 2 ? `€${(player.value / 1000000).toFixed(1)}M` : kl === 1 ? `€${(player.value * 0.8 / 1000000).toFixed(1)}M - €${(player.value * 1.2 / 1000000).toFixed(1)}M` : "??";
+                  const displayAtt = (val: number) => kl === 2 ? val : kl === 1 ? `${Math.max(1, val - 8)}-${Math.min(99, val + 8)}` : "?";
+                  
                   const isShortlisted = shortlistLookup.has(player.id);
                   const ovrColor =
                     player.overall >= 80
@@ -723,7 +709,7 @@ export default function Transfers() {
                                 />
                               </div>
                               <span className="text-[9px] font-bold text-white">
-                                {att.val}
+                                {kl === 2 ? att.val : kl === 1 ? "~" + att.val : "?"}
                               </span>
                             </div>
                           ))}
@@ -735,14 +721,14 @@ export default function Transfers() {
                             <div
                               className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-white font-black shadow-lg ${ovrColor}`}
                             >
-                              {player.overall}
+                              {displayOvr}
                             </div>
                             <div className="flex flex-col">
                               <span className="text-[9px] font-bold text-slate-500 uppercase">
                                 Est. Value
                               </span>
                               <span className="text-xs font-black text-white">
-                                €{(player.value / 1000000).toFixed(1)}M
+                                {displayVal}
                               </span>
                             </div>
                           </div>
@@ -780,9 +766,11 @@ export default function Transfers() {
                     </thead>
                     <tbody className="divide-y divide-[#1e2d40]">
                       {filteredPlayers.map((player) => {
-                        const club = activeSave.clubs.find(
-                          (c) => c.id === player.clubId,
-                        );
+                        const club = activeSave.clubs.find((c) => c.id === player.clubId);
+                        const kl = activeSave.playerKnowledge?.[player.id] ?? 0;
+                        const displayOvr = kl === 2 ? player.overall : kl === 1 ? `${Math.max(50, player.overall - 5)}-${Math.min(99, player.overall + 5)}` : "??";
+                        const displayVal = kl === 2 ? `€${(player.value / 1000000).toFixed(1)}M` : kl === 1 ? `€${(player.value * 0.8 / 1000000).toFixed(1)}M - €${(player.value * 1.2 / 1000000).toFixed(1)}M` : "??";
+                        
                         return (
                           <tr
                             key={player.id}
@@ -807,14 +795,14 @@ export default function Transfers() {
                             <td className="py-3 px-5 text-slate-300">
                               {player.age}
                             </td>
-                            <td className="py-3 px-5 font-black text-white">
-                              €{(player.value / 1000000).toFixed(1)}M
+                            <td className="py-3 px-5 font-black text-white text-[10px]">
+                              {displayVal}
                             </td>
                             <td className="py-3 px-5 text-slate-400">
                               €{(player.wage / 1000).toFixed(0)}k
                             </td>
                             <td className="py-3 px-5 text-right font-black text-white text-sm">
-                              {player.overall}
+                              {displayOvr}
                             </td>
                             <td className="py-3 px-5 text-center">
                               <button
@@ -854,7 +842,7 @@ export default function Transfers() {
               <div className="p-6 border-b border-[#1e2d40] bg-[#0f1623] flex items-start justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded-full border-4 border-[#22c55e] bg-[#080c14] flex items-center justify-center text-white font-black text-xl shadow-lg shadow-[#22c55e]/20">
-                    {scoutedPlayer.overall}
+                    {activeSave.playerKnowledge?.[scoutedPlayer.id] === 2 ? scoutedPlayer.overall : activeSave.playerKnowledge?.[scoutedPlayer.id] === 1 ? "~"+scoutedPlayer.overall : "??"}
                   </div>
                   <div>
                     <h2 className="text-xl font-black text-white leading-tight">
@@ -897,7 +885,7 @@ export default function Transfers() {
                               />
                             </div>
                             <span className="text-xs font-black text-white w-4">
-                              {val}
+                              {activeSave.playerKnowledge?.[scoutedPlayer.id] === 2 ? val : activeSave.playerKnowledge?.[scoutedPlayer.id] === 1 ? `~${val}` : "?"}
                             </span>
                           </div>
                         </div>
@@ -920,7 +908,7 @@ export default function Transfers() {
                     </div>
                     {/* Simulate a partially blurred potential for realism */}
                     <span className="text-2xl font-black text-[#f59e0b] filter blur-[2px] group-hover:blur-none transition-all duration-300 select-none">
-                      {scoutedPlayer.potential}
+                      {activeSave.playerKnowledge?.[scoutedPlayer.id] === 2 ? scoutedPlayer.potential : activeSave.playerKnowledge?.[scoutedPlayer.id] === 1 ? `${Math.max(50, scoutedPlayer.potential - 5)}-${Math.min(99, scoutedPlayer.potential + 5)}` : "??"}
                     </span>
                   </div>
                 </div>

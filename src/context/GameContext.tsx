@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { SaveState, Manager, loadAllSaves, saveGame, deleteSave as dbDeleteSave, createNewSave as dbCreateNewSave, MatchFixture, Standing, generateCupFixturesForRound } from "../db/storage";
+import { SaveState, Manager, loadAllSaves, saveGame, deleteSave as dbDeleteSave, createNewSave as dbCreateNewSave, MatchFixture, Standing, generateCupFixturesForRound, getRegionForLeague, addManagerSkillPoints, checkPromotionEligibility } from "../db/storage";
 import { simulateMatchHeuristic, autoSelectLineup, TacticalInstructions } from "../engine/simulator";
 import { Player, Club, calculateValue } from "../config/seededData";
 import { generateWeeklyNews } from "../engine/newsGenerator";
@@ -142,8 +142,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           awayClub,
           homeSquad,
           awaySquad,
-          isPlayerMatch && fixture.homeClubId === playerClubId && state.tactics ? state.tactics : DEFAULT_TACTICS_MOCK(),
-          isPlayerMatch && fixture.awayClubId === playerClubId && state.tactics ? state.tactics : DEFAULT_TACTICS_MOCK()
+          isPlayerMatch && fixture.homeClubId === playerClubId && state.tactics ? state.tactics.instructions : DEFAULT_TACTICS_MOCK(),
+          isPlayerMatch && fixture.awayClubId === playerClubId && state.tactics ? state.tactics.instructions : DEFAULT_TACTICS_MOCK()
         );
 
         fixture.homeScore = result.homeScore;
@@ -279,6 +279,105 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
+
+    // Continental Cup Progression Logic
+    if (state.continentalCups) {
+      const processContinentalKnockouts = (compName: string, statePrefix: string) => {
+        // Did we just finish a knockout round matchday?
+        const playedKnockouts = state.fixtures.filter(
+          f => f.league === compName && f.matchday === state.currentMatchday && f.played && (f.round && f.round.startsWith("Knockout - "))
+        );
+
+        if (playedKnockouts.length > 0) {
+          const advancingTeams: string[] = [];
+          playedKnockouts.forEach(f => {
+            const winner = (f.homeScore! > f.awayScore!) ? f.homeClubId : f.awayClubId;
+            advancingTeams.push(winner);
+          });
+          
+          if (advancingTeams.length > 1) {
+            let nextRound = "";
+            let nextMd = state.currentMatchday + 4;
+            if (advancingTeams.length === 8) nextRound = "Quarter Final";
+            if (advancingTeams.length === 4) nextRound = "Semi Final";
+            if (advancingTeams.length === 2) nextRound = "Final";
+            
+            // Generate next round
+            for (let i = 0; i < advancingTeams.length; i += 2) {
+              state.fixtures.push({
+                id: `cup_${compName.replace(/\s/g, '').toLowerCase()}_${nextRound.replace(/\s/g, '')}_${Date.now()}_${i}`,
+                league: compName,
+                competition: "Continental" as any,
+                round: `Knockout - ${nextRound}`,
+                matchday: nextMd,
+                homeClubId: advancingTeams[i],
+                awayClubId: advancingTeams[i+1],
+                homeScore: null,
+                awayScore: null,
+                played: false
+              });
+            }
+          } else if (advancingTeams.length === 1) {
+            // Winner crowned
+            const winnerName = state.clubs.find(cl => cl.id === advancingTeams[0])?.name;
+            state.inbox.unshift({
+              id: `cup_winner_${compName}_${state.currentMatchday}`,
+              sender: "UEFA",
+              subject: `${winnerName} Wins the ${compName}!`,
+              body: `${winnerName} have lifted the ${compName} trophy!`,
+              date: `Matchday ${state.currentMatchday}`,
+              read: false,
+              type: "media"
+            });
+          }
+        }
+      };
+
+      processContinentalKnockouts("Champions League", "championsLeague");
+      processContinentalKnockouts("Europa League", "europaLeague");
+
+      // Did we just finish Matchday 20 (Group Stages done)?
+      if (state.currentMatchday === 20) {
+        const generateRo16 = (cupState: any, compName: string) => {
+          const advancingTeams: string[] = [];
+          for (const gName in cupState.groups) {
+            // Already sorted in rebuildStandings, take top 2
+            advancingTeams.push(cupState.groups[gName][0].clubId);
+            advancingTeams.push(cupState.groups[gName][1].clubId);
+          }
+          
+          // advancingTeams has 16 teams. Generate Ro16 fixtures for Matchday 24
+          for (let i = 0; i < 16; i += 2) {
+            state.fixtures.push({
+              id: `cup_${compName.replace(/\s/g, '').toLowerCase()}_ro16_${Date.now()}_${i}`,
+              league: compName,
+              competition: "Continental" as any,
+              round: `Knockout - Round of 16`,
+              matchday: 24,
+              homeClubId: advancingTeams[i],
+              awayClubId: advancingTeams[i+1],
+              homeScore: null,
+              awayScore: null,
+              played: false
+            });
+          }
+        };
+
+        generateRo16(state.continentalCups.championsLeague, "Champions League");
+        generateRo16(state.continentalCups.europaLeague, "Europa League");
+        
+        state.inbox.unshift({
+          id: `cup_ro16_${state.currentMatchday}`,
+          sender: "UEFA",
+          subject: "Continental Cups Group Stage Concludes",
+          body: "The group stages have finished. The Round of 16 draw is complete!",
+          date: `Matchday ${state.currentMatchday}`,
+          read: false,
+          type: "media"
+        });
+      }
+    }
+
     const nextMDay = state.currentMatchday + 1;
     const isEplOrLaLigaOrSerieA = ["EPL", "La Liga", "Serie A"].includes(
       state.clubs.find(c => c.id === state.selectedClubId)!.league
@@ -316,6 +415,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
       state.manager.reputation = Math.max(1, Math.min(100, state.manager.reputation + repGained));
       updateReputationLabel(state.manager);
+        // Check promotion eligibility
+        checkPromotionEligibility(state);
 
       // Resolve Board Objectives
       state.boardObjectives.forEach(obj => {
@@ -393,7 +494,7 @@ We have reset the standings and scheduled the fixtures for Season ${state.curren
       state.currentMatchday = 1;
       
       // Reset standings
-      const leagues = ["EPL", "La Liga", "Serie A", "Bundesliga", "Ligue 1"];
+      const leagues = ["EPL", "La Liga", "Serie A", "Bundesliga", "Ligue 1", "Eredivisie", "Liga Portugal", "Serbian SuperLiga", "Swiss Super League", "Ukrainian Premier League", "Danish Superliga", "Allsvenskan", "Russian Premier League", "Ekstraklasa", "Prva HNL"];
       for (const l of leagues) {
         state.standings[l] = state.standings[l].map(s => ({
           ...s,
@@ -468,6 +569,8 @@ We have reset the standings and scheduled the fixtures for Season ${state.curren
         const matchdayIncome = Math.floor(playerClub.capacity * attendancePct * state.ticketPrice);
         state.transferBudget += matchdayIncome;
         state.gameLog.unshift(`Home Matchday Revenue: +£${matchdayIncome.toLocaleString()}`);
+        // Award skill points each matchday
+        addManagerSkillPoints(state, { Tactics: 1, Finances: 1, Scouting: 1, Negotiation: 1, Training: 1, Media: 1 });
       }
 
       // Check stadium expansion completion
@@ -500,9 +603,7 @@ We have reset the standings and scheduled the fixtures for Season ${state.curren
             id: `scout_task_${task.id}`,
             sender: "Chief Scout",
             subject: `Scouting Completed: ${task.playerName}`,
-            body: `We have completed our detailed report on ${task.playerName} (${task.position}) from ${task.playerClub}. 
-            
-Our analysis reveals his estimated potential is rated between ${task.playerRatingMin}-${task.playerRatingMax}/99. His estimated market value is €${(task.estimatedValue / 1000000).toFixed(1)}M. We have added him to your scouted reports database.`,
+            body: `Your scout has finished observing ${task.playerName}. The player looks like a ${task.playerRatingMin}-${task.playerRatingMax} potential prospect, valued around €${(task.estimatedValue! / 1000000).toFixed(1)}M.`,
             date: `Matchday ${state.currentMatchday}`,
             read: false,
             type: "media"
@@ -518,18 +619,6 @@ Our analysis reveals his estimated potential is rated between ${task.playerRatin
       // Random event: Board review or Player moral complaints
       triggerRandomSaveEvent(state);
 
-      // Generate GafferGram News Feed
-      const freshNews = generateWeeklyNews(state);
-      state.newsFeed = [...freshNews, ...state.newsFeed].slice(0, 100); // Keep last 100 articles
-
-      // Handle Transfer Window state
-      // Summer: Matchdays 1-5, Jan: Matchdays 19-22
-      state.transferWindowOpen = (state.currentMatchday <= 5) || (state.currentMatchday >= 19 && state.currentMatchday <= 22);
-
-      // AI Transfer Market Bids
-      if (state.transferWindowOpen) {
-        const playerClub = state.clubs.find(c => c.id === state.selectedClubId)!;
-        const listedPlayers = state.players.filter(p => p.clubId === playerClub.id && p.isTransferListed);
         
         listedPlayers.forEach(player => {
           if (!player.transferOffers) player.transferOffers = [];
@@ -591,13 +680,19 @@ export function useGame() {
 }
 
 // Helpers
-function DEFAULT_TACTICS_MOCK(): TacticalInstructions {
+function DEFAULT_TACTICS_MOCK(): any {
   return {
     mentality: "Balanced",
     pressIntensity: "Mid",
     defensiveLine: "Standard",
     width: "Standard",
     tempo: "Normal",
+    passingDirectness: "Mixed",
+    crossingFrequency: "Sometimes",
+    pressingTrigger: "Mid",
+    offsideTrap: false,
+    counterAttackSpeed: "Balanced",
+    counterPress: false,
     takers: { penalties: "", corners: "", freeKicks: "" }
   };
 }
@@ -665,7 +760,7 @@ function updatePlayerStatsFromFixture(state: SaveState, fixture: MatchFixture, h
 }
 
 function rebuildStandings(state: SaveState) {
-  const leagues = ["EPL", "La Liga", "Serie A", "Bundesliga", "Ligue 1"];
+  const leagues = ["EPL", "La Liga", "Serie A", "Bundesliga", "Ligue 1", "Eredivisie", "Liga Portugal", "Serbian SuperLiga", "Swiss Super League", "Ukrainian Premier League", "Danish Superliga", "Allsvenskan", "Russian Premier League", "Ekstraklasa", "Prva HNL"];
   
   for (const league of leagues) {
     const leagueClubs = state.clubs.filter(c => c.league === league);

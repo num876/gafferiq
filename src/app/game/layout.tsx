@@ -8,7 +8,7 @@ import { useGame } from "../../context/GameContext";
 import { 
   Trophy, LayoutDashboard, Users, Shield, Calendar, Table, 
   ArrowLeftRight, Search, TrendingUp, User, LogOut, ChevronRight, Play, Mail,
- Building, GraduationCap} from 'lucide-react';
+ Building, GraduationCap, Landmark} from 'lucide-react';
 
 export default function GameLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -71,10 +71,13 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
     { name: "Tactics", href: "/game/tactics", icon: Shield },
     { name: "Fixtures", href: "/game/fixtures", icon: Calendar },
     { name: "League Table", href: "/game/table", icon: Table },
+    { name: "Competitions", href: "/game/competitions", icon: Trophy },
     { name: "Transfers", href: "/game/transfers", icon: ArrowLeftRight },
+      { name: "Finances", href: "/game/finances", icon: Landmark },
     { name: "Scouting", href: "/game/scouting", icon: Search },
     { name: "Development", href: "/game/development", icon: GraduationCap },
     { name: "Board", href: "/game/board", icon: Building },
+    { name: "Career", href: "/game/manager-career", icon: User },
   ];
 
   return (
