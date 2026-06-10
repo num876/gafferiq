@@ -112,15 +112,15 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
         <nav className="absolute bottom-0 left-0 right-0 h-20 bg-fm-navyDark/95 backdrop-blur-xl border-t border-white/10 flex items-center justify-evenly z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] pb-safe">
           
           {/* Left Side Items */}
-          <Link href={menuItems[0].href} className={`flex flex-col items-center gap-1.5 p-2 transition-all ${pathname === menuItems[0].href ? 'text-fm-neonCyan' : 'text-fm-slate hover:text-white'}`}>
-            <menuItems[0].icon className={`w-6 h-6 ${pathname === menuItems[0].href ? 'drop-shadow-[0_0_8px_rgba(0,229,255,0.8)]' : ''}`} />
-            <span className="text-[9px] font-black uppercase tracking-widest">{menuItems[0].name}</span>
-          </Link>
-          
-          <Link href={menuItems[1].href} className={`flex flex-col items-center gap-1.5 p-2 transition-all ${pathname === menuItems[1].href ? 'text-fm-neonCyan' : 'text-fm-slate hover:text-white'}`}>
-            <menuItems[1].icon className={`w-6 h-6 ${pathname === menuItems[1].href ? 'drop-shadow-[0_0_8px_rgba(0,229,255,0.8)]' : ''}`} />
-            <span className="text-[9px] font-black uppercase tracking-widest">{menuItems[1].name}</span>
-          </Link>
+          {menuItems.slice(0, 2).map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link key={item.name} href={item.href} className={`flex flex-col items-center gap-1.5 p-2 transition-all ${pathname === item.href ? 'text-fm-neonCyan' : 'text-fm-slate hover:text-white'}`}>
+                <Icon className={`w-6 h-6 ${pathname === item.href ? 'drop-shadow-[0_0_8px_rgba(0,229,255,0.8)]' : ''}`} />
+                <span className="text-[9px] font-black uppercase tracking-widest">{item.name}</span>
+              </Link>
+            );
+          })}
 
           {/* ── CENTER FAB (Play / Advance) ── */}
           <div className="relative -top-6 flex flex-col items-center">
@@ -140,20 +140,20 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
           </div>
 
           {/* Right Side Items */}
-          <Link href={menuItems[2].href} className={`flex flex-col items-center gap-1.5 p-2 transition-all ${pathname === menuItems[2].href ? 'text-fm-neonCyan' : 'text-fm-slate hover:text-white'}`}>
-            <div className="relative">
-              <menuItems[2].icon className={`w-6 h-6 ${pathname === menuItems[2].href ? 'drop-shadow-[0_0_8px_rgba(0,229,255,0.8)]' : ''}`} />
-              {activeSave.inbox.filter((m: any) => !m.isRead).length > 0 && (
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-rose-500 rounded-full border-2 border-[#0f172a]" />
-              )}
-            </div>
-            <span className="text-[9px] font-black uppercase tracking-widest">{menuItems[2].name}</span>
-          </Link>
-
-          <Link href={menuItems[3].href} className={`flex flex-col items-center gap-1.5 p-2 transition-all ${pathname === menuItems[3].href ? 'text-fm-neonCyan' : 'text-fm-slate hover:text-white'}`}>
-            <menuItems[3].icon className={`w-6 h-6 ${pathname === menuItems[3].href ? 'drop-shadow-[0_0_8px_rgba(0,229,255,0.8)]' : ''}`} />
-            <span className="text-[9px] font-black uppercase tracking-widest">{menuItems[3].name}</span>
-          </Link>
+          {menuItems.slice(2, 4).map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link key={item.name} href={item.href} className={`flex flex-col items-center gap-1.5 p-2 transition-all ${pathname === item.href ? 'text-fm-neonCyan' : 'text-fm-slate hover:text-white'}`}>
+                <div className="relative">
+                  <Icon className={`w-6 h-6 ${pathname === item.href ? 'drop-shadow-[0_0_8px_rgba(0,229,255,0.8)]' : ''}`} />
+                  {item.name === "Inbox" && activeSave.inbox.filter((m: any) => !m.isRead).length > 0 && (
+                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-rose-500 rounded-full border-2 border-[#0f172a]" />
+                  )}
+                </div>
+                <span className="text-[9px] font-black uppercase tracking-widest">{item.name}</span>
+              </Link>
+            );
+          })}
 
         </nav>
       </div>

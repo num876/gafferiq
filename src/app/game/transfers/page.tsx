@@ -37,7 +37,7 @@ export default function Transfers() {
     if (!activeSave || !playerClub) return;
     
     // Simple seeded randomizer based on matchday
-    const seed = activeSave.currentMatchday * 12345;
+    let seed = activeSave.currentMatchday * 12345;
     const random = () => {
       let x = Math.sin(seed++) * 10000;
       return x - Math.floor(x);
