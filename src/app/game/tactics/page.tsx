@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { 
   autoSelectLineup, TacticalInstructions, DEFAULT_TACTICS, 
-  TACTIC_PRESETS, PLAYER_ROLES, computeTacticsRating
+  TACTIC_PRESETS, PLAYER_ROLES, computeTacticsRating, getPitchSpots
 } from "../../../engine/simulator";
 import { SaveState } from "../../../db/storage";
 import { Player, Club } from "../../../config/seededData";
@@ -24,161 +24,7 @@ type InstructionsSection = "inPossession" | "outOfPossession" | "transitions";
 // ─────────────────────────────────────────────
 // PITCH LAYOUT HELPER
 // ─────────────────────────────────────────────
-const getPitchSpots = (formation: string) => {
-  type Spot = { label: string; x: number; y: number; role: "GK" | "DEF" | "MID" | "ATT"; roleOptions: string[] };
-  const spots: Spot[] = [];
 
-  const defRoles = ["Central Defender", "Ball-Playing Defender", "No-Nonsense CB", "Libero"];
-  const wbRoles = ["Wing-Back", "Full-Back", "Inverted Wing-Back"];
-  const cdmRoles = ["Anchor Man", "Regista", "Ball-Winning Mid", "Deep-Lying Playmaker"];
-  const midRoles = ["Box-to-Box", "Deep-Lying Playmaker", "Advanced Playmaker", "Ball-Winning Mid", "Mezzala"];
-  const wideMidRoles = ["Winger", "Inverted Winger", "Wide Midfielder"];
-  const attRoles = ["Advanced Forward", "Target Man", "False 9", "Poacher", "Complete Forward", "Pressing Forward"];
-  const wideAttRoles = ["Inside Forward", "Winger", "Inverted Winger", "Raumdeuter"];
-
-  spots.push({ label: "GK", x: 50, y: 90, role: "GK", roleOptions: ["Goalkeeper", "Sweeper Keeper"] });
-
-  const defY = 72;
-  const midY = 48;
-  const attY = 20;
-
-  switch (formation) {
-    case "4-4-2":
-      spots.push({ label:"LB", x:12, y:defY-5, role:"DEF", roleOptions:wbRoles });
-      spots.push({ label:"CB", x:35, y:defY,   role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"CB", x:65, y:defY,   role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"RB", x:88, y:defY-5, role:"DEF", roleOptions:wbRoles });
-      spots.push({ label:"LM", x:12, y:midY-5, role:"MID", roleOptions:wideMidRoles });
-      spots.push({ label:"CM", x:37, y:midY+5, role:"MID", roleOptions:midRoles });
-      spots.push({ label:"CM", x:63, y:midY+5, role:"MID", roleOptions:midRoles });
-      spots.push({ label:"RM", x:88, y:midY-5, role:"MID", roleOptions:wideMidRoles });
-      spots.push({ label:"ST", x:38, y:attY,   role:"ATT", roleOptions:attRoles });
-      spots.push({ label:"ST", x:62, y:attY,   role:"ATT", roleOptions:attRoles });
-      break;
-    case "4-3-3":
-      spots.push({ label:"LB", x:12, y:defY-5, role:"DEF", roleOptions:wbRoles });
-      spots.push({ label:"CB", x:35, y:defY,   role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"CB", x:65, y:defY,   role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"RB", x:88, y:defY-5, role:"DEF", roleOptions:wbRoles });
-      spots.push({ label:"CM", x:30, y:midY,   role:"MID", roleOptions:midRoles });
-      spots.push({ label:"CM", x:50, y:midY+8, role:"MID", roleOptions:midRoles });
-      spots.push({ label:"CM", x:70, y:midY,   role:"MID", roleOptions:midRoles });
-      spots.push({ label:"LW", x:18, y:attY+5, role:"ATT", roleOptions:wideAttRoles });
-      spots.push({ label:"ST", x:50, y:attY,   role:"ATT", roleOptions:attRoles });
-      spots.push({ label:"RW", x:82, y:attY+5, role:"ATT", roleOptions:wideAttRoles });
-      break;
-    case "4-2-3-1":
-      spots.push({ label:"LB",  x:12, y:defY-5, role:"DEF", roleOptions:wbRoles });
-      spots.push({ label:"CB",  x:35, y:defY,   role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"CB",  x:65, y:defY,   role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"RB",  x:88, y:defY-5, role:"DEF", roleOptions:wbRoles });
-      spots.push({ label:"CDM", x:38, y:midY+10, role:"MID", roleOptions:cdmRoles });
-      spots.push({ label:"CDM", x:62, y:midY+10, role:"MID", roleOptions:cdmRoles });
-      spots.push({ label:"LAM", x:20, y:midY-5, role:"MID", roleOptions:wideMidRoles });
-      spots.push({ label:"CAM", x:50, y:midY-5, role:"MID", roleOptions:["Advanced Playmaker","False 9","Mezzala"] });
-      spots.push({ label:"RAM", x:80, y:midY-5, role:"MID", roleOptions:wideMidRoles });
-      spots.push({ label:"ST",  x:50, y:attY,   role:"ATT", roleOptions:attRoles });
-      break;
-    case "3-5-2":
-      spots.push({ label:"CB",  x:25, y:defY,   role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"CB",  x:50, y:defY+3, role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"CB",  x:75, y:defY,   role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"LWB", x:10, y:midY+5, role:"MID", roleOptions:wbRoles });
-      spots.push({ label:"CDM", x:50, y:midY+10, role:"MID", roleOptions:cdmRoles });
-      spots.push({ label:"CM",  x:35, y:midY,   role:"MID", roleOptions:midRoles });
-      spots.push({ label:"CM",  x:65, y:midY,   role:"MID", roleOptions:midRoles });
-      spots.push({ label:"RWB", x:90, y:midY+5, role:"MID", roleOptions:wbRoles });
-      spots.push({ label:"ST",  x:38, y:attY,   role:"ATT", roleOptions:attRoles });
-      spots.push({ label:"ST",  x:62, y:attY,   role:"ATT", roleOptions:attRoles });
-      break;
-    case "5-3-2":
-      spots.push({ label:"LWB", x:10, y:defY-10, role:"DEF", roleOptions:wbRoles });
-      spots.push({ label:"CB",  x:28, y:defY,    role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"CB",  x:50, y:defY+3,  role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"CB",  x:72, y:defY,    role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"RWB", x:90, y:defY-10, role:"DEF", roleOptions:wbRoles });
-      spots.push({ label:"CM",  x:30, y:midY,    role:"MID", roleOptions:midRoles });
-      spots.push({ label:"CM",  x:50, y:midY+8,  role:"MID", roleOptions:midRoles });
-      spots.push({ label:"CM",  x:70, y:midY,    role:"MID", roleOptions:midRoles });
-      spots.push({ label:"ST",  x:38, y:attY,    role:"ATT", roleOptions:attRoles });
-      spots.push({ label:"ST",  x:62, y:attY,    role:"ATT", roleOptions:attRoles });
-      break;
-    case "4-5-1":
-      spots.push({ label:"LB",  x:12, y:defY-5, role:"DEF", roleOptions:wbRoles });
-      spots.push({ label:"CB",  x:35, y:defY,   role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"CB",  x:65, y:defY,   role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"RB",  x:88, y:defY-5, role:"DEF", roleOptions:wbRoles });
-      spots.push({ label:"LM",  x:12, y:midY-5, role:"MID", roleOptions:wideMidRoles });
-      spots.push({ label:"CM",  x:35, y:midY+5, role:"MID", roleOptions:midRoles });
-      spots.push({ label:"CDM", x:50, y:midY+12, role:"MID", roleOptions:cdmRoles });
-      spots.push({ label:"CM",  x:65, y:midY+5, role:"MID", roleOptions:midRoles });
-      spots.push({ label:"RM",  x:88, y:midY-5, role:"MID", roleOptions:wideMidRoles });
-      spots.push({ label:"ST",  x:50, y:attY,   role:"ATT", roleOptions:attRoles });
-      break;
-    case "3-4-3":
-      spots.push({ label:"CB",  x:25, y:defY,    role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"CB",  x:50, y:defY+3,  role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"CB",  x:75, y:defY,    role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"LM",  x:12, y:midY,    role:"MID", roleOptions:wbRoles });
-      spots.push({ label:"CM",  x:38, y:midY+8,  role:"MID", roleOptions:midRoles });
-      spots.push({ label:"CM",  x:62, y:midY+8,  role:"MID", roleOptions:midRoles });
-      spots.push({ label:"RM",  x:88, y:midY,    role:"MID", roleOptions:wbRoles });
-      spots.push({ label:"LW",  x:18, y:attY+5,  role:"ATT", roleOptions:wideAttRoles });
-      spots.push({ label:"ST",  x:50, y:attY,    role:"ATT", roleOptions:attRoles });
-      spots.push({ label:"RW",  x:82, y:attY+5,  role:"ATT", roleOptions:wideAttRoles });
-      break;
-    case "4-1-4-1":
-      spots.push({ label:"LB",  x:12, y:defY-5, role:"DEF", roleOptions:wbRoles });
-      spots.push({ label:"CB",  x:35, y:defY,   role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"CB",  x:65, y:defY,   role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"RB",  x:88, y:defY-5, role:"DEF", roleOptions:wbRoles });
-      spots.push({ label:"CDM", x:50, y:midY+15, role:"MID", roleOptions:cdmRoles });
-      spots.push({ label:"LM",  x:12, y:midY-5, role:"MID", roleOptions:wideMidRoles });
-      spots.push({ label:"CM",  x:37, y:midY,   role:"MID", roleOptions:midRoles });
-      spots.push({ label:"CM",  x:63, y:midY,   role:"MID", roleOptions:midRoles });
-      spots.push({ label:"RM",  x:88, y:midY-5, role:"MID", roleOptions:wideMidRoles });
-      spots.push({ label:"ST",  x:50, y:attY,   role:"ATT", roleOptions:attRoles });
-      break;
-    case "4-3-2-1":
-      spots.push({ label:"LB",  x:12, y:defY-5, role:"DEF", roleOptions:wbRoles });
-      spots.push({ label:"CB",  x:35, y:defY,   role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"CB",  x:65, y:defY,   role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"RB",  x:88, y:defY-5, role:"DEF", roleOptions:wbRoles });
-      spots.push({ label:"CM",  x:30, y:midY+5, role:"MID", roleOptions:midRoles });
-      spots.push({ label:"CM",  x:50, y:midY+8, role:"MID", roleOptions:midRoles });
-      spots.push({ label:"CM",  x:70, y:midY+5, role:"MID", roleOptions:midRoles });
-      spots.push({ label:"SS",  x:35, y:midY-8, role:"MID", roleOptions:["Advanced Playmaker","Mezzala","Inside Forward"] });
-      spots.push({ label:"SS",  x:65, y:midY-8, role:"MID", roleOptions:["Advanced Playmaker","Mezzala","Inside Forward"] });
-      spots.push({ label:"ST",  x:50, y:attY,   role:"ATT", roleOptions:attRoles });
-      break;
-    case "5-4-1":
-      spots.push({ label:"LWB", x:10, y:defY-10, role:"DEF", roleOptions:wbRoles });
-      spots.push({ label:"CB",  x:28, y:defY,    role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"CB",  x:50, y:defY+3,  role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"CB",  x:72, y:defY,    role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"RWB", x:90, y:defY-10, role:"DEF", roleOptions:wbRoles });
-      spots.push({ label:"LM",  x:12, y:midY,    role:"MID", roleOptions:wideMidRoles });
-      spots.push({ label:"CM",  x:37, y:midY+6,  role:"MID", roleOptions:midRoles });
-      spots.push({ label:"CM",  x:63, y:midY+6,  role:"MID", roleOptions:midRoles });
-      spots.push({ label:"RM",  x:88, y:midY,    role:"MID", roleOptions:wideMidRoles });
-      spots.push({ label:"ST",  x:50, y:attY,    role:"ATT", roleOptions:attRoles });
-      break;
-    default:
-      // 4-4-2 fallback
-      spots.push({ label:"LB", x:12, y:defY-5, role:"DEF", roleOptions:wbRoles });
-      spots.push({ label:"CB", x:35, y:defY,   role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"CB", x:65, y:defY,   role:"DEF", roleOptions:defRoles });
-      spots.push({ label:"RB", x:88, y:defY-5, role:"DEF", roleOptions:wbRoles });
-      spots.push({ label:"LM", x:12, y:midY-5, role:"MID", roleOptions:wideMidRoles });
-      spots.push({ label:"CM", x:37, y:midY+5, role:"MID", roleOptions:midRoles });
-      spots.push({ label:"CM", x:63, y:midY+5, role:"MID", roleOptions:midRoles });
-      spots.push({ label:"RM", x:88, y:midY-5, role:"MID", roleOptions:wideMidRoles });
-      spots.push({ label:"ST", x:38, y:attY,   role:"ATT", roleOptions:attRoles });
-      spots.push({ label:"ST", x:62, y:attY,   role:"ATT", roleOptions:attRoles });
-  }
-
-  return spots;
-};
 
 // ─────────────────────────────────────────────
 // RATING BARS
@@ -298,7 +144,8 @@ function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { act
   const [starters, setStarters] = useState<Player[]>([]);
   const [bench, setBench] = useState<Player[]>([]);
   const [notif, setNotif] = useState("");
-  const [selectedNode, setSelectedNode] = useState<{ index: number; player: Player; spot: any } | null>(null);
+  const [selectedSwapNode, setSelectedSwapNode] = useState<{ type: "starter" | "bench", index: number, player: Player, spot?: any } | null>(null);
+  const [showPopoverFor, setShowPopoverFor] = useState<{ index: number; player: Player; spot: any } | null>(null);
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
@@ -318,7 +165,7 @@ function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { act
 
   const handleFormationChange = (f: string) => {
     setFormation(f);
-    setSelectedNode(null);
+    setSelectedSwapNode(null); setShowPopoverFor(null);
     const { starters: s, bench: b } = autoSelectLineup(squad, f);
     setStarters(s); setBench(b);
   };
@@ -346,15 +193,47 @@ function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { act
     setTimeout(() => setNotif(""), 3000);
   };
 
-  const handleSwap = (starterIdx: number, benchId: string) => {
-    const activeStarter = starters[starterIdx];
-    const activeBench = bench.find(p => p.id === benchId)!;
-    const ns = [...starters]; ns[starterIdx] = activeBench;
-    const nb = bench.map(p => p.id === benchId ? activeStarter : p);
-    setStarters(ns); setBench(nb);
-    setNotif(`Swapped ${activeStarter.name} with ${activeBench.name}`);
+  const executeSwap = (nodeA: { type: "starter"|"bench", index: number, player: Player }, nodeB: { type: "starter"|"bench", index: number, player: Player }) => {
+    if (nodeA.type === "starter" && nodeB.type === "starter") {
+      const ns = [...starters];
+      ns[nodeA.index] = nodeB.player;
+      ns[nodeB.index] = nodeA.player;
+      setStarters(ns);
+    } else if (nodeA.type === "bench" && nodeB.type === "bench") {
+      const nb = [...bench];
+      nb[nodeA.index] = nodeB.player;
+      nb[nodeB.index] = nodeA.player;
+      setBench(nb);
+    } else {
+      const starterNode = nodeA.type === "starter" ? nodeA : nodeB;
+      const benchNode = nodeA.type === "bench" ? nodeA : nodeB;
+      const ns = [...starters];
+      ns[starterNode.index] = benchNode.player;
+      const nb = [...bench];
+      nb[benchNode.index] = starterNode.player;
+      setStarters(ns);
+      setBench(nb);
+    }
+    setSelectedSwapNode(null);
+    setShowPopoverFor(null);
+    setNotif(`Swapped ${nodeA.player.name} & ${nodeB.player.name}`);
     setTimeout(() => setNotif(""), 2000);
-    setSelectedNode(null);
+  };
+
+  const handleNodeClick = (type: "starter" | "bench", index: number, player: Player, spot?: any) => {
+    if (!selectedSwapNode) {
+      setSelectedSwapNode({ type, index, player, spot });
+      setShowPopoverFor(null);
+    } else {
+      if (selectedSwapNode.type === type && selectedSwapNode.index === index) {
+        if (type === "starter") {
+          setShowPopoverFor(showPopoverFor ? null : { index, player, spot });
+        }
+        setSelectedSwapNode(null);
+      } else {
+        executeSwap(selectedSwapNode, { type, index, player });
+      }
+    }
   };
 
   const setPlayerRole = (playerId: string, role: string) => {
@@ -477,7 +356,7 @@ function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { act
                   {pitchSpots.map((spot, idx) => {
                     const player = starters[idx];
                     if (!player) return null;
-                    const isSelected = selectedNode?.index === idx;
+                    const isSelected = selectedSwapNode?.type === "starter" && selectedSwapNode.index === idx;
                     const duty = (tactics.playerDuties || {})[player.id] || "Support";
                     const role = (tactics.playerRoles || {})[player.id];
                     const dutyBg = duty === "Attack" ? "bg-rose-500" : duty === "Defend" ? "bg-sky-500" : "bg-amber-500";
@@ -488,7 +367,7 @@ function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { act
                         layoutId={`player-${player.id}`}
                         animate={{ left: `${spot.x}%`, top: `${spot.y}%` }}
                         transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                        onClick={() => setSelectedNode(isSelected ? null : { index: idx, player, spot })}
+                        onClick={() => handleNodeClick("starter", idx, player, spot)}
                         className="absolute w-12 h-12 flex flex-col items-center justify-center -ml-6 -mt-6 cursor-pointer group z-20"
                       >
                         {/* Position label */}
@@ -514,23 +393,23 @@ function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { act
 
                 {/* Popover */}
                 <AnimatePresence>
-                  {selectedNode && (
+                  {showPopoverFor && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.9, y: 5 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.9 }}
                       className="absolute z-50 p-4 rounded-2xl bg-slate-950/98 backdrop-blur-xl border border-slate-700 shadow-2xl w-60"
                       style={{
-                        left: `${selectedNode.spot.x > 55 ? Math.max(5, selectedNode.spot.x - 55) : Math.min(50, selectedNode.spot.x + 5)}%`,
-                        top:  `${selectedNode.spot.y > 55 ? Math.max(5, selectedNode.spot.y - 40) : Math.min(60, selectedNode.spot.y + 5)}%`,
+                        left: `${showPopoverFor.spot.x > 55 ? Math.max(5, showPopoverFor.spot.x - 55) : Math.min(50, showPopoverFor.spot.x + 5)}%`,
+                        top:  `${showPopoverFor.spot.y > 55 ? Math.max(5, showPopoverFor.spot.y - 40) : Math.min(60, showPopoverFor.spot.y + 5)}%`,
                       }}
                     >
                       {/* Player info */}
                       <div className="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
                         <div>
-                          <h4 className="font-black text-white text-xs leading-tight">{selectedNode.player.name}</h4>
+                          <h4 className="font-black text-white text-xs leading-tight">{showPopoverFor.player.name}</h4>
                           <p className="text-[9px] text-slate-400 uppercase tracking-widest mt-0.5">
-                            {selectedNode.player.position} · {selectedNode.player.age}y · {selectedNode.player.overall} OVR
+                            {showPopoverFor.player.truePosition || showPopoverFor.player.position} · {showPopoverFor.player.age}y · {showPopoverFor.player.overall} OVR
                           </p>
                         </div>
                         <button onClick={() => setSelectedNode(null)} className="text-slate-600 hover:text-white text-xs font-bold">✕</button>
@@ -541,11 +420,11 @@ function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { act
                         <span className="text-[9px] text-slate-500 font-black uppercase mb-1.5 block">Player Duty</span>
                         <div className="flex gap-1">
                           {(["Defend", "Support", "Attack"] as const).map(d => {
-                            const active = ((tactics.playerDuties || {})[selectedNode.player.id] || "Support") === d;
+                            const active = ((tactics.playerDuties || {})[showPopoverFor.player.id] || "Support") === d;
                             return (
                               <button
                                 key={d}
-                                onClick={() => setPlayerDuty(selectedNode.player.id, d)}
+                                onClick={() => setPlayerDuty(showPopoverFor.player.id, d)}
                                 className={`flex-1 py-1 rounded-lg text-[9px] font-black uppercase transition-all ${
                                   active ? (d === "Attack" ? "bg-rose-500 text-white" : d === "Defend" ? "bg-sky-500 text-white" : "bg-amber-500 text-white")
                                   : "bg-slate-800 text-slate-400 hover:bg-slate-700"
@@ -564,10 +443,10 @@ function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { act
                         <div className="relative">
                           <select
                             className="w-full appearance-none bg-slate-900 border border-slate-700 text-white text-[10px] font-bold rounded-lg px-2.5 py-1.5 pr-7 focus:outline-none focus:border-emerald-500"
-                            value={(tactics.playerRoles || {})[selectedNode.player.id] || selectedNode.spot.roleOptions[0]}
-                            onChange={e => setPlayerRole(selectedNode.player.id, e.target.value)}
+                            value={(tactics.playerRoles || {})[showPopoverFor.player.id] || showPopoverFor.spot.roleOptions[0]}
+                            onChange={e => setPlayerRole(showPopoverFor.player.id, e.target.value)}
                           >
-                            {selectedNode.spot.roleOptions.map((r: string) => (
+                            {showPopoverFor.spot.roleOptions.map((r: string) => (
                               <option key={r} value={r}>{r}</option>
                             ))}
                           </select>
@@ -575,7 +454,7 @@ function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { act
                         </div>
                         {/* Role description */}
                         {(() => {
-                          const roleName = (tactics.playerRoles || {})[selectedNode.player.id] || selectedNode.spot.roleOptions[0];
+                          const roleName = (tactics.playerRoles || {})[showPopoverFor.player.id] || showPopoverFor.spot.roleOptions[0];
                           const roleDef = PLAYER_ROLES[roleName];
                           return roleDef ? (
                             <p className="text-[9px] text-slate-500 mt-1 leading-relaxed italic">{roleDef.description}</p>
@@ -583,23 +462,7 @@ function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { act
                         })()}
                       </div>
 
-                      {/* Swap */}
-                      <div className="border-t border-slate-800 pt-3">
-                        <span className="text-[9px] text-slate-500 font-black uppercase mb-1.5 block">Swap With Bench</span>
-                        <div className="relative">
-                          <select
-                            onChange={e => { if(e.target.value) handleSwap(selectedNode.index, e.target.value); }}
-                            className="w-full appearance-none bg-slate-800 border border-slate-700 text-slate-300 text-[10px] font-bold rounded-lg px-2.5 py-1.5 focus:outline-none"
-                            value=""
-                          >
-                            <option value="" disabled>Select replacement...</option>
-                            {bench.map(b => (
-                              <option key={b.id} value={b.id}>{b.name} ({b.position} {b.overall})</option>
-                            ))}
-                          </select>
-                          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
-                        </div>
-                      </div>
+                      
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -656,11 +519,11 @@ function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { act
                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Bench</h4>
                 <div className="flex flex-col gap-1.5">
                   {bench.slice(0, 7).map(p => (
-                    <div key={p.id} className="flex items-center gap-2.5 p-2 rounded-lg bg-slate-800/30 border border-slate-800/50">
+                    <div key={p.id} onClick={() => handleNodeClick("bench", bench.indexOf(p), p)} className={`cursor-pointer flex items-center gap-2.5 p-2 rounded-lg border transition-all ${selectedSwapNode?.type === "bench" && selectedSwapNode.index === bench.indexOf(p) ? "bg-emerald-900/50 border-emerald-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]" : "bg-slate-800/30 border-slate-800/50 hover:border-slate-600"}`}>
                       <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-600 flex items-center justify-center text-[10px] font-black text-white shrink-0">{p.overall}</div>
                       <div className="flex-1 min-w-0">
                         <div className="text-xs font-bold text-white truncate">{p.name}</div>
-                        <div className="text-[9px] text-slate-500">{p.position} · {p.age}y</div>
+                        <div className="text-[9px] text-slate-500">{p.truePosition || p.position} · {p.age}y{p.bestRole ? ` · ${p.bestRole}` : ''}</div>
                       </div>
                     </div>
                   ))}

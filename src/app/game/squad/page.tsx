@@ -115,6 +115,7 @@ export default function Squad() {
                   <thead>
                     <tr className="border-b border-slate-850 text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-slate-950/20">
                       <th className="py-3 px-4">Name</th>
+                      <th className="py-3 px-4">Role</th>
                       <th className="py-3 px-4">Age</th>
                       <th className="py-3 px-4">Nation</th>
                       <th className="py-3 px-4">Wage</th>
@@ -136,6 +137,16 @@ export default function Squad() {
                           {player.injuryStatus === "Injured" && (
                             <span className="ml-2 text-[9px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-1 py-0.5 rounded font-extrabold uppercase">Injured</span>
                           )}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-black text-white px-1.5 py-0.5 bg-slate-800 rounded w-max">
+                              {player.truePosition || player.position}
+                            </span>
+                            {player.bestRole && (
+                              <span className="text-[9px] text-slate-500 font-semibold mt-0.5 max-w-[100px] truncate">{player.bestRole}</span>
+                            )}
+                          </div>
                         </td>
                         <td className="py-3 px-4 text-slate-400">{player.age}</td>
                         <td className="py-3 px-4 text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -198,7 +209,7 @@ export default function Squad() {
                 className="w-16 h-16 rounded-xl flex items-center justify-center font-black text-xl text-slate-100 shadow-md"
                 style={{ backgroundColor: playerClub.primaryColor }}
               >
-                {selectedPlayer.position}
+                {selectedPlayer.truePosition || selectedPlayer.position}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -211,8 +222,14 @@ export default function Squad() {
                   <span>Age {selectedPlayer.age}</span>
                   <span>•</span>
                   <span>{selectedPlayer.nationalityFlag} {selectedPlayer.nationality}</span>
+                  {selectedPlayer.bestRole && (
+                    <>
+                      <span>•</span>
+                      <span className="text-emerald-400 font-bold">{selectedPlayer.bestRole}</span>
+                    </>
+                  )}
                   <span>•</span>
-                  <span className="text-slate-500">Contract Expiry: {selectedPlayer.contractExpiry} yrs</span>
+                  <span className="text-slate-500">Contract: {selectedPlayer.contractExpiry} yrs</span>
                 </p>
               </div>
             </div>

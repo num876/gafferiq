@@ -1,103 +1,110 @@
 const fs = require('fs');
+let content = fs.readFileSync('src/app/game/tactics/page.tsx', 'utf8').replace(/\r\n/g, '\n');
 
-let content = fs.readFileSync('src/app/game/tactics/page.tsx', 'utf8');
-
-// 1. Add pitchRef
+// 1. Add new states
 content = content.replace(
-  'const [initialized, setInitialized] = useState(false);',
-  'const [initialized, setInitialized] = useState(false);\n  const pitchRef = useRef<HTMLDivElement>(null);'
+  /const \[selectedNode, setSelectedNode\] = useState<{ index: number; player: Player; spot: any } \| null>\(null\);/,
+  `const [selectedSwapNode, setSelectedSwapNode] = useState<{ type: "starter" | "bench", index: number, player: Player, spot?: any } | null>(null);
+  const [showPopoverFor, setShowPopoverFor] = useState<{ index: number; player: Player; spot: any } | null>(null);`
 );
 
-// 2. Add pitchRef to the Pitch container
+// 2. Clear states on formation change
 content = content.replace(
-  '<div className="relative w-full max-w-[500px] mx-auto aspect-[4/5] bg-[#166534] rounded-2xl overflow-hidden shadow-2xl border-4 border-[#0f4b23] select-none">',
-  '<div ref={pitchRef} className="relative w-full max-w-[500px] mx-auto aspect-[4/5] bg-[#166534] rounded-2xl overflow-hidden shadow-2xl border-4 border-[#0f4b23] select-none">'
+  /setSelectedNode\(null\);/g,
+  `setSelectedSwapNode(null); setShowPopoverFor(null);`
 );
 
-// 3. Update motion.div drag logic
-const oldMotionDivStart = `<motion.div
-                    key={player.id}
-                    layoutId={\`player-\${player.id}\`}
-                    initial={false}
-                    animate={{ left: \`\${spot.x}%\`, top: \`\${spot.y}%\` }}
-                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                    drag
-                    dragConstraints={{ top: -50, left: -50, right: 50, bottom: 50 }}
-                    dragSnapToOrigin={true}
-                    dragElastic={0.2}
-                    onClick={() => setSelectedNode(isSelected ? null : { index: idx, player, spot })}
-                    className="absolute w-12 h-12 flex flex-col items-center justify-center -ml-6 -mt-6 cursor-grab active:cursor-grabbing group z-20"
-                  >`;
+// 3. Rewrite handleSwap
+content = content.replace(
+  /const handleSwap = \(starterIdx: number, benchId: string\) => \{[\s\S]*?\};/,
+  `const executeSwap = (nodeA: { type: "starter"|"bench", index: number, player: Player }, nodeB: { type: "starter"|"bench", index: number, player: Player }) => {
+    if (nodeA.type === "starter" && nodeB.type === "starter") {
+      const ns = [...starters];
+      ns[nodeA.index] = nodeB.player;
+      ns[nodeB.index] = nodeA.player;
+      setStarters(ns);
+    } else if (nodeA.type === "bench" && nodeB.type === "bench") {
+      const nb = [...bench];
+      nb[nodeA.index] = nodeB.player;
+      nb[nodeB.index] = nodeA.player;
+      setBench(nb);
+    } else {
+      const starterNode = nodeA.type === "starter" ? nodeA : nodeB;
+      const benchNode = nodeA.type === "bench" ? nodeA : nodeB;
+      const ns = [...starters];
+      ns[starterNode.index] = benchNode.player;
+      const nb = [...bench];
+      nb[benchNode.index] = starterNode.player;
+      setStarters(ns);
+      setBench(nb);
+    }
+    setSelectedSwapNode(null);
+    setShowPopoverFor(null);
+    setNotif(\`Swapped \${nodeA.player.name} & \${nodeB.player.name}\`);
+    setTimeout(() => setNotif(""), 2000);
+  };
 
-const newMotionDivStart = `<motion.div
-                    key={player.id}
-                    layoutId={\`player-\${player.id}\`}
-                    initial={false}
-                    animate={{ left: \`\${spot.x}%\`, top: \`\${spot.y}%\` }}
-                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                    drag
-                    dragConstraints={{ top: -50, left: -50, right: 50, bottom: 50 }}
-                    dragSnapToOrigin={true}
-                    dragElastic={0.2}
-                    onDragEnd={(e, info) => {
-                      if (!pitchRef.current) return;
-                      const rect = pitchRef.current.getBoundingClientRect();
-                      const dropX = ((info.point.x - rect.left) / rect.width) * 100;
-                      const dropY = ((info.point.y - rect.top) / rect.height) * 100;
-                      
-                      let closestIdx = -1;
-                      let minDistance = 15;
-                      pitchSpots.forEach((s, sIdx) => {
-                        const dist = Math.sqrt(Math.pow(s.x - dropX, 2) + Math.pow(s.y - dropY, 2));
-                        if (dist < minDistance) {
-                          minDistance = dist;
-                          closestIdx = sIdx;
-                        }
-                      });
-                      
-                      if (closestIdx !== -1 && closestIdx !== idx) {
-                        const newStarters = [...starters];
-                        const temp = newStarters[idx];
-                        newStarters[idx] = newStarters[closestIdx];
-                        newStarters[closestIdx] = temp;
-                        setStarters(newStarters);
-                        setNotif(\`Swapped \${temp.name.split(' ').pop()} with \${newStarters[idx].name.split(' ').pop()}\`);
-                        setTimeout(() => setNotif(""), 3000);
-                        setSelectedNode(null);
-                      }
-                    }}
-                    onClick={() => setSelectedNode(isSelected ? null : { index: idx, player, spot })}
-                    className="absolute w-12 h-12 flex flex-col items-center justify-center -ml-6 -mt-6 cursor-grab active:cursor-grabbing group z-20"
-                  >`;
+  const handleNodeClick = (type: "starter" | "bench", index: number, player: Player, spot?: any) => {
+    if (!selectedSwapNode) {
+      setSelectedSwapNode({ type, index, player, spot });
+      setShowPopoverFor(null);
+    } else {
+      if (selectedSwapNode.type === type && selectedSwapNode.index === index) {
+        if (type === "starter") {
+          setShowPopoverFor(showPopoverFor ? null : { index, player, spot });
+        }
+        setSelectedSwapNode(null);
+      } else {
+        executeSwap(selectedSwapNode, { type, index, player });
+      }
+    }
+  };`
+);
 
-content = content.replace(oldMotionDivStart, newMotionDivStart);
+// 4. Update Starter Nodes
+content = content.replace(
+  /const isSelected = selectedNode\?\.index === idx;/g,
+  `const isSelected = selectedSwapNode?.type === "starter" && selectedSwapNode.index === idx;`
+);
 
-// 4. Implement Role Saving in Popover
-const oldRoleSelector = `<select className="w-full appearance-none bg-[#0f1623] border border-[#1e2d40] text-white text-xs font-bold rounded-lg px-3 py-2 pr-8 focus:outline-none focus:border-[#22c55e]">
-                          {selectedNode.spot.roleOptions.map((role: string) => (
-                            <option key={role} value={role}>{role}</option>
-                          ))}
-                        </select>`;
+content = content.replace(
+  /onClick=\{\(\) => setSelectedNode\(isSelected \? null : \{ index: idx, player, spot \}\)\}/g,
+  `onClick={() => handleNodeClick("starter", idx, player, spot)}`
+);
 
-const newRoleSelector = `<select 
-                          className="w-full appearance-none bg-[#0f1623] border border-[#1e2d40] text-white text-xs font-bold rounded-lg px-3 py-2 pr-8 focus:outline-none focus:border-[#22c55e]"
-                          value={tactics.playerRoles?.[selectedNode.player.id] || selectedNode.spot.roleOptions[0]}
-                          onChange={(e) => {
-                            setTactics({
-                              ...tactics,
-                              playerRoles: {
-                                ...(tactics.playerRoles || {}),
-                                [selectedNode.player.id]: e.target.value
-                              }
-                            });
-                          }}
-                        >
-                          {selectedNode.spot.roleOptions.map((role: string) => (
-                            <option key={role} value={role}>{role}</option>
-                          ))}
-                        </select>`;
+// 5. Replace Popover conditions
+content = content.replace(
+  /\{selectedNode && \(/g,
+  `{showPopoverFor && (`
+);
 
-content = content.replace(oldRoleSelector, newRoleSelector);
+content = content.replace(
+  /selectedNode\./g,
+  `showPopoverFor.`
+);
+
+// 6. Remove the Swap dropdown from popover
+const swapSectionRegex = /\{\/\* Swap \*\/\}[\s\S]*?<\/div>\n\s*<\/div>/;
+content = content.replace(swapSectionRegex, '');
+
+// 7. Update Bench Nodes to be clickable
+const benchNodesRegex = /<div key=\{p\.id\} className="flex items-center gap-2\.5 p-2 rounded-lg bg-slate-800\/30 border border-slate-800\/50">/;
+content = content.replace(
+  benchNodesRegex,
+  `<div key={p.id} onClick={() => handleNodeClick("bench", bench.indexOf(p), p)} className={\`cursor-pointer flex items-center gap-2.5 p-2 rounded-lg border transition-all \${selectedSwapNode?.type === "bench" && selectedSwapNode.index === bench.indexOf(p) ? "bg-emerald-900/50 border-emerald-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]" : "bg-slate-800/30 border-slate-800/50 hover:border-slate-600"}\`}>`
+);
+
+// 8. Add true position to starter popover
+content = content.replace(
+  /\{showPopoverFor\.player\.position\} · \{showPopoverFor\.player\.age\}y · \{showPopoverFor\.player\.overall\} OVR/,
+  `{showPopoverFor.player.truePosition || showPopoverFor.player.position} · {showPopoverFor.player.age}y · {showPopoverFor.player.overall} OVR`
+);
+
+// 9. Add true position and best role to bench display
+content = content.replace(
+  /\{p\.position\} · \{p\.age\}y/g,
+  `{p.truePosition || p.position} · {p.age}y{p.bestRole ? \` · \${p.bestRole}\` : ''}`
+);
 
 fs.writeFileSync('src/app/game/tactics/page.tsx', content);
-console.log("Patched tactics page with drag-to-swap and role selection!");
+console.log("Successfully patched tactics/page.tsx");
