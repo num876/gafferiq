@@ -43,7 +43,7 @@ export default function WelcomePage() {
   const headlineWords = "Take Control of the".split(" ");
 
   return (
-    <main className="min-h-screen bg-fm-navyDark flex flex-col justify-between font-sans text-white overflow-hidden">
+    <main className="min-h-screen bg-fm-navyDark flex flex-col justify-between font-sans text-white overflow-x-hidden">
       {/* 
         ========================================================================
         HERO SECTION
