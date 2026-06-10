@@ -69,6 +69,17 @@ export default function PreSeasonAuction() {
       return;
     }
 
+    const sourceClub = activeSave.clubs.find(c => c.id === player.clubId);
+    if (sourceClub) {
+      const repDifference = sourceClub.reputation - playerClub.reputation;
+      // Reject if player is high rated and coming from a much bigger club
+      if (repDifference >= 5 && player.overall >= 80) {
+        alert(`${player.name} rejected your offer! They consider joining ${playerClub.name} a step down in their career from ${sourceClub.name}.`);
+        setMarketPool(prev => prev.filter(p => p.id !== player.id));
+        return;
+      }
+    }
+
     const updatedPlayers = activeSave.players.map(p => {
       if (p.id === player.id) {
         return { ...p, clubId: playerClub.id };
