@@ -354,7 +354,7 @@ export default function ManagerCreation() {
                   className="w-full sm:w-auto mt-0 sm:mt-6 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 font-bold text-xs rounded-lg flex items-center justify-center gap-2 border border-indigo-500/20 transition disabled:opacity-50"
                 >
                   {isGeneratingBio ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-                  Generate AI Bio
+                  Generate Manager Lore
                 </button>
               </div>
               

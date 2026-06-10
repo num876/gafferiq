@@ -38,7 +38,7 @@ export async function POST(req: Request) {
       return NextResponse.json(result);
     }
 
-    // Call Claude API (Anthropic)
+    // Call AI API (Anthropic)
     // Build custom simulation prompt
     const prompt = `You are GafferIQ, an advanced Football Manager match simulation engine.
 Simulate a football match between:
@@ -111,8 +111,8 @@ Respond ONLY with a valid JSON object matching this schema. Do not include markd
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error("Claude API Error:", errText);
-      throw new Error("Failed to contact Claude API");
+      console.error("AI API Error:", errText);
+      throw new Error("Failed to contact AI API");
     }
 
     const data = await response.json();
@@ -122,7 +122,7 @@ Respond ONLY with a valid JSON object matching this schema. Do not include markd
     const jsonStart = textResponse.indexOf("{");
     const jsonEnd = textResponse.lastIndexOf("}");
     if (jsonStart === -1 || jsonEnd === -1) {
-      throw new Error("Invalid response format from Claude");
+      throw new Error("Invalid response format from AI");
     }
     
     const parsedResult = JSON.parse(textResponse.slice(jsonStart, jsonEnd + 1));
@@ -130,7 +130,7 @@ Respond ONLY with a valid JSON object matching this schema. Do not include markd
 
   } catch (error) {
     console.error("Match Sim API Error, falling back to heuristic:", error);
-    // Safe fallback in case of Claude network/parse error
+    // Safe fallback in case of AI network/parse error
     try {
       const body = await req.clone().json();
       const result = simulateMatchHeuristic(

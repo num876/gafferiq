@@ -173,8 +173,8 @@ export default function WelcomePage() {
             <div className="p-2.5 rounded-lg bg-fm-navyDark w-fit border border-white/10 shadow-inner">
               <Cpu className="w-5 h-5 text-fm-neonCyan drop-shadow-[0_0_5px_rgba(0,229,255,0.8)]" />
             </div>
-            <h3 className="font-bold text-white text-lg tracking-wide">Powered by Claude AI</h3>
-            <p className="text-xs text-fm-slate font-medium">Dynamic match commentary & realistic simulated decisions.</p>
+            <h3 className="font-bold text-white text-lg tracking-wide">Powered by Advanced AI</h3>
+            <p className="text-xs text-fm-slate font-medium">Intelligent match engine with deep tactical realism.</p>
           </motion.div>
 
           <motion.div 
@@ -188,7 +188,7 @@ export default function WelcomePage() {
               <Users className="w-5 h-5 text-fm-neonMagenta drop-shadow-[0_0_5px_rgba(233,0,116,0.8)]" />
             </div>
             <h3 className="font-bold text-white text-lg tracking-wide">2026/27 Squad Data</h3>
-            <p className="text-xs text-fm-slate font-medium">Accurate rosters, potentials, and attributes from 5 major leagues.</p>
+            <p className="text-xs text-fm-slate font-medium">Authentic rosters, player attributes, and hidden potential across elite leagues.</p>
           </motion.div>
 
           <motion.div 
@@ -201,8 +201,8 @@ export default function WelcomePage() {
             <div className="p-2.5 rounded-lg bg-fm-navyDark w-fit border border-white/10 shadow-inner">
               <Target className="w-5 h-5 text-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.8)]" />
             </div>
-            <h3 className="font-bold text-white text-lg tracking-wide">Granular Tactics</h3>
-            <p className="text-xs text-fm-slate font-medium">Set precise player roles, pressing traps, and set-piece routines.</p>
+            <h3 className="font-bold text-white text-lg tracking-wide">Tactical Mastery</h3>
+            <p className="text-xs text-fm-slate font-medium">Define complex player roles, team mentalities, and bespoke pressing triggers.</p>
           </motion.div>
 
           <motion.div 
@@ -215,8 +215,8 @@ export default function WelcomePage() {
             <div className="p-2.5 rounded-lg bg-fm-navyDark w-fit border border-white/10 shadow-inner">
               <Compass className="w-5 h-5 text-amber-400 drop-shadow-[0_0_5px_rgba(251,191,36,0.8)]" />
             </div>
-            <h3 className="font-bold text-white text-lg tracking-wide">Global Scouting</h3>
-            <p className="text-xs text-fm-slate font-medium">Unearth wonderkids and negotiate complex contract transfers.</p>
+            <h3 className="font-bold text-white text-lg tracking-wide">Immersive Management</h3>
+            <p className="text-xs text-fm-slate font-medium">Navigate board expectations, uncover wonderkids, and forge your legacy.</p>
           </motion.div>
 
         </div>
