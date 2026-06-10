@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { motion } from "framer-motion";
 import { useGame } from "../../../context/GameContext";
 import { 
   Users, UserCheck, Heart, CircleDot, Award, Coins, Calendar, X, BarChart2 

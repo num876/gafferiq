@@ -63,7 +63,7 @@ export interface MatchFixture {
 
 export interface MatchEvent {
   minute: number;
-  type: "Goal" | "Substitution" | "Yellow Card" | "Red Card" | "Injury" | "Penalty Goal" | "Penalty Miss";
+  type: "Goal" | "Substitution" | "Yellow Card" | "Red Card" | "Injury" | "Penalty Goal" | "Penalty Miss" | "Shot Saved" | "Big Chance Missed" | "Penalty" | "VAR Check";
   clubId: string;
   playerName: string;
   assistName?: string;
