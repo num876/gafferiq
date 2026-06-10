@@ -631,6 +631,13 @@ const OVERRIDE_ATTRIBUTES: Record<string, Partial<Player>> = {
 };
 
 export function generateSquadForClub(clubId: string, clubRep: number): Player[] {
+  // Make the generation deterministic per club so preview matches the actual generated save game
+  let clubSeed = 12345;
+  for (let i = 0; i < clubId.length; i++) {
+    clubSeed = (clubSeed * 31 + clubId.charCodeAt(i)) & 0xFFFFFFFF;
+  }
+  setSeed(Math.abs(clubSeed) || 12345);
+
   const squad: Player[] = [];
   
   // Real players from Wikipedia or FC25
