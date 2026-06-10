@@ -258,10 +258,10 @@ function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { act
     <div className="flex flex-col gap-0 font-sans h-full">
       
       {/* ── HEADER ── */}
-      <div className="flex justify-between items-center border-b border-slate-800/50 pb-4 mb-5">
+      <div className="flex justify-between items-center border-b border-white/5 pb-4 mb-5">
         <div>
-          <h2 className="text-2xl font-black text-white flex items-center gap-3">
-            <Shield className="w-6 h-6 text-emerald-400" /> Tactics Board
+          <h2 className="text-2xl font-black text-white flex items-center gap-3 tracking-wide">
+            <Shield className="w-6 h-6 text-fm-neonCyan drop-shadow-[0_0_8px_rgba(0,229,255,0.8)]" /> Tactics Board
           </h2>
           <p className="text-xs text-slate-500 mt-1">Build your system. Shape your identity.</p>
         </div>
@@ -274,23 +274,23 @@ function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { act
               </motion.div>
             )}
           </AnimatePresence>
-          <button onClick={handleSave} className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center gap-2 shadow-[0_0_15px_rgba(34,197,94,0.2)] transition active:scale-95 uppercase tracking-wider">
+          <button onClick={handleSave} className="px-5 py-2 rounded-xl bg-fm-neonCyan text-fm-navyDark hover:bg-cyan-300 font-black text-xs flex items-center gap-2 shadow-[0_0_15px_rgba(0,229,255,0.3)] transition active:scale-95 uppercase tracking-wider">
             <Save className="w-4 h-4" /> Save
           </button>
         </div>
       </div>
 
       {/* ── MAIN TAB BAR ── */}
-      <div className="flex gap-1 mb-6 bg-slate-900/50 p-1 rounded-xl border border-slate-800">
+      <div className="flex gap-1 mb-6 glass-card p-1 rounded-xl">
         {([
-          { id:"formation" as TacticsTab,    label:"Formation & Lineup", icon:Shield },
-          { id:"instructions" as TacticsTab, label:"Team Instructions",  icon:Sliders },
+          { id:"formation" as TacticsTab,    label:"Formation", icon:Shield },
+          { id:"instructions" as TacticsTab, label:"Instructions",  icon:Sliders },
           { id:"setpieces" as TacticsTab,    label:"Set Pieces",          icon:Flag },
         ]).map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${activeTab === id ? "bg-slate-700 text-white shadow-md" : "text-slate-500 hover:text-slate-300"}`}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === id ? "bg-fm-purple text-fm-neonCyan shadow-[0_0_10px_rgba(0,229,255,0.1)]" : "text-fm-slate hover:text-white"}`}
           >
             <Icon className="w-3.5 h-3.5" /> {label}
           </button>
@@ -310,12 +310,12 @@ function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { act
             <div className="xl:col-span-7 flex flex-col gap-4">
               
               {/* Formation picker */}
-              <div className="bg-slate-900/40 border border-slate-800 rounded-xl p-1.5 flex items-center overflow-x-auto gap-1 scrollbar-hide">
+              <div className="glass-card p-1.5 flex items-center overflow-x-auto gap-1 scrollbar-hide rounded-xl">
                 {FORMATIONS.map(f => (
                   <button
                     key={f}
                     onClick={() => handleFormationChange(f)}
-                    className={`px-3.5 py-2 rounded-lg font-black text-xs transition-all shrink-0 ${formation === f ? "bg-emerald-600 text-white shadow-md" : "text-slate-400 hover:text-white hover:bg-slate-800"}`}
+                    className={`px-3.5 py-2 rounded-lg font-black text-xs transition-all shrink-0 ${formation === f ? "bg-fm-purple text-white shadow-md" : "text-fm-slate hover:text-white hover:bg-white/5"}`}
                   >
                     {f}
                   </button>
@@ -323,26 +323,29 @@ function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { act
               </div>
 
               {/* SVG Pitch */}
-              <div className="relative w-full max-w-[480px] mx-auto aspect-[3/4] bg-[#166534] rounded-2xl overflow-hidden shadow-2xl border-4 border-[#0f4b23] select-none">
+              <div className="relative w-full max-w-[480px] mx-auto aspect-[3/4] bg-gradient-to-b from-fm-navyLight to-fm-navy rounded-2xl overflow-hidden shadow-2xl border-4 border-fm-purple/40 select-none">
                 
+                {/* Glowing neon mesh back */}
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-fm-purple/20 via-transparent to-transparent pointer-events-none" />
+
                 {/* Pitch SVG */}
-                <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 z-0 opacity-40">
-                  <rect x="0" y="0" width="100" height="100" fill="none" stroke="white" strokeWidth="0.5" />
-                  <line x1="0" y1="50" x2="100" y2="50" stroke="white" strokeWidth="0.5" />
-                  <circle cx="50" cy="50" r="12" fill="none" stroke="white" strokeWidth="0.5" />
-                  <circle cx="50" cy="50" r="0.5" fill="white" />
-                  <rect x="20" y="0" width="60" height="15" fill="none" stroke="white" strokeWidth="0.5" />
-                  <rect x="20" y="85" width="60" height="15" fill="none" stroke="white" strokeWidth="0.5" />
-                  <rect x="35" y="0" width="30" height="5" fill="none" stroke="white" strokeWidth="0.5" />
-                  <rect x="35" y="95" width="30" height="5" fill="none" stroke="white" strokeWidth="0.5" />
-                  <circle cx="50" cy="10" r="0.5" fill="white" />
-                  <circle cx="50" cy="90" r="0.5" fill="white" />
+                <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 z-0 opacity-30">
+                  <rect x="0" y="0" width="100" height="100" fill="none" stroke="#00E5FF" strokeWidth="0.5" />
+                  <line x1="0" y1="50" x2="100" y2="50" stroke="#00E5FF" strokeWidth="0.5" />
+                  <circle cx="50" cy="50" r="12" fill="none" stroke="#00E5FF" strokeWidth="0.5" />
+                  <circle cx="50" cy="50" r="0.5" fill="#00E5FF" />
+                  <rect x="20" y="0" width="60" height="15" fill="none" stroke="#00E5FF" strokeWidth="0.5" />
+                  <rect x="20" y="85" width="60" height="15" fill="none" stroke="#00E5FF" strokeWidth="0.5" />
+                  <rect x="35" y="0" width="30" height="5" fill="none" stroke="#00E5FF" strokeWidth="0.5" />
+                  <rect x="35" y="95" width="30" height="5" fill="none" stroke="#00E5FF" strokeWidth="0.5" />
+                  <circle cx="50" cy="10" r="0.5" fill="#00E5FF" />
+                  <circle cx="50" cy="90" r="0.5" fill="#00E5FF" />
                 </svg>
 
-                {/* Grass stripes */}
-                <div className="absolute inset-0 flex pointer-events-none opacity-15 mix-blend-overlay">
-                  {[...Array(8)].map((_, i) => (
-                    <div key={i} className={`h-full flex-1 ${i%2===0 ? "bg-black" : "bg-transparent"}`} />
+                {/* Grass stripes (Cyber grid instead) */}
+                <div className="absolute inset-0 flex flex-col pointer-events-none opacity-5">
+                  {[...Array(20)].map((_, i) => (
+                    <div key={i} className="h-[5%] w-full border-b border-[#00E5FF]/20" />
                   ))}
                 </div>
 
@@ -371,19 +374,23 @@ function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { act
                         className="absolute w-12 h-12 flex flex-col items-center justify-center -ml-6 -mt-6 cursor-pointer group z-20"
                       >
                         {/* Position label */}
-                        <div className="absolute -top-3.5 px-1.5 py-0.5 rounded bg-slate-950 border border-slate-700 text-[8px] font-black text-emerald-400 z-30 shadow-lg whitespace-nowrap">
+                        <div className="absolute -top-3.5 px-1.5 py-0.5 rounded bg-fm-navyDark border border-fm-neonCyan/30 text-[8px] font-black text-fm-neonCyan z-30 shadow-lg whitespace-nowrap">
                           {spot.label}
                         </div>
-                        {/* Node */}
-                        <div className={`w-9 h-9 rounded-full border-2 flex items-center justify-center font-black text-white text-xs shadow-xl transition-all relative ${isSelected ? "bg-emerald-500 border-white scale-110 shadow-[0_0_15px_rgba(34,197,94,0.6)]" : "bg-[#0f1623] border-emerald-500 group-hover:border-white group-hover:scale-105"}`}>
+                        {/* Organic floating node */}
+                        <motion.div 
+                          animate={{ y: [0, -3, 0] }} 
+                          transition={{ repeat: Infinity, duration: 3 + Math.random()*2, ease: "easeInOut" }}
+                          className={`w-9 h-9 rounded-full border flex items-center justify-center font-black text-white text-xs shadow-xl transition-all relative ${isSelected ? "bg-fm-neonMagenta border-white scale-110 shadow-[0_0_15px_rgba(233,0,116,0.8)]" : "bg-fm-purple border-fm-neonCyan/80 group-hover:border-white group-hover:scale-105"}`}
+                        >
                           {player.overall}
                           {/* Duty badge */}
-                          <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border border-slate-900 ${dutyBg} text-[5px] flex items-center justify-center font-black text-white`}>
+                          <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border border-fm-navy ${dutyBg} text-[5px] flex items-center justify-center font-black text-white`}>
                             {duty[0]}
                           </div>
-                        </div>
+                        </motion.div>
                         {/* Name */}
-                        <div className="absolute -bottom-5 px-1.5 py-0.5 rounded bg-slate-900/90 border border-slate-700/50 text-[8px] font-bold text-white whitespace-nowrap z-30 max-w-[70px] truncate shadow-lg">
+                        <div className="absolute -bottom-5 px-1.5 py-0.5 rounded bg-fm-navyDark/90 border border-white/10 text-[8px] font-bold text-white whitespace-nowrap z-30 max-w-[70px] truncate shadow-lg backdrop-blur-sm">
                           {player.name.split(" ").pop()}
                         </div>
                       </motion.div>
@@ -398,26 +405,26 @@ function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { act
                       initial={{ opacity: 0, scale: 0.9, y: 5 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.9 }}
-                      className="absolute z-50 p-4 rounded-2xl bg-slate-950/98 backdrop-blur-xl border border-slate-700 shadow-2xl w-60"
+                      className="absolute z-50 p-4 rounded-2xl glass-card w-64 shadow-[0_0_30px_rgba(0,0,0,0.5)] border-fm-neonCyan/30"
                       style={{
                         left: `${showPopoverFor.spot.x > 55 ? Math.max(5, showPopoverFor.spot.x - 55) : Math.min(50, showPopoverFor.spot.x + 5)}%`,
                         top:  `${showPopoverFor.spot.y > 55 ? Math.max(5, showPopoverFor.spot.y - 40) : Math.min(60, showPopoverFor.spot.y + 5)}%`,
                       }}
                     >
                       {/* Player info */}
-                      <div className="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
+                      <div className="flex justify-between items-start border-b border-white/10 pb-3 mb-3">
                         <div>
-                          <h4 className="font-black text-white text-xs leading-tight">{showPopoverFor.player.name}</h4>
-                          <p className="text-[9px] text-slate-400 uppercase tracking-widest mt-0.5">
-                            {showPopoverFor.player.truePosition || showPopoverFor.player.position} · {showPopoverFor.player.age}y · {showPopoverFor.player.overall} OVR
+                          <h4 className="font-black text-white text-sm leading-tight">{showPopoverFor.player.name}</h4>
+                          <p className="text-[9px] text-fm-neonCyan uppercase tracking-widest mt-1">
+                            {showPopoverFor.player.truePosition || showPopoverFor.player.position} <span className="text-fm-slate mx-1">|</span> {showPopoverFor.player.age}y <span className="text-fm-slate mx-1">|</span> <span className="text-emerald-400 font-bold">{showPopoverFor.player.overall} OVR</span>
                           </p>
                         </div>
-                        <button onClick={() => setSelectedNode(null)} className="text-slate-600 hover:text-white text-xs font-bold">✕</button>
+                        <button onClick={() => setSelectedSwapNode(null)} className="text-fm-slate hover:text-white text-xs font-bold bg-white/5 rounded-full p-1">✕</button>
                       </div>
 
                       {/* Duty selector */}
                       <div className="mb-3">
-                        <span className="text-[9px] text-slate-500 font-black uppercase mb-1.5 block">Player Duty</span>
+                        <span className="text-[9px] text-fm-slate font-black uppercase tracking-widest mb-1.5 block">Player Duty</span>
                         <div className="flex gap-1">
                           {(["Defend", "Support", "Attack"] as const).map(d => {
                             const active = ((tactics.playerDuties || {})[showPopoverFor.player.id] || "Support") === d;
@@ -427,7 +434,7 @@ function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { act
                                 onClick={() => setPlayerDuty(showPopoverFor.player.id, d)}
                                 className={`flex-1 py-1 rounded-lg text-[9px] font-black uppercase transition-all ${
                                   active ? (d === "Attack" ? "bg-rose-500 text-white" : d === "Defend" ? "bg-sky-500 text-white" : "bg-amber-500 text-white")
-                                  : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+                                  : "bg-fm-navyLight text-fm-slate hover:bg-white/10"
                                 }`}
                               >
                                 {d[0]}
@@ -438,11 +445,11 @@ function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { act
                       </div>
 
                       {/* Role selector */}
-                      <div className="mb-3">
-                        <span className="text-[9px] text-slate-500 font-black uppercase mb-1.5 block">Tactical Role</span>
+                      <div className="mb-2">
+                        <span className="text-[9px] text-fm-slate font-black uppercase tracking-widest mb-1.5 block">Tactical Role</span>
                         <div className="relative">
                           <select
-                            className="w-full appearance-none bg-slate-900 border border-slate-700 text-white text-[10px] font-bold rounded-lg px-2.5 py-1.5 pr-7 focus:outline-none focus:border-emerald-500"
+                            className="w-full appearance-none bg-fm-navy border border-white/10 text-white text-[10px] font-bold rounded-lg px-2.5 py-1.5 pr-7 focus:outline-none focus:border-fm-neonCyan"
                             value={(tactics.playerRoles || {})[showPopoverFor.player.id] || showPopoverFor.spot.roleOptions[0]}
                             onChange={e => setPlayerRole(showPopoverFor.player.id, e.target.value)}
                           >
@@ -488,25 +495,25 @@ function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { act
               )}
 
               {/* Tactic Presets */}
-              <div className="bg-slate-900/40 border border-slate-800 rounded-xl p-4">
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                  <Zap className="w-3.5 h-3.5 text-amber-400" /> Quick Presets
+              <div className="glass-card rounded-xl p-4">
+                <h4 className="text-[10px] font-black text-fm-slate uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <Zap className="w-3.5 h-3.5 text-fm-neonCyan" /> Quick Presets
                 </h4>
                 <div className="grid grid-cols-2 gap-2">
                   {TACTIC_PRESETS.map((preset, idx) => (
                     <button
                       key={preset.name}
                       onClick={() => applyPreset(idx)}
-                      className="group text-left bg-slate-800/50 hover:bg-slate-700/60 border border-slate-700 hover:border-slate-500 rounded-xl p-3 transition-all"
+                      className="group text-left bg-fm-navyLight hover:bg-fm-purple border border-white/5 hover:border-fm-neonCyan rounded-xl p-3 transition-all"
                     >
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-base">{preset.badge}</span>
-                        <span className="text-xs font-black text-white group-hover:text-emerald-400 transition-colors">{preset.name}</span>
+                        <span className="text-xs font-black text-white group-hover:text-fm-neonCyan transition-colors">{preset.name}</span>
                       </div>
-                      <p className="text-[9px] text-slate-500 leading-relaxed">{preset.description}</p>
-                      <div className="mt-2 flex items-center gap-1 text-[9px] text-slate-600">
+                      <p className="text-[9px] text-fm-slate leading-relaxed">{preset.description}</p>
+                      <div className="mt-2 flex items-center gap-1 text-[9px] text-fm-slate group-hover:text-white">
                         <span>{preset.formation}</span>
-                        <ChevronRight className="w-3 h-3" />
+                        <ChevronRight className="w-3 h-3 text-fm-neonCyan" />
                         <span>{preset.instructions.mentality}</span>
                       </div>
                     </button>
@@ -515,15 +522,15 @@ function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { act
               </div>
 
               {/* Bench */}
-              <div className="bg-slate-900/40 border border-slate-800 rounded-xl p-4">
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Bench</h4>
+              <div className="glass-card rounded-xl p-4">
+                <h4 className="text-[10px] font-black text-fm-slate uppercase tracking-widest mb-3">Bench</h4>
                 <div className="flex flex-col gap-1.5">
                   {bench.slice(0, 7).map(p => (
-                    <div key={p.id} onClick={() => handleNodeClick("bench", bench.indexOf(p), p)} className={`cursor-pointer flex items-center gap-2.5 p-2 rounded-lg border transition-all ${selectedSwapNode?.type === "bench" && selectedSwapNode.index === bench.indexOf(p) ? "bg-emerald-900/50 border-emerald-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]" : "bg-slate-800/30 border-slate-800/50 hover:border-slate-600"}`}>
-                      <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-600 flex items-center justify-center text-[10px] font-black text-white shrink-0">{p.overall}</div>
+                    <div key={p.id} onClick={() => handleNodeClick("bench", bench.indexOf(p), p)} className={`cursor-pointer flex items-center gap-2.5 p-2 rounded-lg border transition-all ${selectedSwapNode?.type === "bench" && selectedSwapNode.index === bench.indexOf(p) ? "bg-fm-purple/80 border-fm-neonCyan shadow-[0_0_10px_rgba(0,229,255,0.3)]" : "bg-white/5 border-white/5 hover:border-white/20"}`}>
+                      <div className="w-7 h-7 rounded-full bg-fm-navyDark border border-white/10 flex items-center justify-center text-[10px] font-black text-fm-neonCyan shrink-0">{p.overall}</div>
                       <div className="flex-1 min-w-0">
                         <div className="text-xs font-bold text-white truncate">{p.name}</div>
-                        <div className="text-[9px] text-slate-500">{p.truePosition || p.position} · {p.age}y{p.bestRole ? ` · ${p.bestRole}` : ''}</div>
+                        <div className="text-[9px] text-fm-slate">{p.truePosition || p.position} · {p.age}y{p.bestRole ? ` · ${p.bestRole}` : ''}</div>
                       </div>
                     </div>
                   ))}
@@ -541,7 +548,7 @@ function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { act
             
             {/* Section sub-tabs */}
             <div className="lg:col-span-12">
-              <div className="flex gap-1 bg-slate-900/50 p-1 rounded-xl border border-slate-800 max-w-md">
+              <div className="flex gap-1 glass-card p-1 rounded-xl max-w-md">
                 {([
                   { id:"inPossession" as InstructionsSection,    label:"In Possession",     icon:TrendingUp },
                   { id:"outOfPossession" as InstructionsSection, label:"Out of Possession",  icon:Crosshair },
@@ -550,7 +557,7 @@ function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { act
                   <button
                     key={id}
                     onClick={() => setInstructionsSection(id)}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${instructionsSection === id ? "bg-slate-700 text-white shadow-md" : "text-slate-500 hover:text-slate-300"}`}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${instructionsSection === id ? "bg-fm-purple text-fm-neonCyan shadow-[0_0_10px_rgba(0,229,255,0.1)]" : "text-fm-slate hover:text-white"}`}
                   >
                     <Icon className="w-3 h-3" /> {label}
                   </button>

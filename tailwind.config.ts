@@ -17,6 +17,15 @@ const config: Config = {
     },
     extend: {
       colors: {
+        fm: {
+          navy: "#0A0B10",
+          navyLight: "#141620",
+          purple: "#3D246C",
+          purpleDark: "#231145",
+          neonMagenta: "#E90074",
+          neonCyan: "#00E5FF",
+          slate: "#8F9BB3",
+        },
         border: "var(--border)",
         input: "var(--input)",
         ring: "var(--ring)",

@@ -2,10 +2,10 @@
 import type { Metadata } from "next";
 import { GameProvider } from "../context/GameContext";
 import "./globals.css";
-import { Inter } from "next/font/google";
+import { Outfit } from "next/font/google";
 import { cn } from "@/lib/utils";
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
+const outfit = Outfit({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
   title: "GafferIQ - Football Manager Simulator",
@@ -18,8 +18,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans", inter.variable)}>
-      <body className="antialiased bg-[#0f172a] text-[#f8fafc]">
+    <html lang="en" className={cn("font-sans", outfit.variable)}>
+      <body className="antialiased bg-[#0B0C10] text-[#f8fafc] overflow-hidden">
         <GameProvider>
           {children}
         </GameProvider>

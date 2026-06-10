@@ -106,85 +106,82 @@ export default function Squad() {
 
           return (
             <div key={pos} className="flex flex-col gap-3">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest border-l-2 border-green-500 pl-2">
+              <h3 className="text-xs font-black text-fm-neonCyan uppercase tracking-widest border-l-2 border-fm-neonMagenta pl-3 mb-2">
                 {pos === "GK" ? "Goalkeepers" : pos === "DEF" ? "Defenders" : pos === "MID" ? "Midfielders" : "Attackers"}
               </h3>
               
-              <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/50">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-850 text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-slate-950/20">
-                      <th className="py-3 px-4">Name</th>
-                      <th className="py-3 px-4">Role</th>
-                      <th className="py-3 px-4">Age</th>
-                      <th className="py-3 px-4">Nation</th>
-                      <th className="py-3 px-4">Wage</th>
-                      <th className="py-3 px-4">Value</th>
-                      <th className="py-3 px-4">Morale</th>
-                      <th className="py-3 px-4 text-center">Form</th>
-                      <th className="py-3 px-4 text-right">OVR</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-900/50">
-                    {players.map(player => (
-                      <tr 
-                        key={player.id} 
-                        onClick={() => setSelectedPlayer(player)}
-                        className="hover:bg-slate-900/80 cursor-pointer transition"
-                      >
-                        <td className="py-3 px-4 font-bold text-slate-200">
-                          {player.name}
-                          {player.injuryStatus === "Injured" && (
-                            <span className="ml-2 text-[9px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-1 py-0.5 rounded font-extrabold uppercase">Injured</span>
-                          )}
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-white px-1.5 py-0.5 bg-slate-800 rounded w-max">
-                              {player.truePosition || player.position}
-                            </span>
-                            {player.bestRole && (
-                              <span className="text-[9px] text-slate-500 font-semibold mt-0.5 max-w-[100px] truncate">{player.bestRole}</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {players.map((player, idx) => (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    key={player.id} 
+                    onClick={() => setSelectedPlayer(player)}
+                    className="glass-card hover:bg-fm-purple/40 border border-white/5 hover:border-fm-neonCyan/50 rounded-2xl p-4 cursor-pointer transition-all duration-300 group relative overflow-hidden"
+                  >
+                    {/* Background glow on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-fm-neonCyan/5 to-fm-neonMagenta/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                    <div className="relative z-10 flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        {/* OVR Badge */}
+                        <div className="w-12 h-12 rounded-xl bg-fm-navyDark border border-white/10 flex items-center justify-center shadow-lg group-hover:border-fm-neonCyan/50 transition-colors">
+                          <span className="text-lg font-black text-white">{player.overall}</span>
+                        </div>
+                        
+                        {/* Core Info */}
+                        <div className="flex flex-col">
+                          <h4 className="font-black text-white text-sm tracking-wide flex items-center gap-2">
+                            {player.name}
+                            {player.injuryStatus === "Injured" && (
+                              <span className="text-[8px] bg-rose-500/20 text-rose-400 px-1 py-0.5 rounded uppercase tracking-widest">Injured</span>
                             )}
+                          </h4>
+                          <div className="text-[10px] text-fm-slate font-bold flex items-center gap-1.5 mt-0.5">
+                            <span className="text-fm-neonCyan">{player.truePosition || player.position}</span>
+                            <span>•</span>
+                            <span>{player.age}y</span>
+                            <span>•</span>
+                            <span>{player.nationalityFlag}</span>
                           </div>
-                        </td>
-                        <td className="py-3 px-4 text-slate-400">{player.age}</td>
-                        <td className="py-3 px-4 text-slate-400 flex items-center gap-1.5 mt-0.5">
-                          <span>{player.nationalityFlag}</span>
-                          <span className="truncate max-w-[100px]">{player.nationality}</span>
-                        </td>
-                        <td className="py-3 px-4 text-slate-400">€{(player.wage / 1000).toFixed(0)}k/wk</td>
-                        <td className="py-3 px-4 text-green-400 font-bold">€{(player.value / 1000000).toFixed(1)}M</td>
-                        <td className="py-3 px-4">
-                          <span className={`font-semibold ${player.morale >= 75 ? 'text-green-400' : player.morale >= 45 ? 'text-amber-500' : 'text-rose-500'}`}>
-                            {player.morale}%
-                          </span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex gap-1 justify-center">
-                            {(() => {
-                              const history = player.ratingHistory || [];
-                              const recent = history.slice(-5);
-                              const dots = [];
-                              for (let i = 0; i < 5; i++) {
-                                const rating = recent[i];
-                                let color = "text-slate-700"; // default grey
-                                if (rating !== undefined) {
-                                  if (rating >= 8.0) color = "text-green-500";
-                                  else if (rating >= 6.0) color = "text-amber-500";
-                                  else color = "text-rose-500";
-                                }
-                                dots.push(<CircleDot key={i} className={`w-3.5 h-3.5 fill-current ${color}`} />);
+                          {player.bestRole && (
+                            <span className="text-[9px] text-fm-slate mt-1 italic tracking-wider uppercase opacity-80">{player.bestRole}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Lower Info */}
+                    <div className="relative z-10 mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[9px] text-fm-slate uppercase tracking-widest font-black">Value</span>
+                        <span className="text-[11px] text-emerald-400 font-bold">€{(player.value / 1000000).toFixed(1)}M</span>
+                      </div>
+                      <div className="flex flex-col gap-0.5 items-end">
+                        <span className="text-[9px] text-fm-slate uppercase tracking-widest font-black">Form</span>
+                        <div className="flex gap-0.5">
+                          {(() => {
+                            const history = player.ratingHistory || [];
+                            const recent = history.slice(-5);
+                            const dots = [];
+                            for (let i = 0; i < 5; i++) {
+                              const rating = recent[i];
+                              let color = "text-fm-slate/30";
+                              if (rating !== undefined) {
+                                if (rating >= 8.0) color = "text-fm-neonCyan drop-shadow-[0_0_5px_rgba(0,229,255,0.8)]";
+                                else if (rating >= 6.0) color = "text-white";
+                                else color = "text-rose-500";
                               }
-                              return dots;
-                            })()}
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-right font-black text-green-400 text-sm">{player.overall}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                              dots.push(<CircleDot key={i} className={`w-2.5 h-2.5 fill-current ${color}`} />);
+                            }
+                            return dots;
+                          })()}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
             </div>
           );

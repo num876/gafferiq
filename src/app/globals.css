@@ -100,10 +100,15 @@
     --sidebar-ring: oklch(0.556 0 0);
   }
   * {
-    @apply border-border;
+    @apply border-fm-slate/20;
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: #0A0B10;
+    background-image: radial-gradient(circle at 15% 50%, rgba(61, 36, 108, 0.4), transparent 30%),
+                      radial-gradient(circle at 85% 30%, rgba(20, 22, 32, 0.8), transparent 40%);
+    background-size: cover;
+    background-attachment: fixed;
+    color: #f8fafc;
   }
   html {
     @apply font-sans;
@@ -111,58 +116,72 @@
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: #0A0B10;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 4px;
+  background: #231145;
+  border-radius: 8px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #3D246C;
 }
 
 /* Animations */
-@keyframes pulse-glow {
+@keyframes neon-pulse-magenta {
   0%, 100% {
-    opacity: 1;
-    box-shadow: 0 0 15px rgba(22, 163, 74, 0.4);
+    box-shadow: 0 0 10px rgba(233, 0, 116, 0.4), inset 0 0 5px rgba(233, 0, 116, 0.2);
   }
   50% {
-    opacity: .8;
-    box-shadow: 0 0 5px rgba(22, 163, 74, 0.1);
+    box-shadow: 0 0 20px rgba(233, 0, 116, 0.8), inset 0 0 10px rgba(233, 0, 116, 0.4);
   }
 }
 
-.animate-pulse-glow {
-  animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+@keyframes neon-pulse-cyan {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.4), inset 0 0 5px rgba(0, 229, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.8), inset 0 0 10px rgba(0, 229, 255, 0.4);
+  }
 }
 
-/* Glassmorphism card */
+.animate-neon-magenta {
+  animation: neon-pulse-magenta 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-neon-cyan {
+  animation: neon-pulse-cyan 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Premium Glassmorphism card */
 .glass-card {
-  background: rgba(30, 41, 59, 0.75);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(51, 65, 85, 0.5);
+  background: rgba(20, 22, 32, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(143, 155, 179, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
 .glass-card-hover {
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .glass-card-hover:hover {
-  background: rgba(30, 41, 59, 0.9);
-  border-color: rgba(22, 163, 74, 0.4);
-  transform: translateY(-2px);
+  background: rgba(35, 17, 69, 0.7);
+  border-color: rgba(0, 229, 255, 0.5);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 40px 0 rgba(0, 229, 255, 0.2);
 }
