@@ -633,74 +633,77 @@ const OVERRIDE_ATTRIBUTES: Record<string, Partial<Player>> = {
 export function generateSquadForClub(clubId: string, clubRep: number): Player[] {
   const squad: Player[] = [];
   
-  // Real players from Wikipedia
+  // Real players from Wikipedia or FC25
   const realPlayers = (realSquads as any)[clubId] || [];
   
   let idCounter = 1;
 
-  // Add the real players we fetched
   for (const preset of realPlayers) {
-    // Generate a deterministic pseudo-random seed based on the player's name
     const nameSeed = preset.name.length + preset.name.charCodeAt(0) + preset.name.charCodeAt(preset.name.length - 1);
     
-    // Determine squad status deterministically to create realistic squad distributions
-    const squadRoleRoll = nameSeed % 10;
-    
-    let baseOverall = clubRep - 5; // Default average
-    
-    if (squadRoleRoll === 0) {
-      // Star Player: Rating often exceeds or matches the club's raw reputation
-      baseOverall = clubRep + 1;
-    } else if (squadRoleRoll >= 1 && squadRoleRoll <= 4) {
-      // Key First Team
-      baseOverall = clubRep - 2;
-    } else if (squadRoleRoll >= 5 && squadRoleRoll <= 8) {
-      // Rotation Player
-      baseOverall = clubRep - 6;
-    } else {
-      // Fringe / Prospect
-      baseOverall = clubRep - 12;
-    }
-
-    let age = preset.age || (18 + (nameSeed % 15));
-    
-    // Age curve logic: Players in their prime get a slight bump, youngsters/veterans get a penalty
-    let ageAdjustment = 0;
-    if (age < 20) ageAdjustment = -4;
-    else if (age >= 26 && age <= 29) ageAdjustment = +2;
-    else if (age > 33) ageAdjustment = -3;
-
-    const override = TOP_PLAYER_OVERRIDES[preset.name];
-    let overall = override ? override.overall : Math.min(99, Math.max(50, baseOverall + ageAdjustment));
-    const pos = preset.position as "GK" | "DEF" | "MID" | "ATT";
-
-    // Potential
+    let overall = preset.overall;
     let potential = overall;
-    if (override) {
-      potential = override.potential;
-    } else if (age < 23) {
-      potential = Math.min(99, overall + 8 + (nameSeed % 7));
-    } else if (age < 28) {
-      potential = Math.min(99, overall + 2 + (nameSeed % 4));
-    }
+    let attributes = {
+      pace: preset.pace || 50,
+      shooting: preset.shooting || 50,
+      passing: preset.passing || 50,
+      dribbling: preset.dribbling || 50,
+      defending: preset.defending || 50,
+      physical: preset.physical || 50,
+      mental: 50,
+      stamina: Math.min(99, (preset.physical || 50) + 10)
+    };
+    
+    let age = preset.age || (18 + (nameSeed % 15));
+    const pos = (preset.position as "GK" | "DEF" | "MID" | "ATT") || "MID";
 
-    // Distribute attributes realistically
-    let attributes = distributeAttributes(pos, overall);
-    const hero = OVERRIDE_ATTRIBUTES[preset.name];
-    if (hero) {
-      if (hero.overall) overall = hero.overall;
-      if (hero.potential) potential = hero.potential;
-      if (hero.age) age = hero.age;
-      attributes = {
-        pace: hero.pace || attributes.pace,
-        shooting: hero.shooting || attributes.shooting,
-        passing: hero.passing || attributes.passing,
-        dribbling: hero.dribbling || attributes.dribbling,
-        defending: hero.defending || attributes.defending,
-        physical: hero.physical || attributes.physical,
-        mental: hero.mental || attributes.mental,
-        stamina: hero.stamina || attributes.stamina,
-      };
+    // Fallback logic if FC25 stats aren't present
+    if (!overall) {
+      const squadRoleRoll = nameSeed % 10;
+      let baseOverall = clubRep - 5;
+      
+      if (squadRoleRoll === 0) baseOverall = clubRep + 1;
+      else if (squadRoleRoll >= 1 && squadRoleRoll <= 4) baseOverall = clubRep - 2;
+      else if (squadRoleRoll >= 5 && squadRoleRoll <= 8) baseOverall = clubRep - 6;
+      else baseOverall = clubRep - 12;
+
+      let ageAdjustment = 0;
+      if (age < 20) ageAdjustment = -4;
+      else if (age >= 26 && age <= 29) ageAdjustment = +2;
+      else if (age > 33) ageAdjustment = -3;
+
+      const override = TOP_PLAYER_OVERRIDES[preset.name];
+      overall = override ? override.overall : Math.min(99, Math.max(50, baseOverall + ageAdjustment));
+      
+      if (override) {
+        potential = override.potential;
+      } else if (age < 23) {
+        potential = Math.min(99, overall + 8 + (nameSeed % 7));
+      } else if (age < 28) {
+        potential = Math.min(99, overall + 2 + (nameSeed % 4));
+      }
+
+      attributes = distributeAttributes(pos, overall);
+      const hero = OVERRIDE_ATTRIBUTES[preset.name];
+      if (hero) {
+        if (hero.overall) overall = hero.overall;
+        if (hero.potential) potential = hero.potential;
+        if (hero.age) age = hero.age;
+        attributes = {
+          pace: hero.pace || attributes.pace,
+          shooting: hero.shooting || attributes.shooting,
+          passing: hero.passing || attributes.passing,
+          dribbling: hero.dribbling || attributes.dribbling,
+          defending: hero.defending || attributes.defending,
+          physical: hero.physical || attributes.physical,
+          mental: hero.mental || attributes.mental,
+          stamina: hero.stamina || attributes.stamina,
+        };
+      }
+    } else {
+      // FC25 stats are present
+      if (age < 23) potential = Math.min(99, overall + 5 + (nameSeed % 5));
+      else if (age < 26) potential = Math.min(99, overall + 2);
     }
 
     squad.push({
@@ -721,8 +724,8 @@ export function generateSquadForClub(clubId: string, clubRep: number): Player[] 
       stamina: attributes.stamina,
       overall: overall,
       potential: potential,
-      wage: calculateWage(overall, clubRep),
-      value: calculateValue(overall, age, potential, clubRep),
+      wage: preset.wage || calculateWage(overall, clubRep),
+      value: preset.value || calculateValue(overall, age, potential, clubRep),
       morale: 80 + (nameSeed % 20),
       personality: PERSONALITIES[nameSeed % PERSONALITIES.length],
       contractExpiry: (nameSeed % 4) + 1,
