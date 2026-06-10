@@ -615,6 +615,10 @@ import realSquads from './realSquads.json';
 // Seed generator
 
 const OVERRIDE_ATTRIBUTES: Record<string, Partial<Player>> = {
+  "Declan Rice": { overall: 87, potential: 88, pace: 74, shooting: 73, passing: 83, dribbling: 79, defending: 85, physical: 84, mental: 86, stamina: 92, age: 25 },
+  "William Saliba": { overall: 88, potential: 92, pace: 82, shooting: 40, passing: 78, dribbling: 74, defending: 89, physical: 85, mental: 84, stamina: 82, age: 23 },
+  "Gabriel Magalhães": { overall: 86, potential: 87, pace: 73, shooting: 35, passing: 70, dribbling: 65, defending: 87, physical: 89, mental: 82, stamina: 80, age: 26 },
+  "Kai Havertz": { overall: 85, potential: 87, pace: 80, shooting: 82, passing: 81, dribbling: 84, defending: 55, physical: 78, mental: 84, stamina: 85, age: 25 },
   "Endrick": { overall: 82, potential: 93, pace: 89, shooting: 84, passing: 72, dribbling: 85, defending: 35, physical: 78, mental: 75, stamina: 76, age: 19 },
   "Arda Güler": { overall: 83, potential: 92, pace: 78, shooting: 81, passing: 86, dribbling: 87, defending: 45, physical: 60, mental: 82, stamina: 75, age: 21 },
   "Leny Yoro": { overall: 81, potential: 90, pace: 78, shooting: 40, passing: 74, dribbling: 70, defending: 83, physical: 80, mental: 78, stamina: 76, age: 20 },
