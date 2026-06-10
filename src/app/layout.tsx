@@ -19,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={cn("font-sans", outfit.variable)}>
-      <body className="antialiased bg-[#0B0C10] text-[#f8fafc] overflow-hidden">
+      <body className="antialiased bg-[#0B0C10] text-[#f8fafc]">
         <GameProvider>
           {children}
         </GameProvider>
