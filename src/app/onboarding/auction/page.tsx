@@ -23,10 +23,12 @@ export default function PreSeasonAuction() {
 
   useEffect(() => {
     if (activeSave && marketPool.length === 0) {
-      // Generate a pool of 50 available players from other clubs
-      const otherPlayers = activeSave.players.filter(p => p.clubId !== activeSave.selectedClubId && p.overall > 60);
-      // Shuffle
-      const shuffled = [...otherPlayers].sort(() => 0.5 - Math.random());
+      // Generate a pool of 50 available players from other clubs, prioritizing GREAT players
+      const otherPlayers = activeSave.players.filter(p => p.clubId !== activeSave.selectedClubId && p.overall >= 78);
+      // Take the top 150 players globally
+      const topPlayers = [...otherPlayers].sort((a,b) => b.overall - a.overall).slice(0, 150);
+      // Shuffle the top 150 and present 50
+      const shuffled = topPlayers.sort(() => 0.5 - Math.random());
       setMarketPool(shuffled.slice(0, 50));
     }
   }, [activeSave, marketPool.length]);

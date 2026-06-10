@@ -735,6 +735,53 @@ export function generateSquadForClub(clubId: string, clubRep: number): Player[] 
       ratingHistory: []
     });
   }
+  // If squad is too small (e.g. no real players in JSON), generate fill-ins
+  const targetSquadSize = 22;
+  const positions: ("GK" | "DEF" | "MID" | "ATT")[] = ["GK", "GK", "DEF", "DEF", "DEF", "DEF", "DEF", "DEF", "MID", "MID", "MID", "MID", "MID", "MID", "ATT", "ATT", "ATT", "ATT", "ATT", "DEF", "MID", "ATT"];
+  
+  while (squad.length < targetSquadSize) {
+    const pos = positions[squad.length % positions.length];
+    const first = COMMON_FIRST_NAMES[Math.floor(prng() * COMMON_FIRST_NAMES.length)];
+    const last = COMMON_LAST_NAMES[Math.floor(prng() * COMMON_LAST_NAMES.length)];
+    const nat = NATIONALITIES[Math.floor(prng() * NATIONALITIES.length)];
+    
+    let baseOverall = clubRep - 5 + Math.floor(prng() * 10) - 5;
+    let age = 18 + Math.floor(prng() * 14);
+    
+    let overall = Math.min(99, Math.max(50, baseOverall));
+    let potential = Math.min(99, overall + 2 + Math.floor(prng() * 8));
+    
+    let attributes = distributeAttributes(pos, overall);
+
+    squad.push({
+      id: `${clubId}_gen_${idCounter++}`,
+      clubId,
+      name: `${first} ${last}`,
+      position: pos,
+      age: age,
+      nationality: nat.name,
+      nationalityFlag: nat.flag,
+      pace: attributes.pace,
+      shooting: attributes.shooting,
+      passing: attributes.passing,
+      dribbling: attributes.dribbling,
+      defending: attributes.defending,
+      physical: attributes.physical,
+      mental: attributes.mental,
+      stamina: attributes.stamina,
+      overall: overall,
+      potential: potential,
+      wage: calculateWage(overall, clubRep),
+      value: calculateValue(overall, age, potential, clubRep),
+      morale: 80 + Math.floor(prng() * 20),
+      personality: PERSONALITIES[Math.floor(prng() * PERSONALITIES.length)],
+      contractExpiry: 1 + Math.floor(prng() * 4),
+      injuryStatus: "Fit",
+      goals: 0,
+      assists: 0,
+      ratingHistory: []
+    });
+  }
 
   return squad.map(p => computeTruePositionAndRole(p));
 }
