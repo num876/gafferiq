@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useReducer, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useGame } from "../../../context/GameContext";
-import { MatchEvent, MatchStats } from "../../../db/storage";
+import { MatchEvent, MatchStats, SaveState, MatchFixture } from "../../../db/storage";
 import { Player, Club } from "../../../config/seededData";
 import { autoSelectLineup, simulateMatchHeuristic } from "../../../engine/simulator";
 import { 
@@ -381,23 +381,8 @@ const getStrength = (starters: Player[]) => starters.reduce((s, p) => s + p.over
 
 // --- COMPONENT ---
 export default function MatchViewer() {
-  const router = useRouter();
-  const { activeSave, completeLiveMatch, advanceToNextMatchday } = useGame();
+  const { activeSave, advanceToNextMatchday } = useGame();
   
-  const [state, dispatch] = useReducer(matchReducer, initialState);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const feedRef = useRef<HTMLDivElement>(null);
-
-  // Modal States
-  const [teamTalkModal, setTeamTalkModal] = useState(false);
-  const [teamTalkMsg, setTeamTalkMsg] = useState("");
-  const [subModal, setSubModal] = useState(false);
-  const [subOffId, setSubOffId] = useState<string | null>(null);
-
-  // Quick Sim state
-  const [quickSimResult, setQuickSimResult] = useState<{ homeScore: number; awayScore: number; events: MatchEvent[] } | null>(null);
-  const [quickSimDone, setQuickSimDone] = useState(false);
-
   if (!activeSave) return null;
 
   const playerClub = activeSave.clubs.find(c => c.id === activeSave.selectedClubId)!;
@@ -413,6 +398,27 @@ export default function MatchViewer() {
       </div>
     );
   }
+
+  return <MatchEngine activeSave={activeSave} playerClub={playerClub} fixture={fixture} />;
+}
+
+function MatchEngine({ activeSave, playerClub, fixture }: { activeSave: SaveState; playerClub: Club; fixture: MatchFixture }) {
+  const router = useRouter();
+  const { completeLiveMatch } = useGame();
+  
+  const [state, dispatch] = useReducer(matchReducer, initialState);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const feedRef = useRef<HTMLDivElement>(null);
+
+  // Modal States
+  const [teamTalkModal, setTeamTalkModal] = useState(false);
+  const [teamTalkMsg, setTeamTalkMsg] = useState("");
+  const [subModal, setSubModal] = useState(false);
+  const [subOffId, setSubOffId] = useState<string | null>(null);
+
+  // Quick Sim state
+  const [quickSimResult, setQuickSimResult] = useState<{ homeScore: number; awayScore: number; events: MatchEvent[] } | null>(null);
+  const [quickSimDone, setQuickSimDone] = useState(false);
 
   const isHome = fixture.homeClubId === playerClub.id;
   const opponentClub = activeSave.clubs.find(c => c.id === (isHome ? fixture.awayClubId : fixture.homeClubId))!;

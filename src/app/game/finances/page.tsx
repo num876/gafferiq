@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useGame } from "../../../context/GameContext";
-import { Club } from "../../../config/seededData";
+
 import { motion } from "framer-motion";
 
 export default function FinancesPage() {

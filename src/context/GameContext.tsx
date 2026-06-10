@@ -619,6 +619,11 @@ We have reset the standings and scheduled the fixtures for Season ${state.curren
       // Random event: Board review or Player moral complaints
       triggerRandomSaveEvent(state);
 
+      // Transfer window logic
+      const isTransferWindow = (state.currentMatchday >= 1 && state.currentMatchday <= 4) || (state.currentMatchday >= 19 && state.currentMatchday <= 22);
+      if (isTransferWindow) {
+        const playerClub = state.clubs.find(c => c.id === state.selectedClubId)!;
+        const listedPlayers = state.players.filter(p => p.clubId === playerClub.id && p.isTransferListed);
         
         listedPlayers.forEach(player => {
           if (!player.transferOffers) player.transferOffers = [];

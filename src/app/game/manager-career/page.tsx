@@ -2,9 +2,8 @@
 "use client";
 
 import React from "react";
-import { useGame } from "../../context/GameContext";
+import { useGame } from "../../../context/GameContext";
 import { User } from "lucide-react";
-import Link from "next/link";
 
 export default function ManagerCareerPage() {
   const { activeSave, updateActiveSave, exitToMainMenu } = useGame();
@@ -17,7 +16,7 @@ export default function ManagerCareerPage() {
     );
   }
 
-  const { manager, jobOffers, clubs } = activeSave;
+  const { manager, jobOffers } = activeSave;
 
   const applyOffer = (offer: { clubId: string; clubName: string; requiredReputation: number }) => {
     // Update selected club

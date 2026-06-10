@@ -714,64 +714,6 @@ export function generateSquadForClub(clubId: string, clubRep: number): Player[] 
     });
   }
 
-  // If Wikipedia failed or we have fewer than 18 players, pad out the squad
-  const positionsNeeded = ["GK", "GK", "DEF", "DEF", "DEF", "DEF", "DEF", "MID", "MID", "MID", "MID", "MID", "MID", "ATT", "ATT", "ATT", "ATT", "ATT"];
-  
-  // Count what we have
-  const counts = { GK: 0, DEF: 0, MID: 0, ATT: 0 };
-  squad.forEach(p => counts[p.position]++);
-  
-  for (const requiredPos of positionsNeeded) {
-    if (counts[requiredPos as keyof typeof counts] > 0) {
-      counts[requiredPos as keyof typeof counts]--;
-      continue;
-    }
-    
-    // Generate a fallback generic player
-    let baseAvg = 60;
-    if (clubRep >= 90) baseAvg = 82;
-    else if (clubRep >= 80) baseAvg = 78;
-    else if (clubRep >= 75) baseAvg = 74;
-    else if (clubRep >= 70) baseAvg = 70;
-    else baseAvg = 66;
-
-    const variance = Math.floor(prng() * 8) - 4;
-    const ovr = Math.max(50, Math.min(99, baseAvg + variance));
-    
-    const randomNationality = NATIONALITIES[Math.floor(prng() * NATIONALITIES.length)];
-    const firstName = COMMON_FIRST_NAMES[Math.floor(prng() * COMMON_FIRST_NAMES.length)];
-    const lastName = COMMON_LAST_NAMES[Math.floor(prng() * COMMON_LAST_NAMES.length)];
-
-    squad.push({
-      id: `${clubId}_gen_${idCounter++}`,
-      clubId,
-      name: `${firstName} ${lastName}`,
-      position: requiredPos as "GK" | "DEF" | "MID" | "ATT",
-      age: Math.floor(prng() * 14) + 18,
-      nationality: randomNationality.name,
-      nationalityFlag: randomNationality.flag,
-      pace: Math.floor(prng() * 20) + (ovr - 10),
-      shooting: Math.floor(prng() * 20) + (requiredPos === 'ATT' ? ovr : ovr - 20),
-      passing: Math.floor(prng() * 20) + (ovr - 10),
-      dribbling: Math.floor(prng() * 20) + (ovr - 10),
-      defending: Math.floor(prng() * 20) + (requiredPos === 'DEF' ? ovr : ovr - 20),
-      physical: Math.floor(prng() * 20) + (ovr - 10),
-      mental: Math.floor(prng() * 20) + (ovr - 10),
-      stamina: Math.floor(prng() * 20) + (ovr - 10),
-      overall: ovr,
-      potential: Math.min(99, ovr + Math.floor(prng() * 12)),
-      wage: calculateWage(ovr, clubRep),
-      value: calculateValue(ovr, Math.floor(prng() * 14) + 18, Math.min(99, ovr + Math.floor(prng() * 12)), clubRep),
-      morale: 80 + Math.floor(prng() * 20),
-      personality: PERSONALITIES[Math.floor(prng() * PERSONALITIES.length)],
-      contractExpiry: Math.floor(prng() * 4) + 1,
-      injuryStatus: "Fit",
-      goals: 0,
-      assists: 0,
-      ratingHistory: []
-    });
-  }
-
   return squad;
 }
 

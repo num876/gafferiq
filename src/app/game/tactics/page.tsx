@@ -11,7 +11,8 @@ import {
   autoSelectLineup, TacticalInstructions, DEFAULT_TACTICS, 
   TACTIC_PRESETS, PLAYER_ROLES, computeTacticsRating
 } from "../../../engine/simulator";
-import { Player } from "../../../config/seededData";
+import { SaveState } from "../../../db/storage";
+import { Player, Club } from "../../../config/seededData";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ─────────────────────────────────────────────
@@ -276,9 +277,20 @@ const ToggleSwitch = ({ label, value, onChange, tooltip, warning }: {
 // ─────────────────────────────────────────────
 // MAIN COMPONENT
 // ─────────────────────────────────────────────
+// MAIN COMPONENT
+// ─────────────────────────────────────────────
 export default function Tactics() {
   const { activeSave, updateActiveSave } = useGame();
   
+  if (!activeSave) return null;
+
+  const playerClub = activeSave.clubs.find(c => c.id === activeSave.selectedClubId)!;
+  const squad = activeSave.players.filter(p => p.clubId === playerClub.id && !p.isAcademy);
+
+  return <TacticsInner activeSave={activeSave} updateActiveSave={updateActiveSave} playerClub={playerClub} squad={squad} />;
+}
+
+function TacticsInner({ activeSave, updateActiveSave, playerClub, squad }: { activeSave: SaveState; updateActiveSave: (state: SaveState) => void; playerClub: Club; squad: Player[] }) {
   const [activeTab, setActiveTab] = useState<TacticsTab>("formation");
   const [instructionsSection, setInstructionsSection] = useState<InstructionsSection>("inPossession");
   const [formation, setFormation] = useState("4-3-3");
@@ -288,11 +300,6 @@ export default function Tactics() {
   const [notif, setNotif] = useState("");
   const [selectedNode, setSelectedNode] = useState<{ index: number; player: Player; spot: any } | null>(null);
   const [initialized, setInitialized] = useState(false);
-
-  if (!activeSave) return null;
-
-  const playerClub = activeSave.clubs.find(c => c.id === activeSave.selectedClubId)!;
-  const squad = activeSave.players.filter(p => p.clubId === playerClub.id && !p.isAcademy);
 
   useEffect(() => {
     if (!activeSave || initialized) return;

@@ -1,5 +1,5 @@
 import { SaveState } from "../db/storage";
-import { prng } from "../config/seededData";
+
 
 export function processGlobalTransfers(save: SaveState): SaveState {
   const matchday = save.currentMatchday;
