@@ -1088,14 +1088,16 @@ function triggerRandomSaveEvent(state: SaveState) {
   }
 
   // Realistic News Generation
-  if (Math.random() < 0.35) {
+  if (Math.random() < 0.45) { // increased frequency slightly
     if (!state.newsFeed) state.newsFeed = [];
     const newsAuthors = [
       { name: "Fabrizio Romano", handle: "@FabrizioRomano" },
       { name: "David Ornstein", handle: "@David_Ornstein" },
       { name: "The Athletic FC", handle: "@TheAthleticFC" },
       { name: "Sky Sports News", handle: "@SkySportsNews" },
-      { name: "Goal", handle: "@goal" }
+      { name: "Goal", handle: "@goal" },
+      { name: "ESPN FC", handle: "@ESPNFC" },
+      { name: "B/R Football", handle: "@brfootball" }
     ];
     
     const randomPlayer = state.players[Math.floor(Math.random() * state.players.length)];
@@ -1106,11 +1108,32 @@ function triggerRandomSaveEvent(state: SaveState) {
     
     let content = "";
     if (type === "transfer") {
-      content = `🚨 EXCLUSIVE: ${randomClub.name} are reportedly monitoring ${randomPlayer.name}. Negotiations could start soon!`;
+      const templates = [
+        `🚨 EXCLUSIVE: ${randomClub.name} are reportedly monitoring ${randomPlayer.name}. Negotiations could start soon!`,
+        `BREAKING: Advanced talks between ${randomClub.name} and the representatives of ${randomPlayer.name}. Deal getting closer. ⏳`,
+        `Sources confirm ${randomClub.name} are preparing a massive bid for ${randomPlayer.name}. Will his club let him go?`,
+        `${randomPlayer.name} has verbally agreed personal terms with ${randomClub.name}. Now waiting for the clubs to agree on a fee.`,
+        `Surprise move? ${randomClub.name} have inquired about the availability of ${randomPlayer.name}.`
+      ];
+      content = templates[Math.floor(Math.random() * templates.length)];
     } else if (type === "drama") {
-      content = `Tension inside the dressing room! Sources say ${randomPlayer.name} is unhappy with the current tactics at his club.`;
+      const templates = [
+        `Tension inside the dressing room! Sources say ${randomPlayer.name} is unhappy with the current tactics at his club.`,
+        `Spotted: ${randomPlayer.name} storming down the tunnel after being substituted last weekend. Manager says "it's an internal matter."`,
+        `Reports suggest a training ground bust-up involving ${randomPlayer.name}. Is he forcing a move away?`,
+        `The fans are turning on the board at ${randomClub.name} after a string of poor decisions. "We demand change!"`,
+        `${randomClub.name} manager under massive pressure as rumors circulate that the board has lost confidence in his project.`
+      ];
+      content = templates[Math.floor(Math.random() * templates.length)];
     } else {
-      content = `${randomClub.name} manager says the team is fully focused on the next match despite recent controversies.`;
+      const templates = [
+        `${randomClub.name} manager says the team is fully focused on the next match despite recent controversies.`,
+        `Injury blow for ${randomPlayer.name}? He was seen limping during training today. Tests pending.`,
+        `An incredible season so far for ${randomPlayer.name}, whose underlying stats suggest he is currently one of the best in his position globally.`,
+        `The atmosphere at the ${randomClub.name} stadium is expected to be electric this weekend as they prepare for a crucial fixture.`,
+        `Stat of the day: ${randomPlayer.name} has covered more ground than any other player in the league over the last 3 matchdays.`
+      ];
+      content = templates[Math.floor(Math.random() * templates.length)];
     }
     
     state.newsFeed.unshift({
