@@ -86,35 +86,35 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
       {/* ── IMMERSIVE TOP NAVIGATION ── */}
       <header className="flex flex-col z-50">
         {/* Top bar (Status & Actions) */}
-        <div className="h-14 bg-fm-navy/90 backdrop-blur-xl border-b border-white/5 px-6 flex items-center justify-between shadow-2xl">
+        <div className="h-12 md:h-14 bg-fm-navy/90 backdrop-blur-xl border-b border-white/5 px-3 md:px-6 flex items-center justify-between shadow-2xl gap-2">
           
           {/* Left: Branding & Club */}
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <Shield className="w-5 h-5 text-fm-neonCyan animate-neon-cyan rounded-full" />
-              <span className="font-black text-white uppercase text-sm tracking-widest">Gaffer<span className="text-fm-neonCyan">IQ</span></span>
+          <div className="flex items-center gap-3 md:gap-6 min-w-0">
+            <div className="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
+              <Shield className="w-4 h-4 md:w-5 md:h-5 text-fm-neonCyan animate-neon-cyan rounded-full" />
+              <span className="font-black text-white uppercase text-xs md:text-sm tracking-widest">Gaffer<span className="text-fm-neonCyan">IQ</span></span>
             </div>
 
-            <div className="hidden sm:flex items-center gap-3 pl-6 border-l border-white/10">
+            <div className="hidden md:flex items-center gap-3 pl-6 border-l border-white/10">
               <div 
-                className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs shadow-lg"
+                className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs shadow-lg flex-shrink-0"
                 style={{ backgroundColor: playerClub.primaryColor, color: playerClub.secondaryColor === "#ffffff" ? "#0f172a" : playerClub.secondaryColor }}
               >
                 {playerClub.name.charAt(0).toUpperCase()}
               </div>
-              <div className="flex flex-col">
-                <h4 className="text-xs font-black text-white leading-tight tracking-wide">{playerClub.name}</h4>
-                <p className="text-[9px] text-fm-slate font-bold uppercase tracking-widest">{activeSave.manager.firstName} {activeSave.manager.lastName}</p>
+              <div className="flex flex-col min-w-0">
+                <h4 className="text-xs font-black text-white leading-tight tracking-wide truncate">{playerClub.name}</h4>
+                <p className="text-[8px] md:text-[9px] text-fm-slate font-bold uppercase tracking-widest truncate">{activeSave.manager.firstName} {activeSave.manager.lastName}</p>
               </div>
             </div>
           </div>
 
-          {/* Center: Context & Stats */}
-          <div className="hidden lg:flex items-center gap-6 text-[10px] font-black uppercase tracking-widest text-fm-slate bg-fm-navyLight/80 px-6 py-2 rounded-full border border-white/5">
+          {/* Center: Context & Stats - Hidden on mobile */}
+          <div className="hidden lg:flex items-center gap-4 md:gap-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-fm-slate bg-fm-navyLight/80 px-4 md:px-6 py-2 rounded-full border border-white/5 whitespace-nowrap">
             <div className="flex items-center gap-2">
-              <span className="text-white">Season {activeSave.currentSeason}</span>
+              <span className="text-white">S{activeSave.currentSeason}</span>
               <span className="text-fm-neonCyan">•</span>
-              <span className="text-white">Matchday {activeSave.currentMatchday}</span>
+              <span className="text-white">MD{activeSave.currentMatchday}</span>
             </div>
             <div className="w-px h-3 bg-white/10" />
             <div className="flex items-center gap-2">
@@ -129,34 +129,35 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
             <button
               onClick={handleExit}
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded text-[10px] font-black uppercase text-fm-slate hover:text-rose-500 transition-colors"
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded text-[9px] md:text-[10px] font-black uppercase text-fm-slate hover:text-rose-500 transition-colors"
             >
               <LogOut className="w-3.5 h-3.5" /> Exit
             </button>
             <button
               onClick={handleAdvance}
-              className={`px-6 py-2 rounded font-black text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-2xl transition-all hover:scale-105 active:scale-95 ${!isMatchPlayed ? 'bg-fm-neonMagenta text-white hover:bg-pink-500 animate-neon-magenta' : 'bg-fm-neonCyan text-fm-navyDark hover:bg-cyan-300 animate-neon-cyan'}`}
+              className={`px-4 md:px-6 py-1.5 md:py-2 rounded-lg md:rounded-lg font-black text-[9px] md:text-[10px] uppercase tracking-widest flex items-center gap-1 md:gap-2 shadow-2xl transition-all hover:scale-105 active:scale-95 ${!isMatchPlayed ? 'bg-fm-neonMagenta text-white hover:bg-pink-500 animate-neon-magenta' : 'bg-fm-neonCyan text-fm-navyDark hover:bg-cyan-300 animate-neon-cyan'}`}
             >
               {!isMatchPlayed ? (
                 <>
-                  <Play className="w-3.5 h-3.5 fill-current" />
-                  Play Match
+                  <Play className="w-3 h-3 md:w-3.5 md:h-3.5 fill-current" />
+                  <span className="hidden sm:inline">Play</span>
                 </>
               ) : (
                 <>
-                  Advance
-                  <ChevronRight className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Advance</span>
+                  <ChevronRight className="w-3 h-3 md:w-3.5 md:h-3.5 sm:hidden" />
+                  <ChevronRight className="w-3 h-3 md:w-3.5 md:h-3.5 hidden sm:inline" />
                 </>
               )}
             </button>
           </div>
         </div>
 
-        {/* Bottom bar (Navigation) */}
-        <nav className="h-12 bg-fm-navyLight/60 backdrop-blur-md border-b border-white/5 px-6 flex items-center gap-1 overflow-x-auto scrollbar-hide shadow-xl">
+        {/* Bottom bar (Navigation) - Scrollable on mobile */}
+        <nav className="h-10 md:h-12 bg-fm-navyLight/60 backdrop-blur-md border-b border-white/5 px-3 md:px-6 flex items-center gap-1 overflow-x-auto scrollbar-hide shadow-xl">
           {menuItems.map(item => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -164,10 +165,10 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all duration-300 shrink-0 ${isActive ? 'bg-fm-purple/50 text-fm-neonCyan border-b-2 border-fm-neonCyan shadow-[0_0_15px_rgba(0,229,255,0.2)]' : 'text-fm-slate hover:text-white hover:bg-white/5'}`}
+                className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-lg text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all duration-300 shrink-0 whitespace-nowrap ${isActive ? 'bg-fm-purple/50 text-fm-neonCyan border-b-2 border-fm-neonCyan shadow-[0_0_15px_rgba(0,229,255,0.2)]' : 'text-fm-slate hover:text-white hover:bg-white/5'}`}
               >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? 'drop-shadow-[0_0_5px_rgba(0,229,255,0.8)]' : ''}`} />
-                {item.name}
+                <Icon className={`w-3 h-3 md:w-3.5 md:h-3.5 ${isActive ? 'drop-shadow-[0_0_5px_rgba(0,229,255,0.8)]' : ''}`} />
+                <span className="hidden sm:inline">{item.name}</span>
               </Link>
             );
           })}
@@ -175,7 +176,7 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
       </header>
 
       {/* ── DYNAMIC CONTENT AREA ── */}
-      <main className="flex-1 overflow-y-auto p-4 md:p-8 relative z-10">
+      <main className="flex-1 overflow-y-auto p-3 md:p-8 relative z-10">
         {/* We rely on the layout wrapper to provide the full-bleed background set in globals.css */}
         <div className="mx-auto w-full max-w-7xl min-h-full flex flex-col">
           {children}
