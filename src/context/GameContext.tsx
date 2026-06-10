@@ -49,8 +49,34 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const loadSave = (id: string) => {
     loadAllSaves().then(list => {
-      const found = list.find(s => s.id === id);
+      let found = list.find(s => s.id === id);
       if (found) {
+        if (found.lastActiveTimestamp) {
+          const now = Date.now();
+          const msPassed = now - found.lastActiveTimestamp;
+          const hoursPassed = msPassed / (1000 * 60 * 60);
+          
+          if (hoursPassed >= 1) {
+            const idleIncome = Math.floor(hoursPassed * 150000); // 150k per hour
+            
+            found.bankBalance += idleIncome;
+            found.inbox.unshift({
+              id: `idle_${Date.now()}`,
+              sender: "Club Secretary",
+              subject: "While you were away...",
+              body: `Welcome back, boss. While you were away for ${Math.floor(hoursPassed)} hours, the club generated €${(idleIncome/1000).toFixed(0)}k in commercial revenue, and the squad completed their scheduled training sessions.`,
+              date: "Just Now",
+              read: false,
+              type: "board"
+            });
+
+            if (typeof Notification !== "undefined" && Notification.permission === 'granted') {
+              new Notification('GafferIQ', { body: `Your club earned €${(idleIncome/1000000).toFixed(1)}M while you were away!` });
+            }
+          }
+        }
+        
+        found.lastActiveTimestamp = Date.now();
         setActiveSave(found);
         sessionStorage.setItem("gaffer_iq_active_save_id", id);
       }
@@ -59,6 +85,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const createNewGame = (saveName: string, manager: Manager, clubId: string, speed: "Quick Sim" | "Detailed Sim") => {
     const newSave = dbCreateNewSave(saveName, manager, clubId, speed);
+    newSave.lastActiveTimestamp = Date.now();
     saveGame(newSave);
     setActiveSave(newSave);
     sessionStorage.setItem("gaffer_iq_active_save_id", newSave.id);
@@ -75,6 +102,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateActiveSave = (state: SaveState) => {
+    state.lastActiveTimestamp = Date.now();
     setActiveSave(state);
     saveGame(state);
     refreshSaves();

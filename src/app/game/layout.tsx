@@ -155,8 +155,8 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
           </div>
         </div>
 
-        {/* Bottom bar (Navigation) */}
-        <nav className="h-12 bg-fm-navyLight/60 backdrop-blur-md border-b border-white/5 px-6 flex items-center gap-1 overflow-x-auto scrollbar-hide shadow-xl">
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex h-12 bg-fm-navyLight/60 backdrop-blur-md border-b border-white/5 px-6 items-center gap-1 overflow-x-auto scrollbar-hide shadow-xl">
           {menuItems.map(item => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -175,12 +175,35 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
       </header>
 
       {/* ── DYNAMIC CONTENT AREA ── */}
-      <main className="flex-1 overflow-y-auto p-4 md:p-8 relative z-10">
+      <main className="flex-1 overflow-y-auto p-4 md:p-8 relative z-10 pb-20 md:pb-8">
         {/* We rely on the layout wrapper to provide the full-bleed background set in globals.css */}
         <div className="mx-auto w-full max-w-7xl min-h-full flex flex-col">
           {children}
         </div>
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-fm-navyDark/95 backdrop-blur-xl border-t border-white/10 px-2 flex items-center justify-around z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+        {menuItems.slice(0, 5).map(item => {
+          const Icon = item.icon;
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-all duration-300 w-16 ${isActive ? 'text-fm-neonCyan' : 'text-fm-slate hover:text-white'}`}
+            >
+              <Icon className={`w-5 h-5 ${isActive ? 'drop-shadow-[0_0_5px_rgba(0,229,255,0.8)]' : ''}`} />
+              <span className="text-[8px] font-black uppercase tracking-widest truncate w-full text-center">{item.name}</span>
+            </Link>
+          );
+        })}
+        {/* More Menu Dropdown trigger could go here, for now we just show top 5 on mobile */}
+        <Link href="/game/more" className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-all duration-300 w-16 text-fm-slate hover:text-white`}>
+            <LayoutDashboard className="w-5 h-5" />
+            <span className="text-[8px] font-black uppercase tracking-widest">More</span>
+        </Link>
+      </nav>
 
     </div>
   );

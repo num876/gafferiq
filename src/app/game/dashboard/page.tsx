@@ -169,6 +169,38 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Web Push Notification Banner */}
+        {typeof Notification !== "undefined" && Notification.permission === "default" && (
+          <div className="glass-card rounded-2xl p-4 border border-blue-500/20 bg-blue-500/5 flex flex-col sm:flex-row items-center justify-between gap-4 relative overflow-hidden">
+             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-[50px] rounded-full pointer-events-none" />
+             <div className="flex items-center gap-4 relative z-10">
+               <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0">
+                 <AlertCircle className="w-5 h-5 text-blue-400" />
+               </div>
+               <div>
+                 <h4 className="text-sm font-black text-white">Enable Push Notifications</h4>
+                 <p className="text-[10px] text-slate-400 mt-0.5">Get notified about idle income and offline simulation results.</p>
+               </div>
+             </div>
+             <button 
+               onClick={() => {
+                 if (typeof Notification !== "undefined") {
+                   Notification.requestPermission().then(permission => {
+                     // Force re-render to hide banner
+                     window.location.reload(); 
+                     if (permission === "granted") {
+                       new Notification("GafferIQ", { body: "Push notifications enabled! You will receive important game updates." });
+                     }
+                   });
+                 }
+               }} 
+               className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-4 py-2 rounded-lg transition relative z-10 whitespace-nowrap"
+             >
+               Enable Now
+             </button>
+          </div>
+        )}
+
         {/* Form Guide & League Position & Squad Morale Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           

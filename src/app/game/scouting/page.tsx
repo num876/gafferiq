@@ -8,11 +8,80 @@ import { Player, Club, calculateValue } from "../../../config/seededData";
 import { ScoutTask, Scout, SCOUTING_REGIONS } from "../../../db/storage";
 import { 
   Search, Eye, Shield, Users, Calendar, Sparkles, UserPlus, 
-  Trash2, Compass, AlertCircle, BarChart2, Star, CheckCircle, PlusCircle
+  Trash2, Compass, AlertCircle, BarChart2, Star, CheckCircle, PlusCircle, ThumbsUp, ThumbsDown
 } from "lucide-react";
+import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 
 interface ScoutDisplay extends Scout {
   status: "Idle" | "Scouting";
+}
+
+function SwipeableReportCard({ report, onSwipeLeft, onSwipeRight, isTop }: { report: ScoutTask, onSwipeLeft: () => void, onSwipeRight: () => void, isTop: boolean }) {
+  const x = useMotionValue(0);
+  const rotate = useTransform(x, [-200, 200], [-10, 10]);
+  const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0]);
+  
+  const handleDragEnd = (event: any, info: any) => {
+    if (info.offset.x > 100) {
+      onSwipeRight();
+    } else if (info.offset.x < -100) {
+      onSwipeLeft();
+    }
+  };
+
+  return (
+    <motion.div
+      style={{ x, rotate, opacity }}
+      drag={isTop ? "x" : false}
+      dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+      onDragEnd={handleDragEnd}
+      className={`absolute w-full max-w-sm left-1/2 -translate-x-1/2 p-6 rounded-3xl border border-slate-700 bg-slate-900/95 backdrop-blur-md shadow-2xl flex flex-col gap-4 cursor-grab active:cursor-grabbing origin-bottom ${isTop ? 'z-10' : 'z-0 scale-95 opacity-50'}`}
+      initial={{ scale: 0.9, opacity: 0 }}
+      animate={{ scale: isTop ? 1 : 0.95, opacity: isTop ? 1 : 0.5, y: isTop ? 0 : 20 }}
+      exit={{ x: x.get() > 0 ? 300 : -300, opacity: 0 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+    >
+      <div className="flex justify-between items-start">
+        <div>
+          <h4 className="font-extrabold text-white text-xl">{report.playerName}</h4>
+          <span className="text-sm text-sky-400 font-bold">{report.position} • {report.playerClub}</span>
+        </div>
+      </div>
+      
+      <div className="bg-slate-950/50 p-4 rounded-xl flex flex-col gap-3 border border-white/5">
+        <div className="flex justify-between items-center">
+          <span className="text-slate-400 text-xs uppercase tracking-widest font-black">Est Potential</span>
+          <span className="font-black text-green-400 text-lg">{report.playerRatingMin === report.playerRatingMax ? report.playerRatingMin : `${report.playerRatingMin}-${report.playerRatingMax}`} <span className="text-xs text-slate-600">/ 99</span></span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-slate-400 text-xs uppercase tracking-widest font-black">Est Value</span>
+          <span className="font-black text-white text-lg">€{(report.estimatedValue!/1000000).toFixed(1)}M</span>
+        </div>
+      </div>
+
+      <div className="bg-emerald-950/30 p-3 rounded-lg border border-emerald-500/20 flex items-center gap-3 text-xs leading-relaxed text-emerald-100">
+        <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />
+        <span>
+          {report.playerAge! > 28 ? "Experienced player, good for short-term impact." : 
+           report.playerAge! < 22 ? "High developmental headroom, strong prospect." : 
+           "In their prime, ready for first-team action."}
+        </span>
+      </div>
+
+      {isTop && (
+        <div className="flex justify-between items-center mt-2 px-2 pointer-events-none">
+          <div className="flex flex-col items-center gap-1 text-rose-500/50">
+            <ThumbsDown className="w-6 h-6" />
+            <span className="text-[9px] font-black uppercase tracking-widest">Discard</span>
+          </div>
+          <div className="flex flex-col items-center gap-1 text-sky-400/50">
+            <ThumbsUp className="w-6 h-6" />
+            <span className="text-[9px] font-black uppercase tracking-widest">Shortlist</span>
+          </div>
+        </div>
+      )}
+    </motion.div>
+  );
 }
 
 export default function Scouting() {
@@ -621,59 +690,30 @@ export default function Scouting() {
                 Scouting Reports Archive
               </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="relative w-full h-[450px] flex justify-center mt-10">
                 {completedReports.length === 0 ? (
-                  <div className="glass-card p-6 text-center text-slate-500 font-bold rounded-xl text-xs col-span-2">
+                  <div className="glass-card p-6 text-center text-slate-500 font-bold rounded-xl text-xs w-full max-w-sm h-32 flex items-center justify-center">
                     No completed reports yet. Assign scouts under the "Scouting Hub" to receive reports.
                   </div>
                 ) : (
-                  completedReports.map((report) => (
-                    <div 
-                      key={report.id}
-                      className="glass-card p-4 rounded-xl border border-slate-850 flex flex-col gap-3 text-xs"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="font-extrabold text-slate-200 text-sm">{report.playerName}</h4>
-                          <span className="text-[10px] text-slate-450 mt-1 block font-bold">{report.position} • {report.playerClub}</span>
-                        </div>
-                        <div className="flex gap-2">
-                          <button onClick={() => addShortlist(report.playerClubId!)} className="w-7 h-7 flex items-center justify-center rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 transition border border-blue-500/20" title="Add to Shortlist">
-                            <Star className="w-3.5 h-3.5" />
-                          </button>
-                          <button onClick={() => {
-                            addShortlist(report.playerClubId!);
-                            router.push("/game/transfers");
-                          }} className="w-7 h-7 flex items-center justify-center rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 transition border border-amber-500/20" title="Make Transfer Offer">
-                            <BarChart2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button onClick={() => cancelScoutTask(report.id)} className="w-7 h-7 flex items-center justify-center rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 transition border border-rose-500/20" title="Delete Report">
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="border-t border-slate-900 pt-3 flex flex-col gap-2">
-                        <div className="flex justify-between">
-                          <span className="text-slate-500">Est Potential:</span>
-                          <span className="font-black text-green-400">{report.playerRatingMin === report.playerRatingMax ? report.playerRatingMin : `${report.playerRatingMin}-${report.playerRatingMax}`} / 99</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-500">Est Value:</span>
-                          <span className="font-extrabold text-slate-350">€{(report.estimatedValue!/1000000).toFixed(1)}M</span>
-                        </div>
-                      </div>
-
-                      <div className="bg-slate-950/60 p-2.5 rounded-lg border border-slate-850 flex items-center gap-2 text-[10px] leading-relaxed text-slate-400 mt-1">
-                        <CheckCircle className="w-3.5 h-3.5 text-green-500 shrink-0" />
-                        <span>
-                          {report.playerAge! > 28 ? "Experienced player, good for short-term impact." : 
-                           report.playerAge! < 22 ? "High developmental headroom, strong prospect." : 
-                           "In their prime, ready for first-team action."}
-                        </span>
-                      </div>
-                    </div>
-                  ))
+                  <AnimatePresence>
+                    {completedReports.map((report, index) => {
+                      const isTop = index === completedReports.length - 1;
+                      return (
+                        <SwipeableReportCard 
+                          key={report.id} 
+                          report={report} 
+                          isTop={isTop} 
+                          onSwipeLeft={() => cancelScoutTask(report.id)} 
+                          onSwipeRight={() => { 
+                            const p = activeSave.players.find(pl => pl.name === report.playerName);
+                            if (p) addShortlist(p.id); 
+                            cancelScoutTask(report.id); 
+                          }} 
+                        />
+                      );
+                    })}
+                  </AnimatePresence>
                 )}
               </div>
             </div>

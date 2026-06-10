@@ -318,6 +318,7 @@ export interface SaveState {
     formation: string;
     tactics: any;
   }>;
+  lastActiveTimestamp?: number;
   transferWindowOpen: boolean;
   difficulty: "Quick Sim" | "Detailed Sim";
   gameLog: string[];
