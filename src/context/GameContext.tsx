@@ -1088,7 +1088,7 @@ function triggerRandomSaveEvent(state: SaveState) {
   }
 
   // Realistic News Generation
-  if (Math.random() < 0.45) { // increased frequency slightly
+  if (Math.random() < 0.5) { // increased frequency again
     if (!state.newsFeed) state.newsFeed = [];
     const newsAuthors = [
       { name: "Fabrizio Romano", handle: "@FabrizioRomano" },
@@ -1097,13 +1097,15 @@ function triggerRandomSaveEvent(state: SaveState) {
       { name: "Sky Sports News", handle: "@SkySportsNews" },
       { name: "Goal", handle: "@goal" },
       { name: "ESPN FC", handle: "@ESPNFC" },
-      { name: "B/R Football", handle: "@brfootball" }
+      { name: "B/R Football", handle: "@brfootball" },
+      { name: "Gianluca Di Marzio", handle: "@DiMarzio" },
+      { name: "BBC Sport", handle: "@BBCSport" }
     ];
     
     const randomPlayer = state.players[Math.floor(Math.random() * state.players.length)];
     const randomClub = state.clubs[Math.floor(Math.random() * state.clubs.length)];
     const author = newsAuthors[Math.floor(Math.random() * newsAuthors.length)];
-    const types: ("transfer" | "drama" | "general")[] = ["transfer", "drama", "general"];
+    const types: ("transfer" | "drama" | "general" | "injury")[] = ["transfer", "drama", "general", "injury"];
     const type = types[Math.floor(Math.random() * types.length)];
     
     let content = "";
@@ -1113,7 +1115,12 @@ function triggerRandomSaveEvent(state: SaveState) {
         `BREAKING: Advanced talks between ${randomClub.name} and the representatives of ${randomPlayer.name}. Deal getting closer. ⏳`,
         `Sources confirm ${randomClub.name} are preparing a massive bid for ${randomPlayer.name}. Will his club let him go?`,
         `${randomPlayer.name} has verbally agreed personal terms with ${randomClub.name}. Now waiting for the clubs to agree on a fee.`,
-        `Surprise move? ${randomClub.name} have inquired about the availability of ${randomPlayer.name}.`
+        `Surprise move? ${randomClub.name} have inquired about the availability of ${randomPlayer.name}.`,
+        `Understand ${randomClub.name} have added ${randomPlayer.name} to their shortlist for the upcoming window. Nothing agreed yet.`,
+        `The agent of ${randomPlayer.name} has been spotted in the same city as the ${randomClub.name} executives. Coincidence?`,
+        `${randomClub.name} consider ${randomPlayer.name} a 'top target'. The manager is pushing hard for this signing.`,
+        `Contract extension talks for ${randomPlayer.name} have stalled. ${randomClub.name} are watching the situation closely.`,
+        `Done Deal? Sources say ${randomPlayer.name} to ${randomClub.name} is 99% completed. Medical tests scheduled for next week. Here we go soon?`
       ];
       content = templates[Math.floor(Math.random() * templates.length)];
     } else if (type === "drama") {
@@ -1122,16 +1129,35 @@ function triggerRandomSaveEvent(state: SaveState) {
         `Spotted: ${randomPlayer.name} storming down the tunnel after being substituted last weekend. Manager says "it's an internal matter."`,
         `Reports suggest a training ground bust-up involving ${randomPlayer.name}. Is he forcing a move away?`,
         `The fans are turning on the board at ${randomClub.name} after a string of poor decisions. "We demand change!"`,
-        `${randomClub.name} manager under massive pressure as rumors circulate that the board has lost confidence in his project.`
+        `${randomClub.name} manager under massive pressure as rumors circulate that the board has lost confidence in his project.`,
+        `${randomPlayer.name} has been fined by the club for arriving late to training for the third time this month.`,
+        `Leaked messages reveal a massive rift between the ${randomClub.name} manager and the squad's senior players.`,
+        `Controversy! Did the referee cost ${randomClub.name} the game? The manager faces a fine for his post-match comments.`,
+        `Fan protests outside the ${randomClub.name} training ground today. The atmosphere around the club is toxic right now.`,
+        `${randomPlayer.name}'s cryptic social media post has sent the fanbase into a frenzy. What does it mean?`
+      ];
+      content = templates[Math.floor(Math.random() * templates.length)];
+    } else if (type === "injury") {
+      const templates = [
+        `Injury blow for ${randomPlayer.name}? He was seen limping during training today. Tests pending.`,
+        `Terrible news for fans: ${randomPlayer.name} stretchered off during a behind-closed-doors friendly. Looks serious.`,
+        `Medical update: ${randomPlayer.name} successfully underwent surgery. He will be sidelined for several weeks.`,
+        `${randomClub.name} face an injury crisis! The medical room is full and the manager is running out of options.`,
+        `A minor muscle tweak means ${randomPlayer.name} is a doubt for the upcoming crucial fixture.`
       ];
       content = templates[Math.floor(Math.random() * templates.length)];
     } else {
       const templates = [
         `${randomClub.name} manager says the team is fully focused on the next match despite recent controversies.`,
-        `Injury blow for ${randomPlayer.name}? He was seen limping during training today. Tests pending.`,
         `An incredible season so far for ${randomPlayer.name}, whose underlying stats suggest he is currently one of the best in his position globally.`,
         `The atmosphere at the ${randomClub.name} stadium is expected to be electric this weekend as they prepare for a crucial fixture.`,
-        `Stat of the day: ${randomPlayer.name} has covered more ground than any other player in the league over the last 3 matchdays.`
+        `Stat of the day: ${randomPlayer.name} has covered more ground than any other player in the league over the last 3 matchdays.`,
+        `Tactical analysis: How ${randomClub.name} completely dominated the midfield in their recent fixtures.`,
+        `Is ${randomPlayer.name} the most underrated player in the league right now? The numbers say yes.`,
+        `${randomClub.name} announce a new multi-year stadium naming rights deal in a massive commercial boost.`,
+        `Pundits are tipping ${randomClub.name} to exceed expectations this season. "They are playing brilliant football."`,
+        `Flashback: On this day 10 years ago, ${randomClub.name} secured a historic victory. Will they replicate that magic today?`,
+        `Manager of the Month? The boss at ${randomClub.name} is receiving widespread praise for his innovative tactics.`
       ];
       content = templates[Math.floor(Math.random() * templates.length)];
     }
