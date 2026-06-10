@@ -1086,4 +1086,44 @@ function triggerRandomSaveEvent(state: SaveState) {
       });
     }
   }
+
+  // Realistic News Generation
+  if (Math.random() < 0.35) {
+    if (!state.newsFeed) state.newsFeed = [];
+    const newsAuthors = [
+      { name: "Fabrizio Romano", handle: "@FabrizioRomano" },
+      { name: "David Ornstein", handle: "@David_Ornstein" },
+      { name: "The Athletic FC", handle: "@TheAthleticFC" },
+      { name: "Sky Sports News", handle: "@SkySportsNews" },
+      { name: "Goal", handle: "@goal" }
+    ];
+    
+    const randomPlayer = state.players[Math.floor(Math.random() * state.players.length)];
+    const randomClub = state.clubs[Math.floor(Math.random() * state.clubs.length)];
+    const author = newsAuthors[Math.floor(Math.random() * newsAuthors.length)];
+    const types: ("transfer" | "drama" | "general")[] = ["transfer", "drama", "general"];
+    const type = types[Math.floor(Math.random() * types.length)];
+    
+    let content = "";
+    if (type === "transfer") {
+      content = `🚨 EXCLUSIVE: ${randomClub.name} are reportedly monitoring ${randomPlayer.name}. Negotiations could start soon!`;
+    } else if (type === "drama") {
+      content = `Tension inside the dressing room! Sources say ${randomPlayer.name} is unhappy with the current tactics at his club.`;
+    } else {
+      content = `${randomClub.name} manager says the team is fully focused on the next match despite recent controversies.`;
+    }
+    
+    state.newsFeed.unshift({
+      id: `news_${Date.now()}_${Math.random()}`,
+      author: author.name,
+      handle: author.handle,
+      content,
+      likes: Math.floor(Math.random() * 50000) + 1000,
+      type,
+      date: `Matchday ${state.currentMatchday}`
+    });
+    
+    // Keep only last 20
+    if (state.newsFeed.length > 20) state.newsFeed = state.newsFeed.slice(0, 20);
+  }
 }
