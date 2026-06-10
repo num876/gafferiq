@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useGame } from "../context/GameContext";
-import { Play, Trash2, Calendar, Trophy, Shield, Users, Compass, Cpu, Target } from "lucide-react";
+import { Play, Trash2, Calendar, Trophy, Shield, Users, Compass, Cpu, Target, ChevronDown } from "lucide-react";
 import { LEAGUE_INFO } from "../config/seededData";
 import { motion } from "framer-motion";
 
@@ -153,6 +153,21 @@ export default function WelcomePage() {
             </Link>
           </motion.div>
         </div>
+
+        {/* Scroll Indicator */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, y: [0, 10, 0] }}
+          transition={{ 
+            opacity: { delay: 1.5, duration: 1 },
+            y: { repeat: Infinity, duration: 2, ease: "easeInOut" }
+          }}
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 cursor-pointer"
+          onClick={() => window.scrollTo({ top: window.innerHeight * 0.65, behavior: 'smooth' })}
+        >
+          <span className="text-[10px] font-black uppercase tracking-widest text-fm-slate">Explore</span>
+          <ChevronDown className="w-5 h-5 text-fm-neonCyan opacity-80 drop-shadow-[0_0_5px_rgba(0,229,255,0.8)]" />
+        </motion.div>
       </section>
 
       {/* 
