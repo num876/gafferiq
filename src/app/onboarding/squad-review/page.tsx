@@ -227,11 +227,15 @@ export default function SquadReview() {
                   <ChevronLeft className="w-4 h-4" /> Back
                 </button>
                 <button
-                  onClick={handleLaunch}
+                  onClick={() => {
+                    if (!saveName.trim()) return;
+                    createNewGame(saveName, manager, clubId, gameSpeed);
+                    router.push("/onboarding/auction");
+                  }}
                   disabled={!saveName.trim()}
                   className="flex-1 py-3 rounded-lg bg-green-600 hover:bg-green-500 disabled:opacity-40 disabled:pointer-events-none font-bold text-xs tracking-wider uppercase text-white flex items-center justify-center gap-1.5 shadow shadow-green-600/10 active:scale-95 transition"
                 >
-                  <Trophy className="w-4 h-4" /> Launch Game
+                  <Trophy className="w-4 h-4" /> Pre-Season Transfer Market
                 </button>
               </div>
             </div>
