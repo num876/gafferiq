@@ -186,13 +186,23 @@ export default function Dashboard() {
                   const res = getResult(f);
                   const color = res === 'W' ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)]' : res === 'D' ? 'bg-slate-700 text-slate-300 border-slate-600' : 'bg-rose-500 text-white border-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.3)]';
                   return (
-                    <div key={i} className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm border ${color}`}>
+                    <div key={i} className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm border ${color}`} title={f.homeScore !== null ? `${f.homeScore} - ${f.awayScore}` : ''}>
                       {res}
                     </div>
                   );
                 })
               )}
             </div>
+            {recentFixtures.length > 0 && recentFixtures[0].stats && (
+              <div className="mt-2 text-center border-t border-white/5 pt-3">
+                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Last Match Analysis</div>
+                <div className="text-xs font-black text-white flex items-center justify-center gap-2">
+                  <span>Score: {recentFixtures[0].homeScore}-{recentFixtures[0].awayScore}</span>
+                  <span className="text-slate-600">|</span>
+                  <span className="text-sky-400">xG: {recentFixtures[0].stats.xG?.home?.toFixed(2) || '0.00'} - {recentFixtures[0].stats.xG?.away?.toFixed(2) || '0.00'}</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Squad Morale */}

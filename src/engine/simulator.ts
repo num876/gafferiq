@@ -561,6 +561,7 @@ export function simulateMatchHeuristic(
   let homeScore = 0;
   let awayScore = 0;
   let homeShots = 0, homeShotsOnTarget = 0, awayShots = 0, awayShotsOnTarget = 0;
+  let homeXG = 0, awayXG = 0;
 
   const attackMinutes: { minute: number; isHome: boolean }[] = [];
   for (let i = 0; i < homeAttCount; i++) attackMinutes.push({ minute: Math.floor(Math.random() * 88) + 2, isHome: true });
@@ -598,6 +599,11 @@ export function simulateMatchHeuristic(
 
     // Corner routine bonus
     const cornerBonus = (isHome ? homeTactics : awayTactics).cornerRoutine === "Whipped In" ? 0.02 : 0;
+    
+    // Accumulate xG
+    if (isHome) homeXG += goalProb + cornerBonus;
+    else awayXG += goalProb + cornerBonus;
+
     const roll = Math.random();
 
     if (roll < goalProb + cornerBonus) {
@@ -684,6 +690,7 @@ export function simulateMatchHeuristic(
     possession: { home: homePossession, away: awayPossession },
     shots: { home: homeShots, away: awayShots },
     shotsOnTarget: { home: homeShotsOnTarget, away: awayShotsOnTarget },
+    xG: { home: parseFloat(homeXG.toFixed(2)), away: parseFloat(awayXG.toFixed(2)) },
     corners: { home: Math.floor(homeShots * 0.4) + Math.floor(Math.random() * 3), away: Math.floor(awayShots * 0.4) + Math.floor(Math.random() * 3) },
     fouls: { home: Math.floor(Math.random() * 6) + 7, away: Math.floor(Math.random() * 6) + 7 },
     offsides: { home: Math.floor(Math.random() * 3) + 1, away: Math.floor(Math.random() * 3) + 1 }

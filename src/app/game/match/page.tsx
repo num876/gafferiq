@@ -62,6 +62,7 @@ const initialStats: MatchStats = {
   possession: { home: 50, away: 50 },
   shots: { home: 0, away: 0 },
   shotsOnTarget: { home: 0, away: 0 },
+  xG: { home: 0, away: 0 },
   corners: { home: 0, away: 0 },
   fouls: { home: 0, away: 0 },
   offsides: { home: 0, away: 0 }
@@ -273,6 +274,14 @@ function matchReducer(state: MatchState, action: Action): MatchState {
           const startX = homeIsAttacking ? 75 : 25;
           const endX = homeIsAttacking ? 100 : 0;
           const centerY = 50 + (Math.random() * 20 - 10);
+          
+          if (!newState.stats.xG) newState.stats.xG = { home: 0, away: 0 };
+          const shotXg = parseFloat((duelRatio * 0.3).toFixed(2));
+          if (homeIsAttacking) {
+            newState.stats.xG.home = parseFloat((newState.stats.xG.home + shotXg).toFixed(2));
+          } else {
+            newState.stats.xG.away = parseFloat((newState.stats.xG.away + shotXg).toFixed(2));
+          }
 
           if (roll < duelRatio * 0.3) {
             if (homeIsAttacking) {
@@ -715,6 +724,7 @@ function MatchEngine({ activeSave, playerClub, fixture }: { activeSave: SaveStat
                 { label: "Possession", home: state.stats.possession.home, away: state.stats.possession.away, format: (v: number) => `${Math.round(v)}%` },
                 { label: "Shots", home: state.stats.shots.home, away: state.stats.shots.away, format: (v: number) => `${v}` },
                 { label: "On Target", home: state.stats.shotsOnTarget.home, away: state.stats.shotsOnTarget.away, format: (v: number) => `${v}` },
+                { label: "Exp. Goals", home: state.stats.xG?.home || 0, away: state.stats.xG?.away || 0, format: (v: number) => v.toFixed(2) },
                 { label: "Corners", home: state.stats.corners.home, away: state.stats.corners.away, format: (v: number) => `${v}` },
                 { label: "Fouls", home: state.stats.fouls.home, away: state.stats.fouls.away, format: (v: number) => `${v}` },
               ].map(stat => {

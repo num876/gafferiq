@@ -74,6 +74,7 @@ export interface MatchStats {
   possession: { home: number; away: number };
   shots: { home: number; away: number };
   shotsOnTarget: { home: number; away: number };
+  xG?: { home: number; away: number };
   corners: { home: number; away: number };
   fouls: { home: number; away: number };
   offsides: { home: number; away: number };
