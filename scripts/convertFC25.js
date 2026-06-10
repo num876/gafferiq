@@ -15,11 +15,9 @@ const clubsJsonStr = "[" + match[1]
 
 let clubs = [];
 try {
-  // We can't easily parse the raw JS string with regex if it has comments, so we'll just extract the ID and Name
-  const idMatch = [...clubsCode.matchAll(/id:\s*["']([^"']+)["']/g)].map(m => m[1]);
-  const nameMatch = [...clubsCode.matchAll(/name:\s*["']([^"']+)["']/g)].map(m => m[1]);
-  
-  clubs = idMatch.map((id, i) => ({ id, name: nameMatch[i] }));
+  // Extract id and name from the same club object to avoid misalignments
+  const clubBlockMatches = [...clubsCode.matchAll(/\{\s*id:\s*["']([^"']+)["'],\s*name:\s*["']([^"']+)["']/g)];
+  clubs = clubBlockMatches.map(m => ({ id: m[1], name: m[2] }));
 } catch (e) {
   console.error("Failed to parse clubs", e);
 }
@@ -45,8 +43,23 @@ rawPlayers.forEach(p => {
   let matchedClub = clubs.find(c => normalize(c.name) === normClub);
   
   // Fallbacks
-  if (!matchedClub) {
-    matchedClub = clubs.find(c => normClub.includes(normalize(c.name)) || normalize(c.name).includes(normClub));
+  const explicitAliases = {
+    'manutd': 'manchesterunited',
+    'mancity': 'manchestercity',
+    'spurs': 'tottenhamhotspur',
+    'parissg': 'parissaintgermain',
+    'nottmforest': 'nottinghamforest',
+    'lombardiafc': 'inter',
+    'milanofc': 'milan',
+    'latium': 'lazio',
+    'bergamocalcio': 'atalanta',
+    'ol': 'olympique',
+    'om': 'marseille',
+    'losclille': 'lille'
+  };
+  
+  if (!matchedClub && explicitAliases[normClub]) {
+    matchedClub = clubs.find(c => normalize(c.name) === explicitAliases[normClub] || normalize(c.id) === explicitAliases[normClub]);
   }
   
   if (matchedClub) {
