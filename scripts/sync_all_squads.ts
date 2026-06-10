@@ -27,11 +27,18 @@ Schema:
 `;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+    const responsePromise = ai.models.generateContent({
+      model: "gemini-1.5-flash",
       contents: prompt,
       config: { temperature: 0.1 }
     });
+    
+    // Add 30-second timeout
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('API Timeout')), 30000)
+    );
+
+    const response = await Promise.race([responsePromise, timeoutPromise]);
 
     let raw = response.text;
     raw = raw.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -51,9 +58,11 @@ async function main() {
 
   const updatedData = { ...existingData };
   
-  // Filter clubs that are already successfully synced
+  // Filter clubs that are already successfully synced by Gemini
   const pendingClubs = CLUBS_DATA.filter(club => {
-    return !(updatedData[club.id] && updatedData[club.id].length >= 20 && updatedData[club.id][0].nationality !== 'Unknown');
+    if (!updatedData[club.id] || updatedData[club.id].length < 20) return true;
+    const nat = updatedData[club.id][0].nationality;
+    return nat === 'Unknown' || nat === 'Real';
   });
 
   console.log(`Found ${pendingClubs.length} clubs left to sync.`);
@@ -63,8 +72,9 @@ async function main() {
     const batch = pendingClubs.slice(i, i + BATCH_SIZE);
     console.log(`Processing batch ${i / BATCH_SIZE + 1} of ${Math.ceil(pendingClubs.length / BATCH_SIZE)}`);
     
-    let retries = 3;
-    while (retries > 0) {
+    let success = false;
+    let delay = 5000;
+    while (!success) {
       const result = await processClubsBatch(batch);
       if (result && typeof result === 'object' && Object.keys(result).length > 0) {
         for (const [clubId, squad] of Object.entries(result)) {
@@ -74,11 +84,11 @@ async function main() {
           }
         }
         fs.writeFileSync(outPath, JSON.stringify(updatedData, null, 2), 'utf8');
-        break;
+        success = true;
       } else {
-        console.log(`Retrying batch... (${retries} retries left)`);
-        retries--;
-        await new Promise(r => setTimeout(r, 5000));
+        console.log(`Retrying batch in ${delay/1000}s...`);
+        await new Promise(r => setTimeout(r, delay));
+        delay = Math.min(delay * 2, 60000); // Max delay 60s
       }
     }
     // Sleep to respect rate limits

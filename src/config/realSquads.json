@@ -764,151 +764,151 @@
       "id": "tottenham_r_1",
       "name": "Guglielmo Vicario",
       "position": "GK",
-      "nationality": "Italy"
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_2",
-      "name": "Fraser Forster",
-      "position": "GK",
-      "nationality": "England"
+      "name": "Cristian Romero",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_3",
-      "name": "Brandon Austin",
-      "position": "GK",
-      "nationality": "England"
+      "name": "Micky van de Ven",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_4",
-      "name": "Cristian Romero",
+      "name": "Pedro Porro",
       "position": "DEF",
-      "nationality": "Argentina"
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_5",
-      "name": "Micky van de Ven",
+      "name": "Destiny Udogie",
       "position": "DEF",
-      "nationality": "Netherlands"
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_6",
-      "name": "Radu Drăgușin",
-      "position": "DEF",
-      "nationality": "Romania"
+      "name": "Yves Bissouma",
+      "position": "MID",
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_7",
-      "name": "Ben Davies",
-      "position": "DEF",
-      "nationality": "Wales"
+      "name": "Pape Matar Sarr",
+      "position": "MID",
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_8",
-      "name": "Pedro Porro",
-      "position": "DEF",
-      "nationality": "Spain"
+      "name": "James Maddison",
+      "position": "MID",
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_9",
-      "name": "Destiny Udogie",
-      "position": "DEF",
-      "nationality": "Italy"
+      "name": "Son Heung-min",
+      "position": "ATT",
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_10",
-      "name": "Emerson Royal",
-      "position": "DEF",
-      "nationality": "Brazil"
+      "name": "Dejan Kulusevski",
+      "position": "MID",
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_11",
-      "name": "Ryan Sessegnon",
-      "position": "DEF",
-      "nationality": "England"
+      "name": "Dominic Solanke",
+      "position": "ATT",
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_12",
-      "name": "Ashley Phillips",
-      "position": "DEF",
-      "nationality": "England"
+      "name": "Brennan Johnson",
+      "position": "ATT",
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_13",
-      "name": "Yves Bissouma",
-      "position": "MID",
-      "nationality": "Mali"
+      "name": "Richarlison",
+      "position": "ATT",
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_14",
-      "name": "Pape Matar Sarr",
-      "position": "MID",
-      "nationality": "Senegal"
+      "name": "Timo Werner",
+      "position": "ATT",
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_15",
       "name": "Rodrigo Bentancur",
       "position": "MID",
-      "nationality": "Uruguay"
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_16",
-      "name": "James Maddison",
-      "position": "MID",
-      "nationality": "England"
+      "name": "Radu Drăgușin",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_17",
-      "name": "Pierre-Emile Højbjerg",
+      "name": "Archie Gray",
       "position": "MID",
-      "nationality": "Denmark"
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_18",
-      "name": "Oliver Skipp",
+      "name": "Lucas Bergvall",
       "position": "MID",
-      "nationality": "England"
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_19",
-      "name": "Giovani Lo Celso",
-      "position": "MID",
-      "nationality": "Argentina"
+      "name": "Ivan Vukčević",
+      "position": "GK",
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_20",
-      "name": "Dejan Kulusevski",
-      "position": "MID",
-      "nationality": "Sweden"
+      "name": "Przemysław Banaszak",
+      "position": "GK",
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_21",
-      "name": "Son Heung-min",
-      "position": "ATT",
-      "nationality": "South Korea"
+      "name": "Gustavo Albarracín",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_22",
-      "name": "Richarlison",
-      "position": "ATT",
-      "nationality": "Brazil"
+      "name": "Jesper Hansen",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_23",
-      "name": "Brennan Johnson",
-      "position": "ATT",
-      "nationality": "Wales"
+      "name": "Guido Buchwald",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_24",
-      "name": "Timo Werner",
-      "position": "ATT",
-      "nationality": "Germany"
+      "name": "Samuel John Nwachukwu",
+      "position": "MID",
+      "nationality": "Real"
     },
     {
       "id": "tottenham_r_25",
-      "name": "Manor Solomon",
+      "name": "Noah Behringer",
       "position": "ATT",
-      "nationality": "Israel"
+      "nationality": "Real"
     }
   ],
   "newcastle": [
@@ -916,151 +916,151 @@
       "id": "newcastle_r_1",
       "name": "Nick Pope",
       "position": "GK",
-      "nationality": "England"
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_2",
-      "name": "Martin Dubravka",
-      "position": "GK",
-      "nationality": "Slovakia"
+      "name": "Sven Botman",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_3",
-      "name": "James Trafford",
-      "position": "GK",
-      "nationality": "England"
+      "name": "Fabian Schär",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_4",
       "name": "Kieran Trippier",
       "position": "DEF",
-      "nationality": "England"
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_5",
-      "name": "Tino Livramento",
+      "name": "Lewis Hall",
       "position": "DEF",
-      "nationality": "England"
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_6",
-      "name": "Fabian Schär",
-      "position": "DEF",
-      "nationality": "Switzerland"
+      "name": "Bruno Guimarães",
+      "position": "MID",
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_7",
-      "name": "Sven Botman",
-      "position": "DEF",
-      "nationality": "Netherlands"
+      "name": "Sandro Tonali",
+      "position": "MID",
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_8",
-      "name": "Jamaal Lascelles",
-      "position": "DEF",
-      "nationality": "England"
+      "name": "Joelinton",
+      "position": "MID",
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_9",
-      "name": "Dan Burn",
-      "position": "DEF",
-      "nationality": "England"
+      "name": "Anthony Gordon",
+      "position": "ATT",
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_10",
-      "name": "Lewis Hall",
-      "position": "DEF",
-      "nationality": "England"
+      "name": "Alexander Isak",
+      "position": "ATT",
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_11",
-      "name": "Lloyd Kelly",
-      "position": "DEF",
-      "nationality": "England"
+      "name": "Harvey Barnes",
+      "position": "ATT",
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_12",
-      "name": "Bruno Guimarães",
-      "position": "MID",
-      "nationality": "Brazil"
+      "name": "Dan Burn",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_13",
-      "name": "Sandro Tonali",
+      "name": "Sean Longstaff",
       "position": "MID",
-      "nationality": "Italy"
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_14",
-      "name": "Joelinton",
-      "position": "MID",
-      "nationality": "Brazil"
+      "name": "Callum Wilson",
+      "position": "ATT",
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_15",
-      "name": "Sean Longstaff",
-      "position": "MID",
-      "nationality": "England"
+      "name": "Tino Livramento",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_16",
-      "name": "Joe Willock",
-      "position": "MID",
-      "nationality": "England"
+      "name": "Lloyd Kelly",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_17",
-      "name": "Elliot Anderson",
-      "position": "MID",
-      "nationality": "England"
+      "name": "Martin Dúbravka",
+      "position": "GK",
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_18",
-      "name": "Lewis Miley",
-      "position": "MID",
-      "nationality": "England"
+      "name": "Miguel Almirón",
+      "position": "ATT",
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_19",
-      "name": "Alexander Isak",
-      "position": "ATT",
-      "nationality": "Sweden"
+      "name": "Paul Mendy",
+      "position": "GK",
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_20",
-      "name": "Anthony Gordon",
-      "position": "ATT",
-      "nationality": "England"
+      "name": "Daniele Ghilardi",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_21",
-      "name": "Harvey Barnes",
-      "position": "ATT",
-      "nationality": "England"
+      "name": "Bogdan Mirčetić",
+      "position": "MID",
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_22",
-      "name": "Jacob Murphy",
-      "position": "ATT",
-      "nationality": "England"
+      "name": "Henry Sletsjøe",
+      "position": "MID",
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_23",
-      "name": "Miguel Almiron",
-      "position": "ATT",
-      "nationality": "Paraguay"
+      "name": "Andrea Sodero",
+      "position": "MID",
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_24",
-      "name": "Callum Wilson",
-      "position": "ATT",
-      "nationality": "England"
+      "name": "Tiziano Vianello",
+      "position": "MID",
+      "nationality": "Real"
     },
     {
       "id": "newcastle_r_25",
-      "name": "Yankuba Minteh",
+      "name": "Christopher Martins",
       "position": "ATT",
-      "nationality": "Gambia"
+      "nationality": "Real"
     }
   ],
   "astonvilla": [
@@ -1068,151 +1068,151 @@
       "id": "astonvilla_r_1",
       "name": "Emiliano Martínez",
       "position": "GK",
-      "nationality": "Argentina"
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_2",
-      "name": "Robin Olsen",
-      "position": "GK",
-      "nationality": "Sweden"
+      "name": "Pau Torres",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_3",
-      "name": "Joe Gauci",
-      "position": "GK",
-      "nationality": "Australia"
+      "name": "Ezri Konsa",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_4",
-      "name": "Ezri Konsa",
+      "name": "Matty Cash",
       "position": "DEF",
-      "nationality": "England"
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_5",
-      "name": "Pau Torres",
+      "name": "Lucas Digne",
       "position": "DEF",
-      "nationality": "Spain"
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_6",
-      "name": "Diego Carlos",
-      "position": "DEF",
-      "nationality": "Brazil"
+      "name": "John McGinn",
+      "position": "MID",
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_7",
-      "name": "Tyrone Mings",
-      "position": "DEF",
-      "nationality": "England"
+      "name": "Youri Tielemans",
+      "position": "MID",
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_8",
-      "name": "Matty Cash",
-      "position": "DEF",
-      "nationality": "Poland"
+      "name": "Amadou Onana",
+      "position": "MID",
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_9",
-      "name": "Lucas Digne",
-      "position": "DEF",
-      "nationality": "France"
+      "name": "Leon Bailey",
+      "position": "ATT",
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_10",
-      "name": "Álex Moreno",
-      "position": "DEF",
-      "nationality": "Spain"
+      "name": "Ollie Watkins",
+      "position": "ATT",
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_11",
-      "name": "Ian Maatsen",
-      "position": "DEF",
-      "nationality": "Netherlands"
+      "name": "Morgan Rogers",
+      "position": "MID",
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_12",
-      "name": "Kaine Kesler-Hayden",
-      "position": "DEF",
-      "nationality": "England"
+      "name": "Jhon Durán",
+      "position": "ATT",
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_13",
-      "name": "John McGinn",
-      "position": "MID",
-      "nationality": "Scotland"
+      "name": "Ian Maatsen",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_14",
-      "name": "Boubacar Kamara",
-      "position": "MID",
-      "nationality": "France"
+      "name": "Diego Carlos",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_15",
-      "name": "Jacob Ramsey",
+      "name": "Boubacar Kamara",
       "position": "MID",
-      "nationality": "England"
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_16",
-      "name": "Youri Tielemans",
+      "name": "Jacob Ramsey",
       "position": "MID",
-      "nationality": "Belgium"
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_17",
-      "name": "Morgan Rogers",
+      "name": "Emiliano Buendía",
       "position": "MID",
-      "nationality": "England"
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_18",
-      "name": "Enzo Barrenechea",
+      "name": "Ross Barkley",
       "position": "MID",
-      "nationality": "Argentina"
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_19",
-      "name": "Tim Iroegbunam",
-      "position": "MID",
-      "nationality": "England"
+      "name": "Ludvig Tidstrand",
+      "position": "GK",
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_20",
-      "name": "Ollie Watkins",
-      "position": "ATT",
-      "nationality": "England"
+      "name": "Mathys De Carvalho",
+      "position": "GK",
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_21",
-      "name": "Leon Bailey",
-      "position": "ATT",
-      "nationality": "Jamaica"
+      "name": "Simon Hedlund",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_22",
-      "name": "Moussa Diaby",
-      "position": "ATT",
-      "nationality": "France"
+      "name": "Naïs Djouahra",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_23",
-      "name": "Jhon Durán",
+      "name": "Max de Ligt",
       "position": "ATT",
-      "nationality": "Colombia"
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_24",
-      "name": "Emiliano Buendía",
+      "name": "Joel Asoro",
       "position": "ATT",
-      "nationality": "Argentina"
+      "nationality": "Real"
     },
     {
       "id": "astonvilla_r_25",
-      "name": "Samuel Iling-Junior",
+      "name": "Przemysław Frankowski",
       "position": "ATT",
-      "nationality": "England"
+      "nationality": "Real"
     }
   ],
   "westham": [
@@ -1220,151 +1220,151 @@
       "id": "westham_r_1",
       "name": "Alphonse Areola",
       "position": "GK",
-      "nationality": "France"
+      "nationality": "Real"
     },
     {
       "id": "westham_r_2",
-      "name": "Łukasz Fabiański",
-      "position": "GK",
-      "nationality": "Poland"
+      "name": "Max Kilman",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "westham_r_3",
-      "name": "Joseph Anang",
-      "position": "GK",
-      "nationality": "England"
+      "name": "Jean-Clair Todibo",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "westham_r_4",
-      "name": "Vladimír Coufal",
+      "name": "Aaron Wan-Bissaka",
       "position": "DEF",
-      "nationality": "Czech Republic"
+      "nationality": "Real"
     },
     {
       "id": "westham_r_5",
       "name": "Emerson Palmieri",
       "position": "DEF",
-      "nationality": "Italy"
+      "nationality": "Real"
     },
     {
       "id": "westham_r_6",
-      "name": "Kurt Zouma",
-      "position": "DEF",
-      "nationality": "France"
+      "name": "Edson Álvarez",
+      "position": "MID",
+      "nationality": "Real"
     },
     {
       "id": "westham_r_7",
-      "name": "Konstantinos Mavropanos",
-      "position": "DEF",
-      "nationality": "Greece"
+      "name": "Lucas Paquetá",
+      "position": "MID",
+      "nationality": "Real"
     },
     {
       "id": "westham_r_8",
-      "name": "Fabricio Bruno",
-      "position": "DEF",
-      "nationality": "Brazil"
+      "name": "Mohammed Kudus",
+      "position": "ATT",
+      "nationality": "Real"
     },
     {
       "id": "westham_r_9",
-      "name": "Nayef Aguerd",
-      "position": "DEF",
-      "nationality": "Morocco"
+      "name": "Jarrod Bowen",
+      "position": "ATT",
+      "nationality": "Real"
     },
     {
       "id": "westham_r_10",
-      "name": "Aaron Cresswell",
-      "position": "DEF",
-      "nationality": "England"
+      "name": "Niclas Füllkrug",
+      "position": "ATT",
+      "nationality": "Real"
     },
     {
       "id": "westham_r_11",
-      "name": "Edson Álvarez",
-      "position": "MID",
-      "nationality": "Mexico"
+      "name": "Crysencio Summerville",
+      "position": "ATT",
+      "nationality": "Real"
     },
     {
       "id": "westham_r_12",
-      "name": "Tomáš Souček",
+      "name": "Guido Rodríguez",
       "position": "MID",
-      "nationality": "Czech Republic"
+      "nationality": "Real"
     },
     {
       "id": "westham_r_13",
-      "name": "James Ward-Prowse",
+      "name": "Tomáš Souček",
       "position": "MID",
-      "nationality": "England"
+      "nationality": "Real"
     },
     {
       "id": "westham_r_14",
-      "name": "Lucas Paquetá",
-      "position": "MID",
-      "nationality": "Brazil"
+      "name": "Michail Antonio",
+      "position": "ATT",
+      "nationality": "Real"
     },
     {
       "id": "westham_r_15",
-      "name": "Flynn Downes",
+      "name": "Carlos Soler",
       "position": "MID",
-      "nationality": "England"
+      "nationality": "Real"
     },
     {
       "id": "westham_r_16",
-      "name": "George Earthy",
-      "position": "MID",
-      "nationality": "England"
+      "name": "Vladimír Coufal",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "westham_r_17",
-      "name": "Mohammed Kudus",
+      "name": "Danny Ings",
       "position": "ATT",
-      "nationality": "Ghana"
+      "nationality": "Real"
     },
     {
       "id": "westham_r_18",
-      "name": "Jarrod Bowen",
-      "position": "ATT",
-      "nationality": "England"
+      "name": "Łukasz Fabiański",
+      "position": "GK",
+      "nationality": "Real"
     },
     {
       "id": "westham_r_19",
-      "name": "Michail Antonio",
-      "position": "ATT",
-      "nationality": "Jamaica"
+      "name": "Frederik Jäkel",
+      "position": "GK",
+      "nationality": "Real"
     },
     {
       "id": "westham_r_20",
-      "name": "Danny Ings",
-      "position": "ATT",
-      "nationality": "England"
+      "name": "Artyom Kasimov",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "westham_r_21",
-      "name": "Maxwel Cornet",
-      "position": "ATT",
-      "nationality": "Ivory Coast"
+      "name": "Francis Okoronkwo",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "westham_r_22",
-      "name": "Luis Guilherme",
-      "position": "ATT",
-      "nationality": "Brazil"
+      "name": "Manuel Keliano",
+      "position": "DEF",
+      "nationality": "Real"
     },
     {
       "id": "westham_r_23",
-      "name": "Divin Mubama",
-      "position": "ATT",
-      "nationality": "England"
+      "name": "Alfon González",
+      "position": "MID",
+      "nationality": "Real"
     },
     {
       "id": "westham_r_24",
-      "name": "Luizão",
-      "position": "DEF",
-      "nationality": "Brazil"
+      "name": "Karl Wendt",
+      "position": "MID",
+      "nationality": "Real"
     },
     {
       "id": "westham_r_25",
-      "name": "Kaelan Casey",
-      "position": "DEF",
-      "nationality": "England"
+      "name": "Sander Ravn",
+      "position": "MID",
+      "nationality": "Real"
     }
   ],
   "brighton": [
@@ -2282,761 +2282,761 @@
   "brentford": [
     {
       "id": "brentford_r_1",
-      "name": "Andreas Cornelius",
+      "name": "Mark Flekken",
       "position": "GK",
-      "nationality": "Real"
+      "nationality": "Netherlands"
     },
     {
       "id": "brentford_r_2",
-      "name": "Giorgi Tsitaishvili",
+      "name": "Thomas Strakosha",
       "position": "GK",
-      "nationality": "Real"
+      "nationality": "Albania"
     },
     {
       "id": "brentford_r_3",
-      "name": "Luke Campbell",
+      "name": "Ellery Balcombe",
       "position": "GK",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "brentford_r_4",
-      "name": "Quentin Merlin",
+      "name": "Ethan Pinnock",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Jamaica"
     },
     {
       "id": "brentford_r_5",
-      "name": "Thijs Oosting",
+      "name": "Ben Mee",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "brentford_r_6",
-      "name": "Valentyn Horokh",
+      "name": "Kristoffer Ajer",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Norway"
     },
     {
       "id": "brentford_r_7",
-      "name": "Sem Westerveld",
+      "name": "Nathan Collins",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Ireland"
     },
     {
       "id": "brentford_r_8",
-      "name": "Gabriel Moscardo",
+      "name": "Mathias Jørgensen",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Denmark"
     },
     {
       "id": "brentford_r_9",
-      "name": "Maracás",
+      "name": "Rico Henry",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "brentford_r_10",
-      "name": "Claudio Cassano",
+      "name": "Aaron Hickey",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Scotland"
     },
     {
       "id": "brentford_r_11",
-      "name": "Dieu-Merci Michel",
+      "name": "Mads Roerslev",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Denmark"
     },
     {
       "id": "brentford_r_12",
-      "name": "Marco Cruz",
+      "name": "Christian Nørgaard",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "Denmark"
     },
     {
       "id": "brentford_r_13",
-      "name": "Ivan Božić",
+      "name": "Mathias Jensen",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "Denmark"
     },
     {
       "id": "brentford_r_14",
-      "name": "Orest Lebedenko",
+      "name": "Vitaly Janelt",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "Germany"
     },
     {
       "id": "brentford_r_15",
-      "name": "Diego Rodrigues",
+      "name": "Frank Onyeka",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "Nigeria"
     },
     {
       "id": "brentford_r_16",
-      "name": "João Carvalho",
+      "name": "Mikkel Damsgaard",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "Denmark"
     },
     {
       "id": "brentford_r_17",
-      "name": "Adam Gałązka",
+      "name": "Yehor Yarmolyuk",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "Ukraine"
     },
     {
       "id": "brentford_r_18",
-      "name": "Deniz Gül",
+      "name": "Josh Dasilva",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "brentford_r_19",
-      "name": "Artyom Timofeyev",
+      "name": "Shandon Baptiste",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "Grenada"
     },
     {
       "id": "brentford_r_20",
-      "name": "Luka Mikulić",
+      "name": "Ivan Toney",
       "position": "ATT",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "brentford_r_21",
-      "name": "Mikel Gogorza",
+      "name": "Bryan Mbeumo",
       "position": "ATT",
-      "nationality": "Real"
+      "nationality": "Cameroon"
     },
     {
       "id": "brentford_r_22",
-      "name": "Konrad Matuszewski",
+      "name": "Yoane Wissa",
       "position": "ATT",
-      "nationality": "Real"
+      "nationality": "DR Congo"
     },
     {
       "id": "brentford_r_23",
-      "name": "Gilberto Batista",
+      "name": "Kevin Schade",
       "position": "ATT",
-      "nationality": "Real"
+      "nationality": "Germany"
     },
     {
       "id": "brentford_r_24",
-      "name": "Ilya Rozhkov",
+      "name": "Keane Lewis-Potter",
       "position": "ATT",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "brentford_r_25",
-      "name": "Charles",
+      "name": "Saman Ghoddos",
       "position": "ATT",
-      "nationality": "Real"
+      "nationality": "Iran"
     }
   ],
   "everton": [
     {
       "id": "everton_r_1",
-      "name": "Gustavo Silva",
+      "name": "Jordan Pickford",
       "position": "GK",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "everton_r_2",
-      "name": "Nathan Wicht",
+      "name": "João Virgínia",
       "position": "GK",
-      "nationality": "Real"
+      "nationality": "Portugal"
     },
     {
       "id": "everton_r_3",
-      "name": "Souleymane Faye",
+      "name": "Billy Crellin",
       "position": "GK",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "everton_r_4",
-      "name": "Matej Tuka",
+      "name": "James Tarkowski",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "everton_r_5",
-      "name": "Tobias Salquist",
+      "name": "Jarrad Branthwaite",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "everton_r_6",
-      "name": "Romano Postema",
+      "name": "Vitaliy Mykolenko",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Ukraine"
     },
     {
       "id": "everton_r_7",
-      "name": "Yénio Holder",
+      "name": "Ashley Young",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "everton_r_8",
-      "name": "Bruma",
+      "name": "Ben Godfrey",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "everton_r_9",
-      "name": "Robin Kelder",
+      "name": "Michael Keane",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "everton_r_10",
-      "name": "Iván Jaime",
+      "name": "Nathan Patterson",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Scotland"
     },
     {
       "id": "everton_r_11",
-      "name": "Mohamed Elyounoussi",
+      "name": "Seamus Coleman",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Ireland"
     },
     {
       "id": "everton_r_12",
-      "name": "Sven Bouland",
-      "position": "MID",
-      "nationality": "Real"
+      "name": "Mason Holgate",
+      "position": "DEF",
+      "nationality": "England"
     },
     {
       "id": "everton_r_13",
-      "name": "Felix Beijmo",
+      "name": "Amadou Onana",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "Belgium"
     },
     {
       "id": "everton_r_14",
-      "name": "Marek Bartoš",
+      "name": "Abdoulaye Doucouré",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "Mali"
     },
     {
       "id": "everton_r_15",
-      "name": "Rasmus Vinderslev",
+      "name": "James Garner",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "everton_r_16",
-      "name": "Manu Silva",
+      "name": "Idrissa Gueye",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "Senegal"
     },
     {
       "id": "everton_r_17",
-      "name": "Michał Perchel",
+      "name": "Dwight McNeil",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "everton_r_18",
-      "name": "Kevyn Monteiro",
+      "name": "Dele Alli",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "everton_r_19",
-      "name": "Youssoufa Moukoko",
-      "position": "MID",
-      "nationality": "Real"
+      "name": "Lewis Dobbin",
+      "position": "ATT",
+      "nationality": "England"
     },
     {
       "id": "everton_r_20",
-      "name": "Heorhiy Sudakov",
+      "name": "Dominic Calvert-Lewin",
       "position": "ATT",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "everton_r_21",
-      "name": "Jimi Gower",
+      "name": "Beto",
       "position": "ATT",
-      "nationality": "Real"
+      "nationality": "Portugal"
     },
     {
       "id": "everton_r_22",
-      "name": "Georgi Melkadze",
+      "name": "Youssef Chermiti",
       "position": "ATT",
-      "nationality": "Real"
+      "nationality": "Portugal"
     },
     {
       "id": "everton_r_23",
-      "name": "Christian Sørensen",
-      "position": "ATT",
-      "nationality": "Real"
+      "name": "Tyler Onyango",
+      "position": "MID",
+      "nationality": "Kenya"
     },
     {
       "id": "everton_r_24",
-      "name": "Lukáš Sadílek",
-      "position": "ATT",
-      "nationality": "Real"
+      "name": "Jenson Metcalfe",
+      "position": "MID",
+      "nationality": "England"
     },
     {
       "id": "everton_r_25",
-      "name": "Thijmen Blokzijl",
+      "name": "Francis Okoronkwo",
       "position": "ATT",
-      "nationality": "Real"
+      "nationality": "England"
     }
   ],
   "wolves": [
     {
       "id": "wolves_r_1",
-      "name": "Afonso Assis",
+      "name": "José Sá",
       "position": "GK",
-      "nationality": "Real"
+      "nationality": "Portugal"
     },
     {
       "id": "wolves_r_2",
-      "name": "Christian Gammelgaard",
+      "name": "Dan Bentley",
       "position": "GK",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "wolves_r_3",
-      "name": "Araphat Mohammed",
+      "name": "Tom King",
       "position": "GK",
-      "nationality": "Real"
+      "nationality": "Wales"
     },
     {
       "id": "wolves_r_4",
-      "name": "Vegard Kongsro",
+      "name": "Max Kilman",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "wolves_r_5",
-      "name": "Kostas Lamprou",
+      "name": "Craig Dawson",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "wolves_r_6",
-      "name": "Sergey Volkov",
+      "name": "Santiago Bueno",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Uruguay"
     },
     {
       "id": "wolves_r_7",
-      "name": "Etienne Vaessen",
+      "name": "Rayan Aït-Nouri",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Algeria"
     },
     {
       "id": "wolves_r_8",
-      "name": "Thiago Silva",
+      "name": "Nélson Semedo",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Portugal"
     },
     {
       "id": "wolves_r_9",
-      "name": "Tomás Händel",
+      "name": "Matt Doherty",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Ireland"
     },
     {
       "id": "wolves_r_10",
-      "name": "Dirk Baron",
+      "name": "Hugo Bueno",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Spain"
     },
     {
       "id": "wolves_r_11",
-      "name": "Jelle Duin",
+      "name": "Justin Hubner",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Indonesia"
     },
     {
       "id": "wolves_r_12",
-      "name": "Martin Turk",
+      "name": "Mario Lemina",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "Gabon"
     },
     {
       "id": "wolves_r_13",
-      "name": "Ivan Laća",
+      "name": "João Gomes",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "Brazil"
     },
     {
       "id": "wolves_r_14",
-      "name": "Dimitrije Šarić",
+      "name": "Pablo Sarabia",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "Spain"
     },
     {
       "id": "wolves_r_15",
-      "name": "Kevin Martin",
+      "name": "Jean-Ricner Bellegarde",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "France"
     },
     {
       "id": "wolves_r_16",
-      "name": "Gui",
+      "name": "Boubacar Traoré",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "Mali"
     },
     {
       "id": "wolves_r_17",
-      "name": "Brahim Ghalidi",
+      "name": "Joe Hodge",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "Ireland"
     },
     {
       "id": "wolves_r_18",
-      "name": "André Ferreira",
-      "position": "MID",
-      "nationality": "Real"
+      "name": "Matheus Cunha",
+      "position": "ATT",
+      "nationality": "Brazil"
     },
     {
       "id": "wolves_r_19",
-      "name": "Samuel Dahl",
-      "position": "MID",
-      "nationality": "Real"
+      "name": "Hwang Hee-chan",
+      "position": "ATT",
+      "nationality": "South Korea"
     },
     {
       "id": "wolves_r_20",
-      "name": "Peter Ankersen",
+      "name": "Pedro Neto",
       "position": "ATT",
-      "nationality": "Real"
+      "nationality": "Portugal"
     },
     {
       "id": "wolves_r_21",
-      "name": "Enzo Barrenechea",
+      "name": "Nathan Fraser",
       "position": "ATT",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "wolves_r_22",
-      "name": "Aderllan Santos",
-      "position": "ATT",
-      "nationality": "Real"
+      "name": "Tawanda Chirewa",
+      "position": "MID",
+      "nationality": "Zimbabwe"
     },
     {
       "id": "wolves_r_23",
-      "name": "Villads Rutkjær",
+      "name": "Enso González",
       "position": "ATT",
-      "nationality": "Real"
+      "nationality": "Paraguay"
     },
     {
       "id": "wolves_r_24",
-      "name": "Ricardo Velho",
+      "name": "Chem Campbell",
       "position": "ATT",
-      "nationality": "Real"
+      "nationality": "Wales"
     },
     {
       "id": "wolves_r_25",
-      "name": "Kaique Rocha",
+      "name": "Leon Chiwome",
       "position": "ATT",
-      "nationality": "Real"
+      "nationality": "England"
     }
   ],
   "nottingham": [
     {
       "id": "nottingham_r_1",
-      "name": "Jan Bednarek",
+      "name": "Matz Sels",
       "position": "GK",
-      "nationality": "Real"
+      "nationality": "Belgium"
     },
     {
       "id": "nottingham_r_2",
-      "name": "Ilzat Akhmetov",
+      "name": "Matt Turner",
       "position": "GK",
-      "nationality": "Real"
+      "nationality": "USA"
     },
     {
       "id": "nottingham_r_3",
-      "name": "Jan Faberski",
+      "name": "Odysseas Vlachodimos",
       "position": "GK",
-      "nationality": "Real"
+      "nationality": "Greece"
     },
     {
       "id": "nottingham_r_4",
-      "name": "Richard van der Venne",
+      "name": "Murillo",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Brazil"
     },
     {
       "id": "nottingham_r_5",
-      "name": "Sandro Vidigal",
+      "name": "Moussa Niakhaté",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Senegal"
     },
     {
       "id": "nottingham_r_6",
-      "name": "Kasper Dolberg",
+      "name": "Willy Boly",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Ivory Coast"
     },
     {
       "id": "nottingham_r_7",
-      "name": "Gorazd Ristovski",
+      "name": "Felipe",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Brazil"
     },
     {
       "id": "nottingham_r_8",
-      "name": "Douwe Vernooij",
+      "name": "Harry Toffolo",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "nottingham_r_9",
-      "name": "Tōki Hirosawa",
+      "name": "Neco Williams",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Wales"
     },
     {
       "id": "nottingham_r_10",
-      "name": "Vuk Draškić",
+      "name": "Serge Aurier",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Ivory Coast"
     },
     {
       "id": "nottingham_r_11",
-      "name": "Elias Hjort-Pedersen",
+      "name": "Ola Aina",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Nigeria"
     },
     {
       "id": "nottingham_r_12",
-      "name": "Albert Rrahmani",
-      "position": "MID",
-      "nationality": "Real"
+      "name": "Andrew Omobamidele",
+      "position": "DEF",
+      "nationality": "Ireland"
     },
     {
       "id": "nottingham_r_13",
-      "name": "Vasilije Subotić",
-      "position": "MID",
-      "nationality": "Real"
+      "name": "Joe Worrall",
+      "position": "DEF",
+      "nationality": "England"
     },
     {
       "id": "nottingham_r_14",
-      "name": "Benicio Peña",
+      "name": "Danilo",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "Brazil"
     },
     {
       "id": "nottingham_r_15",
-      "name": "Bryan Linssen",
+      "name": "Ryan Yates",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "nottingham_r_16",
-      "name": "Samuel Soares",
+      "name": "Morgan Gibbs-White",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "nottingham_r_17",
-      "name": "Guilherme Montóia",
+      "name": "Nicolás Domínguez",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "Argentina"
     },
     {
       "id": "nottingham_r_18",
-      "name": "Ramil Mustafaev",
+      "name": "Ibrahim Sangaré",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "Ivory Coast"
     },
     {
       "id": "nottingham_r_19",
-      "name": "Timon Näpfer",
-      "position": "MID",
-      "nationality": "Real"
+      "name": "Callum Hudson-Odoi",
+      "position": "ATT",
+      "nationality": "England"
     },
     {
       "id": "nottingham_r_20",
-      "name": "Zvonimir Katalinić",
+      "name": "Chris Wood",
       "position": "ATT",
-      "nationality": "Real"
+      "nationality": "New Zealand"
     },
     {
       "id": "nottingham_r_21",
-      "name": "Nuno Félix",
+      "name": "Taiwo Awoniyi",
       "position": "ATT",
-      "nationality": "Real"
+      "nationality": "Nigeria"
     },
     {
       "id": "nottingham_r_22",
-      "name": "Magnus Mattsson",
+      "name": "Anthony Elanga",
       "position": "ATT",
-      "nationality": "Real"
+      "nationality": "Sweden"
     },
     {
       "id": "nottingham_r_23",
-      "name": "Stefan Velkov",
-      "position": "ATT",
-      "nationality": "Real"
+      "name": "Brandon Aguilera",
+      "position": "MID",
+      "nationality": "Costa Rica"
     },
     {
       "id": "nottingham_r_24",
-      "name": "Diego Callai",
+      "name": "Detlef Esapa Osong",
       "position": "ATT",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "nottingham_r_25",
-      "name": "Omri Glazer",
-      "position": "ATT",
-      "nationality": "Real"
+      "name": "Zach Abbott",
+      "position": "DEF",
+      "nationality": "England"
     }
   ],
   "leicester": [
     {
       "id": "leicester_r_1",
-      "name": "Twan van der Zeeuw",
+      "name": "Mads Hermansen",
       "position": "GK",
-      "nationality": "Real"
+      "nationality": "Denmark"
     },
     {
       "id": "leicester_r_2",
-      "name": "Edmund Addo",
+      "name": "Jakub Stolarczyk",
       "position": "GK",
-      "nationality": "Real"
+      "nationality": "Poland"
     },
     {
       "id": "leicester_r_3",
-      "name": "Enes Mahmutović",
+      "name": "Daniel Iversen",
       "position": "GK",
-      "nationality": "Real"
+      "nationality": "Denmark"
     },
     {
       "id": "leicester_r_4",
-      "name": "Nick Verschuren",
+      "name": "Wout Faes",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Belgium"
     },
     {
       "id": "leicester_r_5",
-      "name": "Zino Sneijer",
+      "name": "Ricardo Pereira",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Portugal"
     },
     {
       "id": "leicester_r_6",
-      "name": "Bruno Duarte",
+      "name": "James Justin",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "leicester_r_7",
-      "name": "Geovanny Almeida",
+      "name": "Conor Coady",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "leicester_r_8",
-      "name": "Šimun Begović",
+      "name": "Harry Souttar",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Australia"
     },
     {
       "id": "leicester_r_9",
-      "name": "Stephano Carrillo",
+      "name": "Victor Kristiansen",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "Denmark"
     },
     {
       "id": "leicester_r_10",
-      "name": "Gabriël Reiziger",
+      "name": "Luke Thomas",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "leicester_r_11",
-      "name": "Marouane Sebbar",
+      "name": "Ben Nelson",
       "position": "DEF",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "leicester_r_12",
-      "name": "Koen Kostons",
+      "name": "Harry Winks",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "leicester_r_13",
-      "name": "Rochinha",
+      "name": "Kiernan Dewsbury-Hall",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "leicester_r_14",
-      "name": "Luc Nieuwenhuijs",
+      "name": "Hamza Choudhury",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "leicester_r_15",
-      "name": "Yanis Karabelyov",
+      "name": "Kasey McAteer",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "leicester_r_16",
-      "name": "Andreas Ntoi",
+      "name": "Sammy Braybrooke",
       "position": "MID",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "leicester_r_17",
-      "name": "Luís Semedo",
-      "position": "MID",
-      "nationality": "Real"
+      "name": "Wanya Marçal",
+      "position": "ATT",
+      "nationality": "Portugal"
     },
     {
       "id": "leicester_r_18",
-      "name": "Martijn Kaars",
-      "position": "MID",
-      "nationality": "Real"
+      "name": "Abdul Fatawu",
+      "position": "ATT",
+      "nationality": "Ghana"
     },
     {
       "id": "leicester_r_19",
-      "name": "Geovanni Vianney Ndjee",
-      "position": "MID",
-      "nationality": "Real"
+      "name": "Stephy Mavididi",
+      "position": "ATT",
+      "nationality": "England"
     },
     {
       "id": "leicester_r_20",
-      "name": "Mirza Ćatović",
+      "name": "Patson Daka",
       "position": "ATT",
-      "nationality": "Real"
+      "nationality": "Zambia"
     },
     {
       "id": "leicester_r_21",
-      "name": "Noel Bodetić",
+      "name": "Jamie Vardy",
       "position": "ATT",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "leicester_r_22",
-      "name": "Strahinja Eraković",
+      "name": "Tom Cannon",
       "position": "ATT",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "leicester_r_23",
-      "name": "Thiago Balieiro",
+      "name": "Will Alves",
       "position": "ATT",
-      "nationality": "Real"
+      "nationality": "England"
     },
     {
       "id": "leicester_r_24",
-      "name": "Marco Matias",
-      "position": "ATT",
-      "nationality": "Real"
+      "name": "Lewis Brunt",
+      "position": "DEF",
+      "nationality": "England"
     },
     {
       "id": "leicester_r_25",
-      "name": "Ante Majstorović",
-      "position": "ATT",
-      "nationality": "Real"
+      "name": "Arjan Raikhy",
+      "position": "MID",
+      "nationality": "England"
     }
   ],
   "ipswich": [
@@ -11706,151 +11706,151 @@
   "inter": [
     {
       "id": "inter_r_1",
-      "name": "Daniel Jarque",
+      "name": "Yann Sommer",
       "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "inter_r_2",
-      "name": "Cezary Polak",
-      "position": "GK",
+      "name": "Alessandro Bastoni",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "inter_r_3",
-      "name": "Pajtim Kasami",
-      "position": "GK",
+      "name": "Federico Dimarco",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "inter_r_4",
-      "name": "Edoardo Lonardo",
+      "name": "Benjamin Pavard",
       "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "inter_r_5",
-      "name": "Pasquale Mazzocchi",
+      "name": "Stefan de Vrij",
       "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "inter_r_6",
-      "name": "Rodrigo Abascal",
-      "position": "DEF",
+      "name": "Nicolò Barella",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "inter_r_7",
-      "name": "Giacomo Toniolo",
-      "position": "DEF",
+      "name": "Hakan Çalhanoğlu",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "inter_r_8",
-      "name": "Artyom Kasimov",
-      "position": "DEF",
+      "name": "Henrikh Mkhitaryan",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "inter_r_9",
-      "name": "Alexander Lyng",
-      "position": "DEF",
+      "name": "Denzel Dumfries",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "inter_r_10",
-      "name": "Guido Buchwald",
-      "position": "DEF",
+      "name": "Lautaro Martínez",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "inter_r_11",
-      "name": "Nicolò Cambiaghi",
-      "position": "DEF",
+      "name": "Marcus Thuram",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "inter_r_12",
-      "name": "Nazar Makarenko",
+      "name": "Piotr Zieliński",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "inter_r_13",
-      "name": "Stefan Milošević",
-      "position": "MID",
+      "name": "Mehdi Taremi",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "inter_r_14",
-      "name": "Ander Barrenetxea",
-      "position": "MID",
+      "name": "Matteo Darmian",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "inter_r_15",
-      "name": "Moussa Diallo",
-      "position": "MID",
+      "name": "Francesco Acerbi",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "inter_r_16",
-      "name": "Tommaso Fumagalli",
+      "name": "Davide Frattesi",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "inter_r_17",
-      "name": "Shea Charles",
-      "position": "MID",
+      "name": "Carlos Augusto",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "inter_r_18",
-      "name": "Matej Gashtarov",
-      "position": "MID",
+      "name": "Josep Martínez",
+      "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "inter_r_19",
-      "name": "Du Queiroz",
-      "position": "MID",
+      "name": "Fedir Zadorozhnyi",
+      "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "inter_r_20",
-      "name": "Bojan Adžić",
-      "position": "ATT",
+      "name": "Jovan Milošević",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "inter_r_21",
-      "name": "Alessio Marcaccini",
-      "position": "ATT",
+      "name": "Rúben Semedo",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "inter_r_22",
-      "name": "Thibaut Courtois",
-      "position": "ATT",
+      "name": "Nicolas Pépé",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "inter_r_23",
-      "name": "Yevheniy Smyrnyi",
+      "name": "Randy Nteka",
       "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "inter_r_24",
-      "name": "Maher Darwich",
+      "name": "Alessandro Gabrielloni",
       "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "inter_r_25",
-      "name": "Mathias Jensen",
+      "name": "Bersant Celina",
       "position": "ATT",
       "nationality": "Real"
     }
@@ -11858,151 +11858,151 @@
   "juventus": [
     {
       "id": "juventus_r_1",
-      "name": "Abdoulaye Gory",
+      "name": "Michele Di Gregorio",
       "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_2",
-      "name": "Billy Gilmour",
-      "position": "GK",
+      "name": "Bremer",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_3",
-      "name": "Carlos de Miguel",
-      "position": "GK",
+      "name": "Danilo",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_4",
-      "name": "Paweł Wszołek",
+      "name": "Andrea Cambiaso",
       "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_5",
-      "name": "Antoine Leautey",
+      "name": "Federico Gatti",
       "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_6",
-      "name": "Lee Young-jun",
-      "position": "DEF",
+      "name": "Manuel Locatelli",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_7",
-      "name": "Calle Johansson",
-      "position": "DEF",
+      "name": "Douglas Luiz",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_8",
-      "name": "Radovan Pankov",
-      "position": "DEF",
+      "name": "Khéphren Thuram",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_9",
-      "name": "Marko Livaja",
-      "position": "DEF",
+      "name": "Teun Koopmeiners",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_10",
-      "name": "Emanuela Pfister",
-      "position": "DEF",
+      "name": "Dušan Vlahović",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_11",
-      "name": "Idrissa Gueye",
-      "position": "DEF",
+      "name": "Kenan Yıldız",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_12",
-      "name": "Osman Minatulayev",
+      "name": "Timothy Weah",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_13",
-      "name": "Þórir Jóhann Helgason",
-      "position": "MID",
+      "name": "Nico González",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_14",
-      "name": "Leon Borković",
-      "position": "MID",
+      "name": "Francisco Conceição",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_15",
-      "name": "Josip Posavec",
-      "position": "MID",
+      "name": "Pierre Kalulu",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_16",
-      "name": "Alen Grgić",
-      "position": "MID",
+      "name": "Mattia Perin",
+      "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_17",
-      "name": "Derrick Köhn",
+      "name": "Nicolò Fagioli",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_18",
-      "name": "Ryan Manning",
+      "name": "Weston McKennie",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_19",
-      "name": "Jonathan Tah",
-      "position": "MID",
+      "name": "Yassine Benhattab",
+      "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_20",
-      "name": "Aleksandr Lomovitsky",
-      "position": "ATT",
+      "name": "Andriy Matkevych",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_21",
-      "name": "Yevgeny Lukinykh",
-      "position": "ATT",
+      "name": "Daniil Odoyevsky",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_22",
-      "name": "Nikolai Sysuyev",
-      "position": "ATT",
+      "name": "Daniel Luna",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_23",
-      "name": "Bara Sapoko Ndiaye",
-      "position": "ATT",
+      "name": "Nikita Yermakov",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_24",
-      "name": "Valerio Cinti",
+      "name": "Karlo Išasegi",
       "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "juventus_r_25",
-      "name": "Yoann Cathline",
+      "name": "Valentim Sousa",
       "position": "ATT",
       "nationality": "Real"
     }
@@ -12162,152 +12162,152 @@
   "napoli": [
     {
       "id": "napoli_r_1",
-      "name": "Maksym Zaderaka",
+      "name": "Alex Meret",
       "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_2",
-      "name": "Tim Skarke",
-      "position": "GK",
+      "name": "Alessandro Buongiorno",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_3",
-      "name": "Ismaïl Bouneb",
-      "position": "GK",
+      "name": "Amir Rrahmani",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_4",
-      "name": "Filippo Rinaldi",
+      "name": "Giovanni Di Lorenzo",
       "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_5",
-      "name": "Daniele Ghilardi",
+      "name": "Mathías Olivera",
       "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_6",
-      "name": "Tommaso Mancini",
-      "position": "DEF",
+      "name": "Stanislav Lobotka",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_7",
-      "name": "Stanislav Oleynik",
-      "position": "DEF",
+      "name": "André-Frank Zambo Anguissa",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_8",
-      "name": "Amer Gojak",
-      "position": "DEF",
+      "name": "Scott McTominay",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_9",
-      "name": "Federico Zuccon",
-      "position": "DEF",
+      "name": "Khvicha Kvaratskhelia",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_10",
-      "name": "Kevin Jendrzej",
-      "position": "DEF",
+      "name": "Romelu Lukaku",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_11",
-      "name": "Mick Schmetgens",
-      "position": "DEF",
+      "name": "David Neres",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_12",
-      "name": "Cosimo Fiorini",
+      "name": "Billy Gilmour",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_13",
-      "name": "Mohamed Amoura",
-      "position": "MID",
+      "name": "Giacomo Raspadori",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_14",
-      "name": "Fran García",
-      "position": "MID",
+      "name": "Matteo Politano",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_15",
-      "name": "Sebastián Figueredo",
-      "position": "MID",
+      "name": "Leonardo Spinazzola",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_16",
-      "name": "Vyacheslav Tankovskyi",
-      "position": "MID",
+      "name": "Rafa Marín",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_17",
-      "name": "Denis Titow",
-      "position": "MID",
+      "name": "Pasquale Mazzocchi",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_18",
-      "name": "Nikita Kokarev",
-      "position": "MID",
+      "name": "Cyril Ngonge",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_19",
-      "name": "Gianluca Rossi",
-      "position": "MID",
+      "name": "Marvin Peersman",
+      "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_20",
-      "name": "Mattia Bottani",
-      "position": "ATT",
+      "name": "Neil El Aynaoui",
+      "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_21",
-      "name": "Kristijan Bistrović",
-      "position": "ATT",
+      "name": "Ayman Belgadi",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_22",
-      "name": "Dan Bentley",
-      "position": "ATT",
+      "name": "Villum Dalsgaard",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_23",
-      "name": "Leon Flach",
-      "position": "ATT",
+      "name": "Gezim Pepsi",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_24",
-      "name": "Mateusz Stępień",
-      "position": "ATT",
+      "name": "Giovane",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "napoli_r_25",
-      "name": "Jivayno Zinhagel",
-      "position": "ATT",
+      "name": "Dani Ceballos",
+      "position": "MID",
       "nationality": "Real"
     }
   ],
@@ -12466,151 +12466,151 @@
   "roma": [
     {
       "id": "roma_r_1",
-      "name": "Jesús Imaz",
+      "name": "Mile Svilar",
       "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "roma_r_2",
-      "name": "Ronaël Pierre-Gabriel",
-      "position": "GK",
+      "name": "Gianluca Mancini",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "roma_r_3",
-      "name": "Virgil Misidjan",
-      "position": "GK",
+      "name": "Evan Ndicka",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "roma_r_4",
-      "name": "Giuseppe Brugognone",
+      "name": "Mats Hummels",
       "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "roma_r_5",
-      "name": "Scott Banks",
+      "name": "Zeki Çelik",
       "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "roma_r_6",
-      "name": "Graham Ankamafio",
+      "name": "Angeliño",
       "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "roma_r_7",
-      "name": "Ebenezer Akinsanmiro",
-      "position": "DEF",
+      "name": "Bryan Cristante",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "roma_r_8",
-      "name": "Israel Salazar",
-      "position": "DEF",
+      "name": "Lorenzo Pellegrini",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "roma_r_9",
-      "name": "Artur Mykytyshyn",
-      "position": "DEF",
+      "name": "Manu Koné",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "roma_r_10",
-      "name": "Joey Veerman",
-      "position": "DEF",
+      "name": "Paulo Dybala",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "roma_r_11",
-      "name": "Leonardo Di Tommaso",
-      "position": "DEF",
+      "name": "Artem Dovbyk",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "roma_r_12",
-      "name": "Nathan Wood",
-      "position": "MID",
+      "name": "Matías Soulé",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "roma_r_13",
-      "name": "Max Herrmann",
-      "position": "MID",
+      "name": "Stephan El Shaarawy",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "roma_r_14",
-      "name": "Filip Bošnjak",
+      "name": "Leandro Paredes",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "roma_r_15",
-      "name": "Thomas Isherwood",
-      "position": "MID",
+      "name": "Mario Hermoso",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "roma_r_16",
-      "name": "Theodoros Delianidis",
+      "name": "Enzo Le Fée",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "roma_r_17",
-      "name": "João Aurélio",
+      "name": "Alexis Saelemaekers",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "roma_r_18",
-      "name": "Rafa Soares",
+      "name": "Tommaso Baldanzi",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "roma_r_19",
-      "name": "Sodiq Lawal",
-      "position": "MID",
+      "name": "Luka Topalović",
+      "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "roma_r_20",
-      "name": "Konrad Jałocha",
-      "position": "ATT",
+      "name": "Moussa Sissako",
+      "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "roma_r_21",
-      "name": "Mateus Sarará",
-      "position": "ATT",
+      "name": "Frank Onyeka",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "roma_r_22",
-      "name": "Florian Müller",
-      "position": "ATT",
+      "name": "Veljko Žurić",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "roma_r_23",
-      "name": "Oliver Berg",
-      "position": "ATT",
+      "name": "Dylan Vente",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "roma_r_24",
-      "name": "Luka Vrzić",
+      "name": "João Gomes",
       "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "roma_r_25",
-      "name": "Niklas Beste",
+      "name": "Iván Márquez",
       "position": "ATT",
       "nationality": "Real"
     }
@@ -14746,303 +14746,303 @@
   "bayern": [
     {
       "id": "bayern_r_1",
-      "name": "Antony",
-      "position": "GK",
+      "name": "Harry Kane",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_2",
-      "name": "Jorge Meireles",
-      "position": "GK",
+      "name": "Jamal Musiala",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_3",
-      "name": "Niko Galešić",
-      "position": "GK",
+      "name": "Leroy Sané",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_4",
-      "name": "Melvin Zinga",
-      "position": "DEF",
+      "name": "Joshua Kimmich",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_5",
-      "name": "Job Kalisvaart",
-      "position": "DEF",
+      "name": "Manuel Neuer",
+      "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_6",
-      "name": "Yáser Asprilla",
+      "name": "Alphonso Davies",
       "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_7",
-      "name": "Ank Asmussen",
+      "name": "Dayot Upamecano",
       "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_8",
-      "name": "Uroš Sremčević",
+      "name": "Kim Min-jae",
       "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_9",
-      "name": "Stefan Bastaja",
-      "position": "DEF",
+      "name": "Leon Goretzka",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_10",
-      "name": "Nikola Čejović",
-      "position": "DEF",
+      "name": "Serge Gnabry",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_11",
-      "name": "Tomás Verón Lupi",
-      "position": "DEF",
+      "name": "Kingsley Coman",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_12",
-      "name": "Saulo Decarli",
+      "name": "João Palhinha",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_13",
-      "name": "Leonardo Spinazzola",
-      "position": "MID",
+      "name": "Michael Olise",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_14",
-      "name": "Alessandro Bastoni",
-      "position": "MID",
+      "name": "Thomas Müller",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_15",
-      "name": "Fisnik Asllani",
-      "position": "MID",
+      "name": "Sven Ulreich",
+      "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_16",
-      "name": "Jakub Adkonis",
-      "position": "MID",
+      "name": "Raphaël Guerreiro",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_17",
-      "name": "Rémy Cabella",
-      "position": "MID",
+      "name": "Eric Dier",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_18",
-      "name": "Salifou Soumah",
+      "name": "Aleksandar Pavlović",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_19",
-      "name": "Ester Sokler",
+      "name": "Konrad Laimer",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_20",
-      "name": "Jacques Siwe",
-      "position": "ATT",
+      "name": "Sacha Boey",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_21",
-      "name": "William Gomes",
+      "name": "Mathys Tel",
       "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_22",
-      "name": "Pablo Rodríguez",
-      "position": "ATT",
+      "name": "Shalom Ekong",
+      "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_23",
-      "name": "Amine Harit",
-      "position": "ATT",
+      "name": "Gael Batadikio",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_24",
-      "name": "Oussenyou Sene",
-      "position": "ATT",
+      "name": "Nicolas Kühn",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "bayern_r_25",
-      "name": "Jordan James",
-      "position": "ATT",
+      "name": "Kyllian Antonio",
+      "position": "MID",
       "nationality": "Real"
     }
   ],
   "leverkusen": [
     {
       "id": "leverkusen_r_1",
-      "name": "Dominik Szala",
+      "name": "Lukas Hradecky",
       "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_2",
-      "name": "Luka Stankovski",
-      "position": "GK",
+      "name": "Jonathan Tah",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_3",
-      "name": "Adrián Liso",
-      "position": "GK",
+      "name": "Edmond Tapsoba",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_4",
-      "name": "Niels Martens",
+      "name": "Piero Hincapié",
       "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_5",
-      "name": "Gianluca Prestianni",
+      "name": "Jeremie Frimpong",
       "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_6",
-      "name": "Aleksander Paluszek",
+      "name": "Alejandro Grimaldo",
       "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_7",
-      "name": "Yury Koledin",
-      "position": "DEF",
+      "name": "Granit Xhaka",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_8",
-      "name": "Kevin Höög Jansson",
-      "position": "DEF",
+      "name": "Exequiel Palacios",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_9",
-      "name": "Rafa Mir",
-      "position": "DEF",
+      "name": "Florian Wirtz",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_10",
-      "name": "Leonardo Buta",
-      "position": "DEF",
+      "name": "Victor Boniface",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_11",
-      "name": "Daniele Sommariva",
-      "position": "DEF",
+      "name": "Patrik Schick",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_12",
-      "name": "Talles Costa",
+      "name": "Robert Andrich",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_13",
-      "name": "Gennaro Wijks",
-      "position": "MID",
+      "name": "Martin Terrier",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_14",
-      "name": "Ben Brereton Díaz",
+      "name": "Aleix García",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_15",
-      "name": "Hubert Matynia",
-      "position": "MID",
+      "name": "Nordi Mukiele",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_16",
-      "name": "Jon Gorrotxategi",
-      "position": "MID",
+      "name": "Amine Adli",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_17",
-      "name": "Federico Dimarco",
+      "name": "Nathan Tella",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_18",
-      "name": "João Oliveira",
-      "position": "MID",
+      "name": "Matej Kovar",
+      "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_19",
-      "name": "Yannick Gerritsen",
-      "position": "MID",
+      "name": "Sindre Walle Egeli",
+      "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_20",
-      "name": "Slobodan Rubežić",
-      "position": "ATT",
+      "name": "Vincenzo Grifo",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_21",
-      "name": "Paweł Cibicki",
-      "position": "ATT",
+      "name": "Peter Federico",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_22",
-      "name": "Orel Mangala",
-      "position": "ATT",
+      "name": "Djibril Sow",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_23",
-      "name": "Aïmen Moueffek",
-      "position": "ATT",
+      "name": "Piotr Chrapusta",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_24",
-      "name": "Reynaldiño Verley",
+      "name": "Tristan Schenkhuizen",
       "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "leverkusen_r_25",
-      "name": "Mamadou Sawané",
+      "name": "Albin Krasniqi",
       "position": "ATT",
       "nationality": "Real"
     }
@@ -15050,151 +15050,151 @@
   "dortmund": [
     {
       "id": "dortmund_r_1",
-      "name": "Umar Sadiq",
+      "name": "Gregor Kobel",
       "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "dortmund_r_2",
-      "name": "Kyrie Pierre",
-      "position": "GK",
+      "name": "Nico Schlotterbeck",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "dortmund_r_3",
-      "name": "Mateusz Bąk",
-      "position": "GK",
+      "name": "Waldemar Anton",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "dortmund_r_4",
-      "name": "Rasmus Højlund",
+      "name": "Julian Ryerson",
       "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "dortmund_r_5",
-      "name": "Lorenzo Amatucci",
+      "name": "Ramy Bensebaini",
       "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "dortmund_r_6",
-      "name": "Aleksandr Kutitsky",
-      "position": "DEF",
+      "name": "Emre Can",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "dortmund_r_7",
-      "name": "Cyriaque Irié",
-      "position": "DEF",
+      "name": "Marcel Sabitzer",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "dortmund_r_8",
-      "name": "Élysée Logbo",
-      "position": "DEF",
+      "name": "Pascal Groß",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "dortmund_r_9",
-      "name": "Nikola Leković",
-      "position": "DEF",
-      "nationality": "Real"
-    },
-    {
-      "id": "dortmund_r_10",
-      "name": "Galymzhan Kenzhebek",
-      "position": "DEF",
-      "nationality": "Real"
-    },
-    {
-      "id": "dortmund_r_11",
-      "name": "Yannick Agnero",
-      "position": "DEF",
-      "nationality": "Real"
-    },
-    {
-      "id": "dortmund_r_12",
-      "name": "Andrin Ulli",
-      "position": "MID",
-      "nationality": "Real"
-    },
-    {
-      "id": "dortmund_r_13",
-      "name": "Benjamin Kololli",
-      "position": "MID",
-      "nationality": "Real"
-    },
-    {
-      "id": "dortmund_r_14",
-      "name": "Marcus Baggesen",
-      "position": "MID",
-      "nationality": "Real"
-    },
-    {
-      "id": "dortmund_r_15",
-      "name": "Marvin Peersman",
-      "position": "MID",
-      "nationality": "Real"
-    },
-    {
-      "id": "dortmund_r_16",
-      "name": "Etrit Berisha",
-      "position": "MID",
-      "nationality": "Real"
-    },
-    {
-      "id": "dortmund_r_17",
-      "name": "Marco Román",
-      "position": "MID",
-      "nationality": "Real"
-    },
-    {
-      "id": "dortmund_r_18",
-      "name": "Viggo Guit",
-      "position": "MID",
-      "nationality": "Real"
-    },
-    {
-      "id": "dortmund_r_19",
       "name": "Julian Brandt",
       "position": "MID",
       "nationality": "Real"
     },
     {
-      "id": "dortmund_r_20",
-      "name": "Victor Andersson",
+      "id": "dortmund_r_10",
+      "name": "Donyell Malen",
       "position": "ATT",
+      "nationality": "Real"
+    },
+    {
+      "id": "dortmund_r_11",
+      "name": "Karim Adeyemi",
+      "position": "ATT",
+      "nationality": "Real"
+    },
+    {
+      "id": "dortmund_r_12",
+      "name": "Serhou Guirassy",
+      "position": "ATT",
+      "nationality": "Real"
+    },
+    {
+      "id": "dortmund_r_13",
+      "name": "Maximilian Beier",
+      "position": "ATT",
+      "nationality": "Real"
+    },
+    {
+      "id": "dortmund_r_14",
+      "name": "Jamie Bynoe-Gittens",
+      "position": "ATT",
+      "nationality": "Real"
+    },
+    {
+      "id": "dortmund_r_15",
+      "name": "Yan Couto",
+      "position": "DEF",
+      "nationality": "Real"
+    },
+    {
+      "id": "dortmund_r_16",
+      "name": "Alexander Meyer",
+      "position": "GK",
+      "nationality": "Real"
+    },
+    {
+      "id": "dortmund_r_17",
+      "name": "Felix Nmecha",
+      "position": "MID",
+      "nationality": "Real"
+    },
+    {
+      "id": "dortmund_r_18",
+      "name": "Giovanni Reyna",
+      "position": "MID",
+      "nationality": "Real"
+    },
+    {
+      "id": "dortmund_r_19",
+      "name": "Abakar Gadzhiyev",
+      "position": "GK",
+      "nationality": "Real"
+    },
+    {
+      "id": "dortmund_r_20",
+      "name": "Carles Aleñá",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "dortmund_r_21",
-      "name": "Mohamed Soumah",
-      "position": "ATT",
+      "name": "David Vujević",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "dortmund_r_22",
-      "name": "Candas Fiogbé",
-      "position": "ATT",
+      "name": "Raffaele Huli",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "dortmund_r_23",
-      "name": "Nikita Saltykov",
-      "position": "ATT",
+      "name": "Petar Maslovarić",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "dortmund_r_24",
-      "name": "Cenğizhan Koç",
-      "position": "ATT",
+      "name": "Aaron Hickey",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "dortmund_r_25",
-      "name": "Javier Boñar",
+      "name": "Konstantinos Koulierakis",
       "position": "ATT",
       "nationality": "Real"
     }
@@ -15202,151 +15202,151 @@
   "leipzig": [
     {
       "id": "leipzig_r_1",
-      "name": "Antoine Joujou",
+      "name": "Péter Gulácsi",
       "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_2",
-      "name": "Samuel Marques",
-      "position": "GK",
+      "name": "Willi Orbán",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_3",
-      "name": "Anders Bergholt",
-      "position": "GK",
+      "name": "Castello Lukeba",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_4",
-      "name": "Tomás Vaz Silva",
+      "name": "David Raum",
       "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_5",
-      "name": "Otávio",
+      "name": "Benjamin Henrichs",
       "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_6",
-      "name": "Robert Prosinečki",
-      "position": "DEF",
+      "name": "Xaver Schlager",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_7",
-      "name": "Christian Tcacenco",
-      "position": "DEF",
+      "name": "Amadou Haidara",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_8",
-      "name": "Dmytro Bezkleynyi",
-      "position": "DEF",
+      "name": "Xavi Simons",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_9",
-      "name": "Antonio Jakoliš",
-      "position": "DEF",
+      "name": "Christoph Baumgartner",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_10",
-      "name": "Leon Bošnjak",
-      "position": "DEF",
+      "name": "Loïs Openda",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_11",
-      "name": "Ricardo Mangas",
-      "position": "DEF",
+      "name": "Benjamin Šeško",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_12",
-      "name": "Ali Al-Najar",
+      "name": "Arthur Vermeeren",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_13",
-      "name": "Exequiel Palacios",
-      "position": "MID",
+      "name": "Lutsharel Geertruida",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_14",
-      "name": "Yoram van der Veen",
-      "position": "MID",
+      "name": "Antonio Nusa",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_15",
-      "name": "Andrea Ghion",
+      "name": "Kevin Kampl",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_16",
-      "name": "Ennio van der Gouw",
-      "position": "MID",
+      "name": "Yussuf Poulsen",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_17",
-      "name": "Cyle Larin",
+      "name": "Eljif Elmas",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_18",
-      "name": "Lovre Kulušić",
+      "name": "Nicolas Seiwald",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_19",
-      "name": "Stanislav Lobotka",
-      "position": "MID",
+      "name": "Cláudio Ramos",
+      "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_20",
-      "name": "Mika Godts",
-      "position": "ATT",
+      "name": "Marko Milošević",
+      "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_21",
-      "name": "Simon Gefvert",
-      "position": "ATT",
+      "name": "Mathys Niflore",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_22",
-      "name": "Boulaye Dia",
-      "position": "ATT",
+      "name": "Włodzimierz Smolarek",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_23",
-      "name": "Benjamin Fredrick",
-      "position": "ATT",
+      "name": "Emil Holm",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_24",
-      "name": "Jeremy Arévalo",
+      "name": "Joselillo Gaitán",
       "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "leipzig_r_25",
-      "name": "Iwo Kaczmarski",
+      "name": "Sabil Hansen",
       "position": "ATT",
       "nationality": "Real"
     }
@@ -17482,151 +17482,151 @@
   "psg": [
     {
       "id": "psg_r_1",
-      "name": "Jordan Teze",
+      "name": "Gianluigi Donnarumma",
       "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "psg_r_2",
-      "name": "José Ángel López",
-      "position": "GK",
+      "name": "Marquinhos",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "psg_r_3",
-      "name": "Dmitri Chistyakov",
-      "position": "GK",
+      "name": "Achraf Hakimi",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "psg_r_4",
-      "name": "Brahim Traoré",
+      "name": "Nuno Mendes",
       "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "psg_r_5",
-      "name": "Tobias Slotsager",
+      "name": "Lucas Beraldo",
       "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "psg_r_6",
-      "name": "Ainsley Maitland-Niles",
-      "position": "DEF",
+      "name": "Vitinha",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "psg_r_7",
-      "name": "Constantinos Soteriou",
-      "position": "DEF",
+      "name": "Warren Zaïre-Emery",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "psg_r_8",
-      "name": "David Spinelli",
-      "position": "DEF",
+      "name": "Fabián Ruiz",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "psg_r_9",
-      "name": "Amine El Ouazzani",
-      "position": "DEF",
+      "name": "Ousmane Dembélé",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "psg_r_10",
-      "name": "Raúl Asencio",
-      "position": "DEF",
+      "name": "Bradley Barcola",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "psg_r_11",
-      "name": "Stefán Ingi Sigurdarson",
-      "position": "DEF",
+      "name": "Gonçalo Ramos",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "psg_r_12",
-      "name": "Ricard Sánchez",
-      "position": "MID",
+      "name": "Randal Kolo Muani",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "psg_r_13",
-      "name": "Devis Vásquez",
-      "position": "MID",
+      "name": "Matvey Safonov",
+      "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "psg_r_14",
-      "name": "Oumar Solet",
-      "position": "MID",
+      "name": "Lucas Hernández",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "psg_r_15",
-      "name": "Alessio Furlanetto",
-      "position": "MID",
+      "name": "Milan Škriniar",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "psg_r_16",
-      "name": "Omar Janneh",
+      "name": "Lee Kang-in",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "psg_r_17",
-      "name": "Francisco Baridó",
-      "position": "MID",
+      "name": "Marco Asensio",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "psg_r_18",
-      "name": "Andrej Ilić",
+      "name": "João Neves",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "psg_r_19",
-      "name": "Víctor Meseguer",
-      "position": "MID",
+      "name": "Diego Ferrer",
+      "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "psg_r_20",
-      "name": "Simon Adingra",
-      "position": "ATT",
+      "name": "Philip Billing",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "psg_r_21",
-      "name": "Pelle Clement",
-      "position": "ATT",
+      "name": "Uroš Tegeltija",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "psg_r_22",
-      "name": "Keinan Davis",
-      "position": "ATT",
+      "name": "Melker Hallberg",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "psg_r_23",
-      "name": "Robin Mantel",
-      "position": "ATT",
+      "name": "Lorenzo Anghelè",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "psg_r_24",
-      "name": "Julio Díaz",
-      "position": "ATT",
+      "name": "Zico Buurmeester",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "psg_r_25",
-      "name": "Bartosz Żelazowski",
+      "name": "Douglas Santos",
       "position": "ATT",
       "nationality": "Real"
     }
@@ -17634,151 +17634,151 @@
   "monaco": [
     {
       "id": "monaco_r_1",
-      "name": "Karl Wendt",
+      "name": "Philipp Köhn",
       "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_2",
-      "name": "Carlos de Roa",
-      "position": "GK",
+      "name": "Thilo Kehrer",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_3",
-      "name": "Aleksey Batrakov",
-      "position": "GK",
+      "name": "Mohammed Salisu",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_4",
-      "name": "Lenny Borges",
+      "name": "Vanderson",
       "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_5",
-      "name": "Luigi Mišević",
+      "name": "Caio Henrique",
       "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_6",
-      "name": "Cameron Archer",
-      "position": "DEF",
+      "name": "Denis Zakaria",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_7",
-      "name": "Jeanuël Belocian",
-      "position": "DEF",
+      "name": "Lamine Camara",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_8",
-      "name": "Ben Engdahl",
-      "position": "DEF",
+      "name": "Aleksandr Golovin",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_9",
-      "name": "Imran Firov",
-      "position": "DEF",
+      "name": "Takumi Minamino",
+      "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_10",
-      "name": "Gabriel Busanello",
-      "position": "DEF",
+      "name": "Folarin Balogun",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_11",
-      "name": "Gerard Martín",
-      "position": "DEF",
+      "name": "Breel Embolo",
+      "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_12",
-      "name": "Joël Drommel",
+      "name": "Eliesse Ben Seghir",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_13",
-      "name": "Noémie Potier",
+      "name": "Maghnes Akliouche",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_14",
-      "name": "Malte Persson",
-      "position": "MID",
+      "name": "Christian Mawissa",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_15",
-      "name": "Nikolay Barovskiy",
-      "position": "MID",
+      "name": "Jordan Teze",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_16",
-      "name": "Magnus Knudsen",
-      "position": "MID",
+      "name": "Wilfried Singo",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_17",
-      "name": "Abdoulaye Camara",
+      "name": "Soungoutou Magassa",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_18",
-      "name": "Lukas Görtler",
+      "name": "Krépin Diatta",
       "position": "MID",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_19",
-      "name": "Nicholas Oyekunle",
-      "position": "MID",
+      "name": "Xavi Moreno",
+      "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_20",
-      "name": "Aral Şimşir",
-      "position": "ATT",
+      "name": "Yaroslav Kysil",
+      "position": "GK",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_21",
-      "name": "Niklas Dorsch",
-      "position": "ATT",
+      "name": "Filip Krovinović",
+      "position": "DEF",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_22",
-      "name": "Grzegorz Tomasiewicz",
+      "name": "Josias Lukembila",
       "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_23",
-      "name": "Julián Malatini",
+      "name": "Salis Abdul Samed",
       "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_24",
-      "name": "Kamil Grosicki",
+      "name": "Youssouph Badji",
       "position": "ATT",
       "nationality": "Real"
     },
     {
       "id": "monaco_r_25",
-      "name": "Antonio Kujundžić",
+      "name": "Michel Adopo",
       "position": "ATT",
       "nationality": "Real"
     }
@@ -37692,6 +37692,158 @@
       "id": "sibenik_r_25",
       "name": "Johan Mojica",
       "position": "ATT",
+      "nationality": "Real"
+    }
+  ],
+  "acmilan": [
+    {
+      "id": "acmilan_r_1",
+      "name": "Mike Maignan",
+      "position": "GK",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_2",
+      "name": "Theo Hernández",
+      "position": "DEF",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_3",
+      "name": "Fikayo Tomori",
+      "position": "DEF",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_4",
+      "name": "Malick Thiaw",
+      "position": "DEF",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_5",
+      "name": "Davide Calabria",
+      "position": "DEF",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_6",
+      "name": "Tijjani Reijnders",
+      "position": "MID",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_7",
+      "name": "Ismaël Bennacer",
+      "position": "MID",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_8",
+      "name": "Ruben Loftus-Cheek",
+      "position": "MID",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_9",
+      "name": "Rafael Leão",
+      "position": "ATT",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_10",
+      "name": "Christian Pulisic",
+      "position": "ATT",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_11",
+      "name": "Álvaro Morata",
+      "position": "ATT",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_12",
+      "name": "Youssouf Fofana",
+      "position": "MID",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_13",
+      "name": "Strahinja Pavlović",
+      "position": "DEF",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_14",
+      "name": "Samuel Chukwueze",
+      "position": "ATT",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_15",
+      "name": "Luka Jović",
+      "position": "ATT",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_16",
+      "name": "Emerson Royal",
+      "position": "DEF",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_17",
+      "name": "Noah Okafor",
+      "position": "ATT",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_18",
+      "name": "Matteo Gabbia",
+      "position": "DEF",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_19",
+      "name": "Fran Pérez",
+      "position": "GK",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_20",
+      "name": "Piotr Mroziński",
+      "position": "GK",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_21",
+      "name": "Michael Brouwer",
+      "position": "DEF",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_22",
+      "name": "Jošt Pišek",
+      "position": "MID",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_23",
+      "name": "Olivier Custodio",
+      "position": "MID",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_24",
+      "name": "Roberto Punčec",
+      "position": "MID",
+      "nationality": "Real"
+    },
+    {
+      "id": "acmilan_r_25",
+      "name": "Clément Michelin",
+      "position": "MID",
       "nationality": "Real"
     }
   ]
