@@ -640,27 +640,38 @@ export function generateSquadForClub(clubId: string, clubRep: number): Player[] 
 
   // Add the real players we fetched
   for (const preset of realPlayers) {
-    // Determine overall based on club reputation plus some randomness (clubRep is 1-100)
-    let baseAvg = 60;
-    if (clubRep >= 90) baseAvg = 85;
-    else if (clubRep >= 85) baseAvg = 82;
-    else if (clubRep >= 80) baseAvg = 78;
-    else if (clubRep >= 75) baseAvg = 75;
-    else if (clubRep >= 70) baseAvg = 72;
-    else baseAvg = 68;
-
-    // We generate a deterministic pseudo-random offset based on the player's name length so it stays consistent
+    // Generate a deterministic pseudo-random seed based on the player's name
     const nameSeed = preset.name.length + preset.name.charCodeAt(0) + preset.name.charCodeAt(preset.name.length - 1);
-    const variance = (nameSeed % 11) - 5; // -5 to +5
     
-    // Younger players in high rep clubs get lower OVR but high potential
+    // Determine squad status deterministically to create realistic squad distributions
+    const squadRoleRoll = nameSeed % 10;
+    
+    let baseOverall = clubRep - 5; // Default average
+    
+    if (squadRoleRoll === 0) {
+      // Star Player: Rating often exceeds or matches the club's raw reputation
+      baseOverall = clubRep + 1;
+    } else if (squadRoleRoll >= 1 && squadRoleRoll <= 4) {
+      // Key First Team
+      baseOverall = clubRep - 2;
+    } else if (squadRoleRoll >= 5 && squadRoleRoll <= 8) {
+      // Rotation Player
+      baseOverall = clubRep - 6;
+    } else {
+      // Fringe / Prospect
+      baseOverall = clubRep - 12;
+    }
+
     let age = preset.age || (18 + (nameSeed % 15));
+    
+    // Age curve logic: Players in their prime get a slight bump, youngsters/veterans get a penalty
     let ageAdjustment = 0;
-    if (age < 21) ageAdjustment = -4;
-    else if (age > 32) ageAdjustment = -2;
+    if (age < 20) ageAdjustment = -4;
+    else if (age >= 26 && age <= 29) ageAdjustment = +2;
+    else if (age > 33) ageAdjustment = -3;
 
     const override = TOP_PLAYER_OVERRIDES[preset.name];
-    let overall = override ? override.overall : Math.min(99, Math.max(50, baseAvg + variance + ageAdjustment));
+    let overall = override ? override.overall : Math.min(99, Math.max(50, baseOverall + ageAdjustment));
     const pos = preset.position as "GK" | "DEF" | "MID" | "ATT";
 
     // Potential
