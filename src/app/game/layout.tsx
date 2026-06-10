@@ -177,7 +177,7 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
       {/* ── DYNAMIC CONTENT AREA ── */}
       <main className="flex-1 overflow-y-auto p-4 md:p-8 relative z-10">
         {/* We rely on the layout wrapper to provide the full-bleed background set in globals.css */}
-        <div className="mx-auto w-full max-w-7xl h-full flex flex-col">
+        <div className="mx-auto w-full max-w-7xl min-h-full flex flex-col">
           {children}
         </div>
       </main>
