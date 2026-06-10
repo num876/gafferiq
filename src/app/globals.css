@@ -5,6 +5,17 @@
 @tailwind utilities;
 
 @layer base {
+  body {
+    @apply bg-[#0f172a] text-slate-100 antialiased overflow-x-hidden;
+    /* Hide scrollbars for a cleaner mobile app feel */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
+  body::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+  }
+
   :root {
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);

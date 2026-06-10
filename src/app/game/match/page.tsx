@@ -863,19 +863,19 @@ function MatchEngine({ activeSave, playerClub, fixture }: { activeSave: SaveStat
 
                 <p className="text-slate-400 text-sm">Choose how to play this match</p>
 
-                {/* Two CTA buttons */}
+                {/* CTA Buttons (Mobile First) */}
                 <div className="flex flex-col gap-3 w-full">
                   <button
-                    onClick={startMatch}
-                    className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-base uppercase tracking-widest shadow-[0_0_30px_rgba(34,197,94,0.3)] transition hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3"
+                    onClick={handleQuickSim}
+                    className="w-full py-5 rounded-3xl bg-[#f59e0b] hover:bg-[#d97706] text-slate-950 font-black text-xl uppercase tracking-widest shadow-[0_0_40px_rgba(245,158,11,0.4)] transition-transform active:scale-95 flex items-center justify-center gap-3"
                   >
-                    <Radio className="w-5 h-5" /> Play Match Live
+                    <Zap className="w-6 h-6 fill-current" /> Instant Result
                   </button>
                   <button
-                    onClick={handleQuickSim}
-                    className="w-full py-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-black text-base uppercase tracking-widest border border-slate-600 transition hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3"
+                    onClick={startMatch}
+                    className="w-full py-3 rounded-2xl bg-transparent hover:bg-white/5 text-slate-400 font-bold text-xs uppercase tracking-widest border border-white/10 transition-transform active:scale-95 flex items-center justify-center gap-2"
                   >
-                    <Zap className="w-5 h-5 text-amber-400" /> Quick Sim
+                    <Radio className="w-4 h-4" /> Watch Live Simulation
                   </button>
                 </div>
                 <p className="text-[10px] text-slate-600 uppercase tracking-wider">Matchday {activeSave.currentMatchday}</p>
