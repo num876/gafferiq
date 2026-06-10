@@ -277,7 +277,7 @@ export default function WelcomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {savesList.map((save) => {
               const playerClub = save.clubs.find(c => c.id === save.selectedClubId)!;
-              const league = LEAGUE_INFO[playerClub.league];
+              const league = LEAGUE_INFO[playerClub.league] || { emoji: '⚽', color: '#00E5FF' };
 
               return (
                 <div 

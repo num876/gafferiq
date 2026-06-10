@@ -18,7 +18,7 @@ export default function Dashboard() {
   if (!activeSave) return null;
 
   const playerClub = activeSave.clubs.find(c => c.id === activeSave.selectedClubId)!;
-  const league = LEAGUE_INFO[playerClub.league];
+  const league = LEAGUE_INFO[playerClub.league] || { emoji: '⚽', color: '#00E5FF' };
 
   // Current fixture
   const upcomingFixtures = activeSave.fixtures.filter(
