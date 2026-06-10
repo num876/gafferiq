@@ -297,7 +297,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           
           if (advancingTeams.length > 1) {
             let nextRound = "";
-            let nextMd = state.currentMatchday + 4;
+            const nextMd = state.currentMatchday + 4;
             if (advancingTeams.length === 8) nextRound = "Quarter Final";
             if (advancingTeams.length === 4) nextRound = "Semi Final";
             if (advancingTeams.length === 2) nextRound = "Final";

@@ -18,7 +18,7 @@ export default function Dashboard() {
   if (!activeSave) return null;
 
   const playerClub = activeSave.clubs.find(c => c.id === activeSave.selectedClubId)!;
-  const league = LEAGUE_INFO[playerClub.league];
+  const league = LEAGUE_INFO[playerClub.league] || { emoji: '⚽', color: '#00E5FF' };
 
   // Current fixture
   const upcomingFixtures = activeSave.fixtures.filter(
@@ -100,7 +100,7 @@ export default function Dashboard() {
       <div className="flex-1 flex flex-col gap-6 z-10">
         
         {/* Next Fixture Atmospheric Card */}
-        <div className="w-full rounded-2xl bg-[#0f1623] border border-[#1e2d40] overflow-hidden relative shadow-2xl">
+        <div className="w-full rounded-lg md:rounded-2xl bg-[#0f1623] border border-[#1e2d40] overflow-hidden relative shadow-2xl">
           {/* Background Gradient & Glow */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#080c14] via-[#0f1623] to-[#0a1118]" />
           {currentFixture && opponentClub && (
@@ -110,83 +110,83 @@ export default function Dashboard() {
             />
           )}
 
-          <div className="relative p-8 flex flex-col gap-8">
-            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-[#22c55e]">
-              <span className="flex items-center gap-2"><Trophy className="w-4 h-4" /> Next Fixture</span>
-              <span className="text-slate-400">Matchday {activeSave.currentMatchday}</span>
+          <div className="relative p-4 md:p-8 flex flex-col gap-4 md:gap-8">
+            <div className="flex items-center justify-between text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#22c55e]">
+              <span className="flex items-center gap-1.5 md:gap-2"><Trophy className="w-3 h-3 md:w-4 md:h-4" /> Next Fixture</span>
+              <span className="text-slate-400 text-[9px] md:text-xs">MD {activeSave.currentMatchday}</span>
             </div>
 
             {currentFixture && opponentClub ? (
-              <div className="flex items-center justify-between px-4 sm:px-12">
+              <div className="flex items-center justify-between px-2 md:px-12">
                 {/* Home Club */}
-                <div className="flex flex-col items-center gap-4 w-1/3">
-                  <div className="w-20 h-20 sm:w-28 sm:h-28 bg-[#080c14] rounded-2xl flex items-center justify-center border border-white/5 shadow-xl p-4">
+                <div className="flex flex-col items-center gap-2 md:gap-4 w-1/3">
+                  <div className="w-12 h-12 md:w-28 md:h-28 bg-[#080c14] rounded-lg md:rounded-2xl flex items-center justify-center border border-white/5 shadow-xl p-2 md:p-4">
                     {CLUB_LOGOS[currentFixture.homeClubId] ? (
                       <img src={CLUB_LOGOS[currentFixture.homeClubId]} alt="" className="w-full h-full object-contain" />
                     ) : (
-                      <span className="font-black text-4xl">{currentFixture.homeClubId.charAt(0)}</span>
+                      <span className="font-black text-2xl md:text-4xl">{currentFixture.homeClubId.charAt(0)}</span>
                     )}
                   </div>
-                  <span className="font-black text-lg text-white text-center">{currentFixture.homeClubId === playerClub.id ? playerClub.name : opponentClub.name}</span>
+                  <span className="font-black text-xs md:text-lg text-white text-center line-clamp-2">{currentFixture.homeClubId === playerClub.id ? playerClub.name : opponentClub.name}</span>
                 </div>
 
                 {/* VS */}
-                <div className="flex flex-col items-center justify-center w-1/3">
-                  <span className="text-3xl font-black text-slate-700 italic">VS</span>
-                  <div className="mt-4 flex gap-1">
+                <div className="flex flex-col items-center justify-center w-1/3 gap-2">
+                  <span className="text-lg md:text-3xl font-black text-slate-700 italic">VS</span>
+                  <div className="mt-1 md:mt-4 flex gap-1">
                     {/* Predicted Difficulty Stars */}
                     {Array.from({ length: 5 }).map((_, i) => {
                       const playerAvgOvr = activeSave.players.filter(p => p.clubId === playerClub.id).reduce((s, p, _, arr) => s + p.overall / arr.length, 0);
                       const oppAvgOvr = activeSave.players.filter(p => p.clubId === opponentClub.id).reduce((s, p, _, arr) => s + p.overall / arr.length, 0);
                       const diff = Math.min(5, Math.max(1, Math.round(((oppAvgOvr - playerAvgOvr) + 15) / 6) + 2));
-                      return <Star key={i} className={`w-4 h-4 ${i < diff ? 'text-[#f59e0b] fill-current' : 'text-slate-700'}`} />;
+                      return <Star key={i} className={`w-2.5 h-2.5 md:w-4 md:h-4 ${i < diff ? 'text-[#f59e0b] fill-current' : 'text-slate-700'}`} />;
                     })}
                   </div>
-                  <span className="text-[10px] text-slate-500 font-bold uppercase mt-1">Est. Difficulty</span>
+                  <span className="text-[8px] md:text-[10px] text-slate-500 font-bold uppercase mt-0.5 md:mt-1">Est. Difficulty</span>
                 </div>
 
                 {/* Away Club */}
-                <div className="flex flex-col items-center gap-4 w-1/3">
-                  <div className="w-20 h-20 sm:w-28 sm:h-28 bg-[#080c14] rounded-2xl flex items-center justify-center border border-white/5 shadow-xl p-4">
+                <div className="flex flex-col items-center gap-2 md:gap-4 w-1/3">
+                  <div className="w-12 h-12 md:w-28 md:h-28 bg-[#080c14] rounded-lg md:rounded-2xl flex items-center justify-center border border-white/5 shadow-xl p-2 md:p-4">
                     {CLUB_LOGOS[currentFixture.awayClubId] ? (
                       <img src={CLUB_LOGOS[currentFixture.awayClubId]} alt="" className="w-full h-full object-contain" />
                     ) : (
-                      <span className="font-black text-4xl">{currentFixture.awayClubId.charAt(0)}</span>
+                      <span className="font-black text-2xl md:text-4xl">{currentFixture.awayClubId.charAt(0)}</span>
                     )}
                   </div>
-                  <span className="font-black text-lg text-white text-center">{currentFixture.awayClubId === playerClub.id ? playerClub.name : opponentClub.name}</span>
+                  <span className="font-black text-xs md:text-lg text-white text-center line-clamp-2">{currentFixture.awayClubId === playerClub.id ? playerClub.name : opponentClub.name}</span>
                 </div>
               </div>
             ) : (
-              <div className="py-12 text-center text-slate-500 font-bold">End of Season</div>
+              <div className="py-8 md:py-12 text-center text-slate-500 font-bold text-sm">End of Season</div>
             )}
 
-            <div className="flex justify-center mt-4">
-              <Link href="/game/tactics" className="px-8 py-3 rounded-full bg-[#16a34a] hover:bg-[#15803d] text-white font-black text-sm uppercase tracking-wide flex items-center gap-2 shadow-[0_0_20px_rgba(22,163,74,0.3)] transition-transform active:scale-95">
-                Prepare Tactics <ArrowRight className="w-4 h-4" />
+            <div className="flex justify-center mt-2">
+              <Link href="/game/tactics" className="px-4 md:px-8 py-2 md:py-3 rounded-lg md:rounded-full bg-[#16a34a] hover:bg-[#15803d] text-white font-black text-xs md:text-sm uppercase tracking-wide flex items-center gap-1.5 md:gap-2 shadow-[0_0_20px_rgba(22,163,74,0.3)] transition-transform active:scale-95">
+                Prepare Tactics <ArrowRight className="w-3 h-3 md:w-4 md:h-4" />
               </Link>
             </div>
           </div>
         </div>
 
         {/* Form Guide & League Position & Squad Morale Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           
           {/* Form Guide */}
-          <div className="group rounded-3xl bg-slate-900/60 backdrop-blur-2xl border border-sky-500/20 p-6 shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex flex-col gap-4 relative overflow-hidden transition-all hover:border-sky-500/40">
+          <div className="group rounded-2xl md:rounded-3xl bg-slate-900/60 backdrop-blur-2xl border border-sky-500/20 p-4 md:p-6 shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex flex-col gap-3 md:gap-4 relative overflow-hidden transition-all hover:border-sky-500/40">
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-sky-500/10 blur-[50px] rounded-full group-hover:bg-sky-500/20 transition-all duration-700 pointer-events-none" />
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-              <Activity className="w-4 h-4 text-sky-400" /> Form Guide
+            <h3 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 md:gap-2">
+              <Activity className="w-3 h-3 md:w-4 md:h-4 text-sky-400" /> Form Guide
             </h3>
-            <div className="flex-1 flex items-center justify-center gap-3">
+            <div className="flex-1 flex items-center justify-center gap-2 md:gap-3">
               {recentFixtures.length === 0 ? (
-                <span className="text-slate-500 text-sm font-bold tracking-widest uppercase">No matches played</span>
+                <span className="text-slate-500 text-xs md:text-sm font-bold tracking-widest uppercase">No matches played</span>
               ) : (
                 recentFixtures.map((f, i) => {
                   const res = getResult(f);
                   const color = res === 'W' ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)]' : res === 'D' ? 'bg-slate-700 text-slate-300 border-slate-600' : 'bg-rose-500 text-white border-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.3)]';
                   return (
-                    <div key={i} className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm border ${color}`} title={f.homeScore !== null ? `${f.homeScore} - ${f.awayScore}` : ''}>
+                    <div key={i} className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-black text-xs md:text-sm border ${color}`} title={f.homeScore !== null ? `${f.homeScore} - ${f.awayScore}` : ''}>
                       {res}
                     </div>
                   );
@@ -194,9 +194,9 @@ export default function Dashboard() {
               )}
             </div>
             {recentFixtures.length > 0 && recentFixtures[0].stats && (
-              <div className="mt-2 text-center border-t border-white/5 pt-3">
-                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Last Match Analysis</div>
-                <div className="text-xs font-black text-white flex items-center justify-center gap-2">
+              <div className="mt-2 text-center border-t border-white/5 pt-2 md:pt-3">
+                <div className="text-[8px] md:text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5 md:mb-1">Last Match Analysis</div>
+                <div className="text-[10px] md:text-xs font-black text-white flex items-center justify-center gap-1 md:gap-2 flex-wrap">
                   <span>Score: {recentFixtures[0].homeScore}-{recentFixtures[0].awayScore}</span>
                   <span className="text-slate-600">|</span>
                   <span className="text-sky-400">xG: {recentFixtures[0].stats.xG?.home?.toFixed(2) || '0.00'} - {recentFixtures[0].stats.xG?.away?.toFixed(2) || '0.00'}</span>
@@ -206,30 +206,30 @@ export default function Dashboard() {
           </div>
 
           {/* Squad Morale */}
-          <div className="group rounded-3xl bg-slate-900/60 backdrop-blur-2xl border border-sky-500/20 p-6 shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex flex-col gap-4 relative overflow-hidden transition-all hover:border-sky-500/40">
+          <div className="group rounded-2xl md:rounded-3xl bg-slate-900/60 backdrop-blur-2xl border border-sky-500/20 p-4 md:p-6 shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex flex-col gap-3 md:gap-4 relative overflow-hidden transition-all hover:border-sky-500/40">
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-sky-500/10 blur-[50px] rounded-full group-hover:bg-sky-500/20 transition-all duration-700 pointer-events-none" />
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-              <Heart className={`w-4 h-4 ${moraleColor}`} /> Squad Morale
+            <h3 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 md:gap-2">
+              <Heart className={`w-3 h-3 md:w-4 md:h-4 ${moraleColor}`} /> Squad Morale
             </h3>
-            <div className="flex-1 flex items-center gap-5 relative z-10">
+            <div className="flex-1 flex items-center gap-3 md:gap-5 relative z-10">
               {/* Circular Gauge */}
-              <div className="relative w-20 h-20 shrink-0">
+              <div className="relative w-16 h-16 md:w-20 md:h-20 shrink-0">
                 <svg className="w-full h-full transform -rotate-90 filter drop-shadow-[0_0_8px_currentColor]" style={{ color: moraleColor }}>
                   <circle cx="40" cy="40" r="34" stroke="rgba(255,255,255,0.05)" strokeWidth="8" fill="transparent" />
                   <circle cx="40" cy="40" r="34" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray="213.6" strokeDashoffset={213.6 - (213.6 * avgMorale) / 100} className="transition-all duration-1000 ease-out" />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className={`text-xl font-black ${moraleColor}`}>{Math.round(avgMorale)}</span>
+                  <span className={`text-lg md:text-xl font-black ${moraleColor}`}>{Math.round(avgMorale)}</span>
                 </div>
               </div>
-              <p className="text-xs leading-relaxed text-slate-400 font-medium">
+              <p className="text-[10px] md:text-xs leading-relaxed text-slate-400 font-medium">
                 {moraleText}
               </p>
             </div>
           </div>
 
           {/* League Position Widget */}
-          <div className="group rounded-3xl bg-slate-900/60 backdrop-blur-2xl border border-sky-500/20 p-6 shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex flex-col gap-3 relative overflow-hidden transition-all hover:border-sky-500/40">
+          <div className="group rounded-2xl md:rounded-3xl bg-slate-900/60 backdrop-blur-2xl border border-sky-500/20 p-4 md:p-6 shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex flex-col gap-2 md:gap-3 relative overflow-hidden transition-all hover:border-sky-500/40">
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-sky-500/10 blur-[50px] rounded-full group-hover:bg-sky-500/20 transition-all duration-700 pointer-events-none" />
             <div className="flex justify-between items-center relative z-10">
               <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
