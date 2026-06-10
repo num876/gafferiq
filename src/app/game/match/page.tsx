@@ -271,6 +271,55 @@ function matchReducer(state: MatchState, action: Action): MatchState {
           const assister = pickPlayerByPosition(attStarters, ["MID", "DEF", "ATT"]);
           newState.activePlayerId = shooter.id;
 
+          const defStarters = homeIsAttacking ? awayStarters : homeStarters;
+          const foulRoll = Math.random();
+          if (foulRoll < 0.1) {
+             const defender = pickPlayerByPosition(defStarters, ["DEF", "MID"]);
+             if (Math.random() < 0.2) {
+               if (Math.random() < 0.05) {
+                  if (homeIsAttacking) newState.awayRedCards++; else newState.homeRedCards++;
+                  newState.events = [{
+                    minute: nextClock, type: "Red Card", clubId: homeIsAttacking ? "AWAY" : "HOME",
+                    playerName: defender.name, details: `Red Card! ${defender.name} is sent off for a reckless tackle!`
+                  }, ...newState.events];
+                  newState.commentaryFeed = [`🟥 ${nextClock}' — RED CARD! ${defender.name} has been sent off!`, ...newState.commentaryFeed].slice(0, 100);
+               } else {
+                  newState.events = [{
+                    minute: nextClock, type: "Yellow Card", clubId: homeIsAttacking ? "AWAY" : "HOME",
+                    playerName: defender.name, details: `Yellow Card for ${defender.name} after a late challenge.`
+                  }, ...newState.events];
+                  newState.commentaryFeed = [`🟨 ${nextClock}' — Yellow Card for ${defender.name}.`, ...newState.commentaryFeed].slice(0, 100);
+               }
+             }
+          }
+          
+          if (Math.random() < 0.015) {
+             const injured = pickPlayerByPosition(attStarters, ["MID", "ATT", "DEF"]);
+             newState.events = [{
+               minute: nextClock, type: "Injury", clubId: homeIsAttacking ? "HOME" : "AWAY",
+               playerName: injured.name, details: `${injured.name} has gone down with an injury.`
+             }, ...newState.events];
+             newState.commentaryFeed = [`🚑 ${nextClock}' — ${injured.name} is down injured. They might need a substitution.`, ...newState.commentaryFeed].slice(0, 100);
+          }
+
+          if (!newState.stats.xG) newState.stats.xG = { home: 0, away: 0 };
+          
+          if (Math.random() < 0.03) {
+             const takerName = (homeIsAttacking ? homeTactics : awayTactics)?.takers?.penalties;
+             const taker = attStarters.find(p => p.id === takerName) || shooter;
+             const penRoll = Math.random();
+             if (penRoll < 0.75) {
+                if (homeIsAttacking) { newState.homeScore++; newState.stats.xG.home += 0.79; } else { newState.awayScore++; newState.stats.xG.away += 0.79; }
+                newState.events = [{ minute: nextClock, type: "Penalty Goal", clubId: homeIsAttacking ? "HOME" : "AWAY", playerName: taker.name, details: "Penalty Goal!"}, ...newState.events];
+                newState.commentaryFeed = [`⚽ ${nextClock}' — PENALTY GOAL! ${taker.name} scores from the spot!`, ...newState.commentaryFeed].slice(0, 100);
+             } else {
+                if (homeIsAttacking) { newState.stats.xG.home += 0.79; } else { newState.stats.xG.away += 0.79; }
+                newState.events = [{ minute: nextClock, type: "Penalty Miss", clubId: homeIsAttacking ? "HOME" : "AWAY", playerName: taker.name, details: "Penalty Miss!"}, ...newState.events];
+                newState.commentaryFeed = [`❌ ${nextClock}' — PENALTY SAVED! ${taker.name} misses the penalty!`, ...newState.commentaryFeed].slice(0, 100);
+             }
+             return newState;
+          }
+
           const startX = homeIsAttacking ? 75 : 25;
           const endX = homeIsAttacking ? 100 : 0;
           const centerY = 50 + (Math.random() * 20 - 10);

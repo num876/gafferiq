@@ -466,15 +466,26 @@ export function computeTacticsRating(
     const role = roleName ? PLAYER_ROLES[roleName] : null;
     const duty = (tactics.playerDuties || {})[p.id] || "Support";
 
+    // Morale modifier (minor impact)
+    let moraleMod = 1.0;
+    if (p.morale < 50) moraleMod = 0.95; // 5% penalty
+    else if (p.morale > 80) moraleMod = 1.05; // 5% bonus
+
     // Attribute weights per role
-    const attBase = (p.shooting || p.overall) * 0.6 + (p.pace || p.overall) * 0.4;
-    const midBase = (p.passing || p.overall) * 0.6 + (p.dribbling || p.overall) * 0.4;
-    const defBase = (p.defending || p.overall) * 0.7 + (p.physical || p.overall) * 0.3;
+    const attBase = ((p.shooting || p.overall) * 0.6 + (p.pace || p.overall) * 0.4) * moraleMod;
+    const midBase = ((p.passing || p.overall) * 0.6 + (p.dribbling || p.overall) * 0.4) * moraleMod;
+    const defBase = ((p.defending || p.overall) * 0.7 + (p.physical || p.overall) * 0.3) * moraleMod;
+
+    // Out of position penalty
+    let outOfPosPenalty = 1.0;
+    if (role && !role.positions.includes(p.position)) {
+      outOfPosPenalty = 0.25; // 75% penalty for playing completely out of position
+    }
 
     // Role modifiers
-    const rAtt = role ? role.attackMod : (p.position === "ATT" ? 3 : p.position === "MID" ? 1 : 0);
-    const rMid = role ? role.midMod   : (p.position === "MID" ? 3 : 1);
-    const rDef = role ? role.defMod   : (p.position === "DEF" || p.position === "GK" ? 3 : p.position === "MID" ? 1 : 0);
+    const rAtt = (role ? role.attackMod : (p.position === "ATT" ? 3 : p.position === "MID" ? 1 : 0)) * outOfPosPenalty;
+    const rMid = (role ? role.midMod   : (p.position === "MID" ? 3 : 1)) * outOfPosPenalty;
+    const rDef = (role ? role.defMod   : (p.position === "DEF" || p.position === "GK" ? 3 : p.position === "MID" ? 1 : 0)) * outOfPosPenalty;
     const rFat = role ? role.fatigueMultiplier : 1.0;
 
     // Duty modifiers
@@ -563,10 +574,20 @@ export function simulateMatchHeuristic(
   let homeShots = 0, homeShotsOnTarget = 0, awayShots = 0, awayShotsOnTarget = 0;
   let homeXG = 0, awayXG = 0;
 
-  const attackMinutes: { minute: number; isHome: boolean }[] = [];
-  for (let i = 0; i < homeAttCount; i++) attackMinutes.push({ minute: Math.floor(Math.random() * 88) + 2, isHome: true });
-  for (let i = 0; i < awayAttCount; i++) attackMinutes.push({ minute: Math.floor(Math.random() * 88) + 2, isHome: false });
-  attackMinutes.sort((a, b) => a.minute - b.minute);
+  const timeline: { minute: number; isHome: boolean; type: "attack" | "sub" }[] = [];
+  for (let i = 0; i < homeAttCount; i++) timeline.push({ minute: Math.floor(Math.random() * 88) + 2, isHome: true, type: "attack" });
+  for (let i = 0; i < awayAttCount; i++) timeline.push({ minute: Math.floor(Math.random() * 88) + 2, isHome: false, type: "attack" });
+  
+  [60, 70, 80].forEach(m => {
+    timeline.push({ minute: m + Math.floor(Math.random() * 5), isHome: true, type: "sub" });
+    timeline.push({ minute: m + Math.floor(Math.random() * 5), isHome: false, type: "sub" });
+  });
+  timeline.sort((a, b) => a.minute - b.minute);
+
+  let homeSubsMade = 0;
+  let awaySubsMade = 0;
+  let homeRedCards = 0;
+  let awayRedCards = 0;
 
   const pickAttackingPlayer = (starters: Player[]) => {
     const atts = starters.filter(p => p.position === "ATT");
@@ -585,13 +606,53 @@ export function simulateMatchHeuristic(
     return candidates[Math.floor(Math.random() * candidates.length)] || null;
   };
 
-  for (const attack of attackMinutes) {
-    const { minute, isHome } = attack;
+  for (const item of timeline) {
+    const { minute, isHome, type } = item;
     const attackingClub = isHome ? homeClub : awayClub;
-    const attackingRating = isHome ? homeRating : awayRating;
-    const defendingRating = isHome ? awayRating : homeRating;
-    const attackingStarters = isHome ? homeStarters : awayStarters;
-    const defendingStarters = isHome ? awayStarters : homeStarters;
+    const defendingClub = isHome ? awayClub : homeClub;
+    let attackingStarters = isHome ? homeStarters : awayStarters;
+    let defendingStarters = isHome ? awayStarters : homeStarters;
+    const attackingSquad = isHome ? homeSquad : awaySquad;
+
+    if (type === "sub") {
+      const subsMade = isHome ? homeSubsMade : awaySubsMade;
+      if (subsMade < 3) {
+        // Pick a starter to take off (not GK for simplicity)
+        const candidates = attackingStarters.filter(p => p.position !== "GK");
+        if (candidates.length > 0) {
+          const off = candidates[Math.floor(Math.random() * candidates.length)];
+          const bench = attackingSquad.filter(p => !attackingStarters.some(s => s.id === p.id) && p.position === off.position);
+          if (bench.length > 0) {
+            const on = bench[Math.floor(Math.random() * bench.length)];
+            const index = attackingStarters.findIndex(p => p.id === off.id);
+            attackingStarters[index] = on;
+            if (isHome) homeSubsMade++; else awaySubsMade++;
+            events.push({
+              minute, type: "Substitution", clubId: attackingClub.id,
+              playerName: on.name, assistName: off.name,
+              details: `Substitution: ${on.name} replaces ${off.name}.`
+            });
+          }
+        }
+      }
+      continue;
+    }
+
+    // --- RECOMPUTE RATING FOR FATIGUE AND RED CARDS ---
+    const attackingRating = computeTacticsRating(attackingStarters, isHome ? homeTactics : awayTactics, isHome);
+    const defendingRating = computeTacticsRating(defendingStarters, !isHome ? homeTactics : awayTactics, !isHome);
+    
+    // Fatigue modifier
+    if (minute > 70) {
+      attackingRating.attack *= Math.max(0.5, (1 - (attackingRating.fatigueRate * 0.15)));
+      defendingRating.defense *= Math.max(0.5, (1 - (defendingRating.fatigueRate * 0.15)));
+    }
+    
+    // Red card modifier
+    const attackingReds = isHome ? homeRedCards : awayRedCards;
+    const defendingReds = isHome ? awayRedCards : homeRedCards;
+    attackingRating.attack *= Math.pow(0.85, attackingReds);
+    defendingRating.defense *= Math.pow(0.85, defendingReds);
 
     // Goal probability: attack vs defense ratio
     const ratio = attackingRating.attack / (attackingRating.attack + defendingRating.defense);
@@ -603,6 +664,56 @@ export function simulateMatchHeuristic(
     // Accumulate xG
     if (isHome) homeXG += goalProb + cornerBonus;
     else awayXG += goalProb + cornerBonus;
+
+    // Foul / Card / Injury Generation
+    if (Math.random() < 0.15) { // 15% chance per attack sequence
+      const defender = defendingStarters[Math.floor(Math.random() * defendingStarters.length)];
+      if (Math.random() < 0.2) { // 20% of fouls result in card
+        if (Math.random() < 0.05) { // 5% of cards are red
+           if (isHome) awayRedCards++; else homeRedCards++;
+           events.push({
+             minute, type: "Red Card", clubId: defendingClub.id,
+             playerName: defender.name,
+             details: `Red Card! ${defender.name} is sent off for a reckless tackle!`
+           });
+        } else {
+           events.push({
+             minute, type: "Yellow Card", clubId: defendingClub.id,
+             playerName: defender.name,
+             details: `Yellow Card for ${defender.name} after a late challenge.`
+           });
+        }
+      }
+    }
+
+    if (Math.random() < 0.02) { // 2% chance per attack sequence for injury
+      const injuredPlayer = attackingStarters[Math.floor(Math.random() * attackingStarters.length)];
+      events.push({
+        minute, type: "Injury", clubId: attackingClub.id,
+        playerName: injuredPlayer.name,
+        details: `${injuredPlayer.name} has gone down with an injury and may need to come off.`
+      });
+    }
+
+    // Penalty check
+    if (Math.random() < 0.03) { // 3% of attacks result in a penalty
+      const takerName = (isHome ? homeTactics : awayTactics).takers?.penalties;
+      const taker = attackingStarters.find(p => p.id === takerName) || pickAttackingPlayer(attackingStarters);
+      const penRoll = Math.random();
+      if (penRoll < 0.75) {
+        if (isHome) homeScore++; else awayScore++;
+        if (isHome) homeXG += 0.79; else awayXG += 0.79; // Penalties are roughly ~0.79 xG
+        events.push({
+           minute, type: "Penalty Goal", clubId: attackingClub.id, playerName: taker.name, details: `Penalty Goal! ${taker.name} sends the keeper the wrong way.`
+        });
+      } else {
+        if (isHome) homeXG += 0.79; else awayXG += 0.79;
+        events.push({
+           minute, type: "Penalty Miss", clubId: attackingClub.id, playerName: taker.name, details: `Penalty Miss! ${taker.name} fails to convert from the spot.`
+        });
+      }
+      continue; // Skip normal attack processing
+    }
 
     const roll = Math.random();
 

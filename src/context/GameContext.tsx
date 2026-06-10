@@ -616,6 +616,38 @@ We have reset the standings and scheduled the fixtures for Season ${state.curren
       // Run player development training ticks
       developPlayers(state);
 
+      // Decrease injury and suspension timers
+      state.players.forEach(p => {
+        if (p.injuryStatus === "Injured" && p.injuryDuration) {
+          p.injuryDuration--;
+          if (p.injuryDuration <= 0) {
+            p.injuryStatus = "Fit";
+            p.injuryDuration = 0;
+            if (p.clubId === state.selectedClubId) {
+              state.inbox.unshift({
+                id: `injury_recover_${p.id}_${state.currentMatchday}`,
+                sender: "Medical Team", subject: `Injury Update: ${p.name}`,
+                body: `${p.name} has recovered from their injury and is fit to play again.`, date: `Matchday ${state.currentMatchday}`, read: false, type: "board"
+              });
+            }
+          }
+        }
+        if (p.injuryStatus === "Suspended" && p.suspensionDuration) {
+          p.suspensionDuration--;
+          if (p.suspensionDuration <= 0) {
+            p.injuryStatus = "Fit";
+            p.suspensionDuration = 0;
+            if (p.clubId === state.selectedClubId) {
+              state.inbox.unshift({
+                id: `susp_recover_${p.id}_${state.currentMatchday}`,
+                sender: "Football Association", subject: `Suspension Served: ${p.name}`,
+                body: `${p.name} has served their suspension and is eligible for selection.`, date: `Matchday ${state.currentMatchday}`, read: false, type: "board"
+              });
+            }
+          }
+        }
+      });
+
       // Random event: Board review or Player moral complaints
       triggerRandomSaveEvent(state);
 
@@ -742,16 +774,14 @@ function updatePlayerStatsFromFixture(state: SaveState, fixture: MatchFixture, h
     const player = state.players.find(p => p.name === event.playerName && (p.clubId === fixture.homeClubId || p.clubId === fixture.awayClubId));
     
     if (player) {
-      if (event.type === "Goal") {
+      if (event.type === "Goal" || event.type === "Penalty Goal") {
         player.goals = (player.goals || 0) + 1;
-      } else if (event.type === "Injury") {
+      } else if (event.type === "Injury" && player.injuryStatus !== "Injured") {
         player.injuryStatus = "Injured";
-      }
-      
-      // We don't have explicit fields for yellow/red cards in the Player model yet, but we could add them.
-      // For now, if it's a Red Card, we set them to Suspended.
-      if (event.type === "Red Card") {
+        player.injuryDuration = Math.floor(Math.random() * 5) + 1;
+      } else if (event.type === "Red Card" && player.injuryStatus !== "Suspended") {
         player.injuryStatus = "Suspended";
+        player.suspensionDuration = Math.floor(Math.random() * 3) + 1;
       }
     }
 

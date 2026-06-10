@@ -64,6 +64,8 @@ export interface Player {
   personality: "Leader" | "Professional" | "Temperamental" | "Maverick" | "Model Citizen";
   contractExpiry: number; // remaining years (1-5)
   injuryStatus: "Fit" | "Injured" | "Suspended";
+  injuryDuration?: number; // Matchdays remaining
+  suspensionDuration?: number; // Matchdays remaining
   // Seasonal stats
   stats?: any; // For backward compatibility with some components
   appearances?: number;
